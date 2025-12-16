@@ -47,8 +47,8 @@
 }
 
 :root {
-  --primary-gradient: linear-gradient(135deg, #0DB2A6 0%, #047CB4 100%);
-  --success: oklch(66.51% 0.220 141.32);
+  --primary-gradient: linear-gradient(135deg, #0db2a6 0%, #047cb4 100%);
+  --success: oklch(66.51% 0.22 141.32);
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -133,6 +133,6 @@
   }
 
   .bg-success {
-    background: var(--success)
+    background: var(--success);
   }
 }
