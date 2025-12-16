@@ -1,4 +1,3 @@
-// eslint.config.mjs
 import { defineConfig, globalIgnores } from 'eslint/config';
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
@@ -6,18 +5,13 @@ import prettier from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
 
 const eslintConfig = defineConfig([
-  // ✅ Next.js recommended rules
   ...nextVitals,
   ...nextTs,
-
-  // ✅ Prettier compatibility
   prettier,
-
   {
     plugins: {
       prettier: prettierPlugin,
     },
-
     rules: {
       'prettier/prettier': 'error',
       'no-unused-vars': [
@@ -41,7 +35,6 @@ const eslintConfig = defineConfig([
         'error',
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
       ],
-
       'import/order': [
         'warn',
         {
