@@ -1,14 +1,14 @@
 'use client';
-import * as React from 'react';
-import { cn } from '@/shared/lib/utils';
 import { Eye, EyeOff, Search } from 'lucide-react';
+import * as React from 'react';
+
+import { cn } from '@/shared/lib/utils';
 
 interface InputProps extends React.ComponentProps<'input'> {
   label?: string;
-  labelFor?: string;
 }
 
-function Input({ className, label, labelFor, type, ...props }: InputProps) {
+function Input({ className, label, type, ...props }: InputProps) {
   const isPassword = type === 'password';
   const isSearch = type === 'search';
   const [visible, setVisible] = React.useState(false);
@@ -26,7 +26,7 @@ function Input({ className, label, labelFor, type, ...props }: InputProps) {
             className,
             'peer ease focus:border-accent-foreground w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm text-slate-700 shadow-sm transition duration-300 placeholder:text-slate-400 focus:shadow-none focus:outline-none',
             'h-9 rounded-md px-6 py-6 has-[>svg]:px-3',
-            isSearch && 'pl-8 rounded-xl',
+            isSearch && 'rounded-xl pl-8',
           )}
           {...props}
         />

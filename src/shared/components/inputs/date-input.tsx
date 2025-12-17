@@ -2,11 +2,12 @@
 
 import * as React from 'react';
 
+import { CalendarIcon } from '@/shared/assets/icons';
+
 import { Button } from '../button';
 import { Calendar } from '../calendar';
 import { Label } from '../label';
 import { Popover, PopoverContent, PopoverTrigger } from '../popover';
-import { CalendarIcon } from '@/shared/assets/icons';
 
 export function DateInput({ label }: { label?: string }) {
   const [open, setOpen] = React.useState(false);

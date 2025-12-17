@@ -50,7 +50,7 @@ export default function Home() {
         <Input label='Password' type='password' />
         <Input label='Search patients or requests' type='search' />
         <InputOTPControlled />
-        <div className='pt-6 w-full'>
+        <div className='w-full pt-6'>
           <DateInput label='Date of Birth' />
         </div>
       </main>

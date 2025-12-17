@@ -1,21 +1,21 @@
 'use client';
 
-import * as React from 'react';
 import { OTPInput, OTPInputContext } from 'input-otp';
 import { MinusIcon } from 'lucide-react';
+import * as React from 'react';
 
 import { cn } from '@/shared/lib/utils';
 
 export function InputOTPControlled() {
   const [value, setValue] = React.useState('');
   return (
-    <div className='space-y-2 flex justify-center content-center w-full'>
+    <div className='flex w-full content-center justify-center space-y-2'>
       <InputOTP
         maxLength={6}
         value={value}
         onChange={(value) => setValue(value)}
       >
-        <InputOTPGroup className='flex gap-9 justify-center content-center'>
+        <InputOTPGroup className='flex content-center justify-center gap-9'>
           <InputOTPSlot index={0} />
           <InputOTPSlot index={1} />
           <InputOTPSlot index={2} />
@@ -51,7 +51,7 @@ function InputOTPGroup({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot='input-otp-group'
-      className={cn('flex items-center w-full', className)}
+      className={cn('flex w-full items-center', className)}
       {...props}
     />
   );
