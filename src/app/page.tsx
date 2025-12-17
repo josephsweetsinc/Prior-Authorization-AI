@@ -1,3 +1,7 @@
+'use client';
+
+import { useState } from 'react';
+
 import {
   BellIcon,
   DenyIcon,
@@ -11,8 +15,17 @@ import {
   Input,
   InputOTPControlled,
 } from '@/shared/components';
+import { Select } from '@/shared/components/select';
 
 export default function Home() {
+  const [period, setPeriod] = useState('');
+
+  const periodOptions = [
+    { label: 'All Time', value: 'all' },
+    { label: 'Today', value: 'today' },
+    { label: 'Last 7 Days', value: '7d' },
+    { label: 'This Year', value: 'year' },
+  ];
   return (
     <div className='flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black'>
       <main className='flex min-h-screen w-full max-w-3xl flex-col items-center justify-center gap-4 bg-white px-16 py-32 sm:items-start dark:bg-black'>
@@ -53,6 +66,8 @@ export default function Home() {
         <div className='w-full pt-6'>
           <DateInput label='Date of Birth' />
         </div>
+
+        <Select options={periodOptions} value={period} onChange={setPeriod} />
       </main>
     </div>
   );
