@@ -21,13 +21,13 @@ const buttonVariants = cva(
         success:
           'bg-success w-full text-md font-light cursor-pointer text-primary-foreground hover:animate-pulse',
         ghost:
-          'hover:bg-accent text-md font-medium w-full hover:text-accent-foreground dark:hover:bg-accent/50',
+          'hover:bg-accent cursor-pointer text-md font-medium w-full hover:text-accent-foreground dark:hover:bg-accent/50',
       },
       size: {
         default: 'h-9 px-6 py-6 has-[>svg]:px-3 rounded-xl',
         sm: 'h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5',
         lg: 'h-10 rounded-md px-6 has-[>svg]:px-4',
-        icon: 'size-9',
+        icon: 'size-9 rounded-full shadow-sm',
         'icon-sm': 'size-8',
         'icon-lg': 'size-10',
       },
