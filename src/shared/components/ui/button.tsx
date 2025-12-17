@@ -12,7 +12,7 @@ const buttonVariants = cva(
           'border-1 w-full text-md font-medium text-primary cursor-pointer hover:bg-primary/2',
         'default-outlined':
           'border-1 border-primary w-full text-md font-medium text-primary cursor-pointer hover:bg-primary/2',
-          primary:
+        primary:
           'bg-primary-gradient w-full text-md font-light cursor-pointer text-primary-foreground hover:animate-pulse',
         destructive:
           'bg-destructive w-full text-md font-light cursor-pointer text-primary-foreground hover:animate-pulse ',
