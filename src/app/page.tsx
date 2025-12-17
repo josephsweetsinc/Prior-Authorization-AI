@@ -5,7 +5,12 @@ import {
   GoogleIcon,
   SuccessIcon,
 } from '@/shared/assets/icons';
-import { Button } from '@/shared/components/ui';
+import {
+  Button,
+  DateInput,
+  Input,
+  InputOTPControlled,
+} from '@/shared/components';
 
 export default function Home() {
   return (
@@ -40,6 +45,14 @@ export default function Home() {
         <Button variant={'ghost'} size={'default'}>
           Back
         </Button>
+
+        <Input label='Email' type='email' />
+        <Input label='Password' type='password' />
+        <Input label='Search patients or requests' type='search' />
+        <InputOTPControlled />
+        <div className='pt-6 w-full'>
+          <DateInput label='Date of Birth' />
+        </div>
       </main>
     </div>
   );

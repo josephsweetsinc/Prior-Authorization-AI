@@ -10,13 +10,13 @@ const SuccessIcon = () => {
       <path
         d='M8.5 16.5C12.9183 16.5 16.5 12.9183 16.5 8.5C16.5 4.08172 12.9183 0.5 8.5 0.5C4.08172 0.5 0.5 4.08172 0.5 8.5C0.5 12.9183 4.08172 16.5 8.5 16.5Z'
         stroke='white'
-        stroke-linecap='round'
+        strokeLinecap='round'
         strokeLinejoin='round'
       />
       <path
         d='M6.09961 8.4999L7.69961 10.0999L10.8996 6.8999'
         stroke='white'
-        stroke-linecap='round'
+        strokeLinecap='round'
         strokeLinejoin='round'
       />
     </svg>
