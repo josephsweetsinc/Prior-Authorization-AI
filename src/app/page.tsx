@@ -10,6 +10,7 @@ import {
   SuccessIcon,
 } from '@/shared/assets/icons';
 import {
+  Avatar,
   Button,
   DateInput,
   Input,
@@ -68,6 +69,7 @@ export default function Home() {
         </div>
 
         <Select options={periodOptions} value={period} onChange={setPeriod} />
+        <Avatar name='Joe Dohn' role='Admin' />
       </main>
     </div>
   );
