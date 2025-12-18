@@ -5,51 +5,72 @@ import { useState } from 'react';
 import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
 
 import { GoogleIcon } from '@/shared/assets/icons';
+import { Checkbox } from '@/shared/components';
 import { Button } from '@/shared/components/button';
-import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Input } from '@/shared/components/inputs';
-import { loginSchema, type LoginSchema } from '@/shared/lib/validations/auth';
+import { signupSchema, type SignUpSchema } from '@/shared/lib/validations/auth';
 
-export function LoginForm() {
+export function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
-
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginSchema>({
-    resolver: zodResolver(loginSchema) as unknown as Resolver<LoginSchema>,
+  } = useForm<SignUpSchema>({
+    resolver: zodResolver(signupSchema) as unknown as Resolver<SignUpSchema>,
     defaultValues: {
+      firstName: '',
+      lastName: '',
       email: '',
       password: '',
+      confirmPassword: '',
       keepLoggedIn: false,
     },
   });
 
-  const onSubmit: SubmitHandler<LoginSchema> = async (data) => {
+  const onSubmit: SubmitHandler<SignUpSchema> = async (data) => {
     setIsLoading(true);
     console.log(data);
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
-      <div className='space-y-1'>
+      <Input
+        label='Email'
+        type='email'
+        {...register('email')}
+        error={errors.email?.message}
+      />
+
+      <div className='flex gap-5'>
         <Input
-          label='Email'
-          type='email'
-          {...register('email')}
-          error={errors.email?.message}
+          label='First name'
+          type='text'
+          {...register('firstName')}
+          error={errors.firstName?.message}
+        />
+
+        <Input
+          label='Last name'
+          type='text'
+          {...register('lastName')}
+          error={errors.lastName?.message}
         />
       </div>
 
-      <div className='relative space-y-1'>
-        <Input
-          label='Password'
-          type='password'
-          {...register('password')}
-          error={errors.password?.message}
-        />
-      </div>
+      <Input
+        label='Password'
+        type='password'
+        {...register('password')}
+        error={errors.password?.message}
+      />
+
+      <Input
+        label='Confirm password'
+        type='password'
+        {...register('confirmPassword')}
+        error={errors.confirmPassword?.message}
+      />
 
       <div className='flex items-center space-x-2'>
         <Checkbox label='Keep me logged in' {...register('keepLoggedIn')} />
@@ -60,9 +81,11 @@ export function LoginForm() {
       )}
 
       <div className='space-y-5'>
-        <Button variant='primary' size='default' disabled={isLoading}>
-          {isLoading ? 'Signing in...' : 'Sign In'}
-        </Button>
+        <div className='pt-4'>
+          <Button variant='primary' size='default' disabled={isLoading}>
+            {isLoading ? 'Sign Up' : 'Sign Up'}
+          </Button>
+        </div>
 
         <div className='relative'>
           <div className='absolute inset-0 flex items-center'>
@@ -74,7 +97,7 @@ export function LoginForm() {
         </div>
 
         <Button variant='default' size='default'>
-          Sign in with Google
+          Sign Up with Google
           <GoogleIcon />
         </Button>
       </div>
