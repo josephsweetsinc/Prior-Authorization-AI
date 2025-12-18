@@ -142,7 +142,7 @@ export function Select({
           className={cn(
             'truncate text-left transition-colors',
             !selectedOption
-              ? 'text-sm font-normal text-[rgba(35,35,35,0.5)]'
+              ? 'text-muted-foreground text-sm font-normal'
               : 'text-primary text-md font-medium',
           )}
         >

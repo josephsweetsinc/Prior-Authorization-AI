@@ -8,3 +8,4 @@ export {
   SensitiveMessage,
   type SensitiveMessageProps,
 } from './sensitiveMessage';
+export { Chip, type ChipProps } from './chip';
