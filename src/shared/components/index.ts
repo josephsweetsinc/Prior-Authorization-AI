@@ -4,3 +4,7 @@ export { Label } from './label';
 export { Calendar } from './calendar';
 export { Avatar, type UserProps } from './avatar';
 export { Select } from './select';
+export {
+  SensitiveMessage,
+  type SensitiveMessageProps,
+} from './sensitiveMessage';

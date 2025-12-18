@@ -15,6 +15,7 @@ import {
   DateInput,
   Input,
   InputOTPControlled,
+  SensitiveMessage,
 } from '@/shared/components';
 import { Select } from '@/shared/components/select';
 
@@ -70,6 +71,26 @@ export default function Home() {
 
         <Select options={periodOptions} value={period} onChange={setPeriod} />
         <Avatar name='Joe Dohn' role='Admin' />
+
+        <div className='max-w-2xl space-y-6 bg-white p-10'>
+          <SensitiveMessage
+            variant='ai'
+            title='AI Confidence Score: 98%'
+            description='This form was automatically populated by our AI engine. All fields have been verified against patient records and physician notes'
+          />
+
+          <SensitiveMessage
+            variant='info'
+            title='Report Info'
+            description='Reports are generated in real-time based on current system data. Large date ranges may take longer to process.'
+          />
+
+          <SensitiveMessage
+            variant='success'
+            title='All Required Fields Validated'
+            description='The AI has successfully extracted and validated all required information from your documents.'
+          />
+        </div>
       </main>
     </div>
   );
