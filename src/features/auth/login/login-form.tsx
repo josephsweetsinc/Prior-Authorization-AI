@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
 
@@ -28,7 +29,8 @@ export function LoginForm() {
 
   const onSubmit: SubmitHandler<LoginSchema> = async (data) => {
     setIsLoading(true);
-    console.log(data);
+    console.warn(data);
+    setIsLoading(false);
   };
 
   return (
@@ -51,8 +53,19 @@ export function LoginForm() {
         />
       </div>
 
-      <div className='flex items-center space-x-2'>
-        <Checkbox label='Keep me logged in' {...register('keepLoggedIn')} />
+      <div className='flex items-center justify-between pt-5'>
+        <div className='flex items-center space-x-2'>
+          <Checkbox label='Keep me logged in' {...register('keepLoggedIn')} />
+        </div>
+
+        <div className='-mt-10'>
+          <Link
+            href='/forgot-password'
+            className='text-sm text-[#047CB4] hover:underline'
+          >
+            Forgot your password?
+          </Link>
+        </div>
       </div>
 
       {errors.root && (

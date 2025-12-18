@@ -30,7 +30,8 @@ export function SignUpForm() {
 
   const onSubmit: SubmitHandler<SignUpSchema> = async (data) => {
     setIsLoading(true);
-    console.log(data);
+    console.warn(data);
+    setIsLoading(false);
   };
 
   return (
