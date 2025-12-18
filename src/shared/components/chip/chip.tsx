@@ -11,12 +11,12 @@ const chipVariants = cva(
   {
     variants: {
       variant: {
-        success: 'bg-[rgba(36,178,0,0.1)] text-[#24B200] ',
-        info: 'bg-[rgba(6,143,228,0.1)] text-[#047CB4]',
-        destructive: 'bg-[rgba(252,42,0,0.1)] text-[#FE5C73] ',
-        warning: 'bg-[rgba(252,157,0,0.1)] text-[#FC9D00] ',
+        success: 'bg-status-success/10 text-status-success',
+        info: 'bg-status-info/10 text-status-info',
+        destructive: 'bg-status-destructive/10 text-status-destructive',
+        warning: 'bg-status-warning/10 text-status-warning',
 
-        default: 'bg-gray-100 text-gray-900',
+        default: 'bg-muted text-foreground',
         outlined: 'border border-input bg-background',
       },
       size: {

@@ -11,11 +11,12 @@ const messageVariants = cva(
   {
     variants: {
       variant: {
-        ai: 'bg-[rgba(6,143,228,0.1)] text-[#047CB4] [&>svg]:text-[#047CB4]',
-        info: 'bg-[rgba(6,143,228,0.1)] text-[#047CB4] [&>svg]:text-[#047CB4]',
+        ai: 'bg-status-info/10 text-status-info [&>svg]:text-current',
+        info: 'bg-status-info/10 text-status-info [&>svg]:text-current',
         success:
-          'bg-[rgba(36,178,0,0.1)] text-[#24B200]  [&>svg]:text-[#24B200]',
-        destructive: 'bg-red-50 text-red-900  [&>svg]:text-red-600',
+          'bg-status-success/10 text-status-success [&>svg]:text-current',
+        destructive:
+          'bg-status-destructive/10 text-status-destructive [&>svg]:text-current',
       },
       size: {
         default: 'px-3 py-2.5 text-sm [&_svg]:size-5',

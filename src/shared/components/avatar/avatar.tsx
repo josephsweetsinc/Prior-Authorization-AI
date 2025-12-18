@@ -80,7 +80,7 @@ export function Avatar({
         {role && (
           <span
             data-slot='role'
-            className='mt-1.5 truncate leading-none text-[#A3AED0]'
+            className='text-muted-blue mt-1.5 truncate leading-none'
           >
             {role}
           </span>
