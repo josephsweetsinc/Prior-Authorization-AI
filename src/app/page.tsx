@@ -12,6 +12,7 @@ import {
 import {
   Avatar,
   Button,
+  Chip,
   DateInput,
   Input,
   InputOTPControlled,
@@ -90,6 +91,38 @@ export default function Home() {
             title='All Required Fields Validated'
             description='The AI has successfully extracted and validated all required information from your documents.'
           />
+        </div>
+
+        <div className='flex flex-col items-start gap-8 bg-white p-10'>
+          <div className='space-y-4'>
+            <h3 className='text-sm font-bold text-gray-500'>Design Match:</h3>
+            <Chip variant='success' label='Approved' />
+
+            <Chip variant='info' label='Processing' />
+
+            <Chip variant='destructive' label='Denied' />
+
+            <Chip variant='warning' label='Pending' />
+          </div>
+
+          <div className='space-y-4'>
+            <h3 className='text-sm font-bold text-gray-500'>
+              Interface Control:
+            </h3>
+
+            <div className='flex items-center gap-2'>
+              <Chip variant='success' label='Approved' withIcon />
+              <Chip variant='destructive' label='Denied' withIcon />
+              <Chip variant='info' label='Processing' withIcon />
+              <Chip variant='warning' label='Pending' withIcon />
+            </div>
+
+            <div className='flex items-center gap-2'>
+              <Chip variant='default' size='sm' label='Small' />
+              <Chip variant='default' size='default' label='Default' />
+              <Chip variant='default' size='lg' label='Large' />
+            </div>
+          </div>
         </div>
       </main>
     </div>
