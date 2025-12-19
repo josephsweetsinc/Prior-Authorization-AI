@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+
 import { CreateNewPasswordForm } from '@/features/auth';
 
 export function CreateNewPasswordView() {
@@ -12,7 +14,11 @@ export function CreateNewPasswordView() {
         </p>
       </div>
 
-      <CreateNewPasswordForm />
+      <Suspense
+        fallback={<div className='text-gray-dark text-center'>Loading...</div>}
+      >
+        <CreateNewPasswordForm />
+      </Suspense>
     </div>
   );
 }
