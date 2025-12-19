@@ -51,3 +51,20 @@ export const forgotPasswordSchema = z.object({
   email: emailSchema,
 });
 export type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
+
+export const createNewPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: passwordSchema,
+    token: z.string().optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.password !== val.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['confirmPassword'],
+        message: 'Passwords do not match',
+      });
+    }
+  });
+export type CreateNewPasswordSchema = z.infer<typeof createNewPasswordSchema>;
