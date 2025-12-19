@@ -21,6 +21,7 @@ import {
   Input,
   InputOTPControlled,
   SensitiveMessage,
+  StatusTimeline,
 } from '@/shared/components';
 import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Select } from '@/shared/components/select';
@@ -206,6 +207,27 @@ export default function Home() {
         <DataTable columns={columns} data={data} />
 
         <Checkbox label='text' />
+
+        <StatusTimeline
+          items={[
+            {
+              title: 'Request Submitted',
+              date: 'Jan 15, 2025 at 10:30 AM',
+              status: 'success',
+            },
+            {
+              title: 'Under Review',
+              date: 'Jan 16, 2025 at 10:30 AM',
+              status: 'pending',
+            },
+            {
+              title: 'Insurance Reviewer',
+              description:
+                'Additional documentation may be required for medical necessity.',
+              status: 'error',
+            },
+          ]}
+        />
       </main>
     </div>
   );
