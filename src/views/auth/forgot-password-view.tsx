@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { ForgotPasswordForm } from '@/features/auth/forgot-password/forgot-password-form';
 
 export function ForgotPasswordView() {
@@ -14,6 +16,16 @@ export function ForgotPasswordView() {
       </div>
 
       <ForgotPasswordForm />
+
+      <div className='pt-3 text-center text-[18px] text-[#4A5568]'>
+        Need an account?{' '}
+        <Link
+          href='/sign-up'
+          className='font-semibold text-[#047CB4] underline'
+        >
+          Create one
+        </Link>
+      </div>
     </div>
   );
 }

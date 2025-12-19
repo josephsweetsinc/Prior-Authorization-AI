@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
 
 import { GoogleIcon } from '@/shared/assets/icons';
 import { Checkbox } from '@/shared/components';
@@ -12,6 +13,7 @@ import { signupSchema, type SignUpSchema } from '@/shared/lib/validations/auth';
 
 export function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -31,7 +33,11 @@ export function SignUpForm() {
   const onSubmit: SubmitHandler<SignUpSchema> = async (data) => {
     setIsLoading(true);
     console.warn(data);
-    setIsLoading(false);
+    // simulate API success and redirect to complete-profile
+    setTimeout(() => {
+      setIsLoading(false);
+      router.push('/complete-profile');
+    }, 700);
   };
 
   return (
