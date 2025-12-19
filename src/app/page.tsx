@@ -18,6 +18,7 @@ import {
   InputOTPControlled,
   SensitiveMessage,
 } from '@/shared/components';
+import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Select } from '@/shared/components/select';
 
 export default function Home() {
@@ -124,6 +125,8 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        <Checkbox label='text' />
       </main>
     </div>
   );

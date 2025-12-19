@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority';
-import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
+import ArrowDownIcon from '@/shared/assets/icons/arrow_down';
 import { cn } from '@/shared/lib/utils';
 
 const selectTriggerVariants = cva(
@@ -135,7 +135,7 @@ export function Select({
         onClick={toggleOpen}
         className={cn(
           selectTriggerVariants({ variant, size }),
-          isOpen && 'border-[#047CB4]',
+          isOpen && 'border-status-info',
         )}
       >
         <span
@@ -149,11 +149,7 @@ export function Select({
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         {withIcon && (
-          <Image
-            src='/arrow_down.svg'
-            alt='arrow down'
-            width={16}
-            height={16}
+          <ArrowDownIcon
             className={cn(
               'shrink-0 opacity-50 transition-transform duration-200',
               isOpen && !isClosing && 'rotate-180',
