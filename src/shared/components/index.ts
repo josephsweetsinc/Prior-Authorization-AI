@@ -12,3 +12,4 @@ export { Chip, type ChipProps } from './chip';
 export { DataTable } from './table';
 export { Checkbox } from './checkbox';
 export { StatusTimeline } from './timeline';
+export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';

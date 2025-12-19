@@ -22,6 +22,9 @@ import {
   InputOTPControlled,
   SensitiveMessage,
   StatusTimeline,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from '@/shared/components';
 import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Select } from '@/shared/components/select';
@@ -228,6 +231,16 @@ export default function Home() {
             },
           ]}
         />
+
+        <Tabs defaultValue='all'>
+          <TabsList>
+            <TabsTrigger value='all'>All</TabsTrigger>
+            <TabsTrigger value='unread'>Unread (2)</TabsTrigger>
+            <TabsTrigger value='statusUpdate'>Status Update (1)</TabsTrigger>
+            <TabsTrigger value='documents'>Documents (4)</TabsTrigger>
+            <TabsTrigger value='requirements'>Requirements (2)</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </main>
     </div>
   );
