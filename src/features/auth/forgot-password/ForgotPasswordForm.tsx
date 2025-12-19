@@ -3,13 +3,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
+import { z } from 'zod';
 
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
-import {
-  forgotPasswordSchema,
-  type ForgotPasswordSchema,
-} from '@/shared/lib/validations/auth';
+import { emailSchema } from '@/shared/lib/validations/schemas';
+
+const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordForm() {
   const { register, handleSubmit, formState } = useForm<ForgotPasswordSchema>({

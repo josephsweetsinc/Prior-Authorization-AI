@@ -4,12 +4,33 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
+import { z } from 'zod';
 
 import { GoogleIcon } from '@/shared/assets/icons';
 import { Checkbox } from '@/shared/components';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
-import { signupSchema, type SignUpSchema } from '@/shared/lib/validations/auth';
+import { emailSchema, passwordSchema } from '@/shared/lib/validations/schemas';
+
+export const signupSchema = z
+  .object({
+    firstName: z.string().min(1, { message: 'First name is required' }),
+    lastName: z.string().min(1, { message: 'Last name is required' }),
+    email: emailSchema,
+    password: passwordSchema,
+    confirmPassword: passwordSchema,
+    keepLoggedIn: z.boolean().optional().default(false),
+  })
+  .superRefine((val, ctx) => {
+    if (val.password !== val.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['confirmPassword'],
+        message: 'Passwords do not match',
+      });
+    }
+  });
+export type SignUpSchema = z.infer<typeof signupSchema>;
 
 export function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false);

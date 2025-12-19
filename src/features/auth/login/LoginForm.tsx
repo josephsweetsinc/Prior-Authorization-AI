@@ -4,12 +4,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
+import { z } from 'zod';
 
 import { GoogleIcon } from '@/shared/assets/icons';
 import { Button } from '@/shared/components/button';
 import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Input } from '@/shared/components/inputs';
-import { loginSchema, type LoginSchema } from '@/shared/lib/validations/auth';
+import { emailSchema, passwordSchema } from '@/shared/lib/validations/schemas';
+
+const loginSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  keepLoggedIn: z.boolean().optional().default(false),
+});
+type LoginSchema = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
