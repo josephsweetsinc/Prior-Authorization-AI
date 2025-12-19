@@ -6,7 +6,6 @@ import { cn } from '@/shared/lib/utils';
 
 interface InputProps extends React.ComponentProps<'input'> {
   label?: string;
-  // new prop: error message or node to display under the input
   error?: React.ReactNode;
 }
 
@@ -15,7 +14,6 @@ function Input({ className, label, type, error, ...props }: InputProps) {
   const isSearch = type === 'search';
   const [visible, setVisible] = React.useState(false);
 
-  // determine if the input should be treated as invalid
   const invalid = !!error || props['aria-invalid'] === true;
 
   return (
@@ -49,6 +47,7 @@ function Input({ className, label, type, error, ...props }: InputProps) {
           className={cn(
             'peer-focus:text-accent-foreground pointer-events-none absolute top-3.5 left-2.5 origin-left transform cursor-text bg-white px-1 text-sm text-slate-400 transition-all peer-not-placeholder-shown:text-transparent peer-not-focus:bg-transparent peer-focus:-top-2 peer-focus:left-2.5 peer-focus:scale-90 peer-focus:text-xs',
             isSearch && 'left-7.5',
+            invalid && 'text-destructive peer-focus:text-destructive',
           )}
         >
           {label}
