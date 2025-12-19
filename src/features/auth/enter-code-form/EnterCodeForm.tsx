@@ -1,39 +1,26 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { useForm, type SubmitHandler } from 'react-hook-form';
 
-import { Button } from '@/shared/components/button';
-import { Input } from '@/shared/components/inputs';
-import {
-  forgotPasswordSchema,
-  type ForgotPasswordSchema,
-} from '@/shared/lib/validations/auth';
+import { Button, InputOTPControlled } from '@/shared/components';
 
-export function ForgotPasswordForm() {
-  const { register, handleSubmit, formState } = useForm<ForgotPasswordSchema>({
-    resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: { email: '' },
-  });
-  const { errors } = formState;
-
-  const [isSent, setIsSent] = useState(false);
+export function EnterCodeForm() {
+  const [isSent, setIsSent] = useState(true);
   const [seconds, setSeconds] = useState(57);
-  const [isCounting, setIsCounting] = useState(false);
+  const [isCounting, setIsCounting] = useState(true);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (isCounting) {
       interval = setInterval(() => {
-        setSeconds((prevSeconds) => {
-          if (prevSeconds <= 1) {
+        setSeconds((prev) => {
+          if (prev <= 1) {
             clearInterval(interval);
             setIsCounting(false);
             return 0;
           }
-          return prevSeconds - 1;
+          return prev - 1;
         });
       }, 1000);
     }
@@ -41,16 +28,9 @@ export function ForgotPasswordForm() {
     return () => clearInterval(interval);
   }, [isCounting]);
 
-  const onSubmit: SubmitHandler<ForgotPasswordSchema> = async (data) => {
-    console.warn('Send reset link to:', data.email);
-    setIsSent(true);
-    setSeconds(57);
-    setIsCounting(true);
-  };
-
   const handleResend = () => {
     if (seconds === 0) {
-      console.warn('Resend reset link');
+      // TODO: call API to resend code
       setIsSent(true);
       setSeconds(57);
       setIsCounting(true);
@@ -66,21 +46,16 @@ export function ForgotPasswordForm() {
   };
 
   return (
-    <div className='w-full'>
-      <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-        <Input
-          label='Email'
-          type='email'
-          {...register('email')}
-          error={errors.email?.message}
-        />
+    <div className='w-full space-y-5'>
+      <div>
+        <InputOTPControlled />
+      </div>
 
-        <div className='pt-2'>
-          <Button type='submit' variant='primary' size='default'>
-            Send reset link
-          </Button>
-        </div>
-      </form>
+      <div className='pt-4'>
+        <Button type='submit' variant='primary' size='default'>
+          Create New Password
+        </Button>
+      </div>
 
       <div className='mt-4 text-sm text-[#4A5568]'>
         {isSent ? (

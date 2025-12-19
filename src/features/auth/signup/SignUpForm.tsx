@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
 
@@ -12,6 +13,7 @@ import { signupSchema, type SignUpSchema } from '@/shared/lib/validations/auth';
 
 export function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -31,7 +33,10 @@ export function SignUpForm() {
   const onSubmit: SubmitHandler<SignUpSchema> = async (data) => {
     setIsLoading(true);
     console.warn(data);
-    setIsLoading(false);
+    setTimeout(() => {
+      setIsLoading(false);
+      router.push('/sign-up/complete-profile');
+    }, 700);
   };
 
   return (

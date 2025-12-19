@@ -51,3 +51,32 @@ export const forgotPasswordSchema = z.object({
   email: emailSchema,
 });
 export type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
+
+export const createNewPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: passwordSchema,
+    token: z.string().optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.password !== val.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['confirmPassword'],
+        message: 'Passwords do not match',
+      });
+    }
+  });
+export type CreateNewPasswordSchema = z.infer<typeof createNewPasswordSchema>;
+
+// Complete profile schema
+const phonePattern = /^[0-9()+\-\s]{7,20}$/;
+export const completeProfileSchema = z.object({
+  phone: z
+    .string()
+    .min(7, { message: 'Phone is required' })
+    .refine((v) => phonePattern.test(v), { message: 'Invalid phone number' }),
+  company: z.string().min(1, { message: 'Company is required' }),
+  jobTitle: z.string().min(1, { message: 'Position is required' }),
+});
+export type CompleteProfileSchema = z.infer<typeof completeProfileSchema>;
