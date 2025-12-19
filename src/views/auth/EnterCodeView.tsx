@@ -1,5 +1,6 @@
-import { EnterCodeForm } from '@/features/auth';
 import Link from 'next/link';
+
+import { EnterCodeForm } from '@/features/auth';
 import ArrowDownIcon from '@/shared/assets/icons/arrow_down';
 
 export function EnterCodeView() {
