@@ -22,6 +22,7 @@ import {
   InputOTPControlled,
   SensitiveMessage,
 } from '@/shared/components';
+import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Select } from '@/shared/components/select';
 
 export type Payment = {
@@ -203,6 +204,8 @@ export default function Home() {
           </div>
         </div>
         <DataTable columns={columns} data={data} />
+
+        <Checkbox label='text' />
       </main>
     </div>
   );

@@ -10,3 +10,4 @@ export {
 } from './sensitiveMessage';
 export { Chip, type ChipProps } from './chip';
 export { DataTable } from './table';
+export { Checkbox } from './checkbox';
