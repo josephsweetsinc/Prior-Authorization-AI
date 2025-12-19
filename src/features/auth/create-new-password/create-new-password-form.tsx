@@ -26,7 +26,7 @@ export function CreateNewPasswordForm() {
     defaultValues: { password: '', confirmPassword: '', token: tokenFromQuery },
   });
 
-  const [isSaving, setIsSaving] = useState(false);
+  const [_isSaving, setIsSaving] = useState(false);
 
   const onSubmit: SubmitHandler<CreateNewPasswordSchema> = async (data) => {
     setIsSaving(true);
