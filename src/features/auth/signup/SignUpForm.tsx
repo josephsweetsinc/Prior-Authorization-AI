@@ -1,9 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
 
 import { GoogleIcon } from '@/shared/assets/icons';
 import { Checkbox } from '@/shared/components';
@@ -33,10 +33,9 @@ export function SignUpForm() {
   const onSubmit: SubmitHandler<SignUpSchema> = async (data) => {
     setIsLoading(true);
     console.warn(data);
-    // simulate API success and redirect to complete-profile
     setTimeout(() => {
       setIsLoading(false);
-      router.push('/complete-profile');
+      router.push('/sign-up/complete-profile');
     }, 700);
   };
 

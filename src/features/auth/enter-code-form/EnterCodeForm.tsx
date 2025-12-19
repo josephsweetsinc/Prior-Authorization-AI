@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import { Button, InputOTPControlled } from '@/shared/components';
 
 export function EnterCodeForm() {

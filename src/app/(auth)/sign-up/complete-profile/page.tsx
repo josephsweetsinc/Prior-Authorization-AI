@@ -1,4 +1,4 @@
-import { CompleteProfileView } from '@/views/auth/complete-profile-view';
+import { CompleteProfileView } from '@/views/auth';
 
 export default function CompleteProfilePage() {
   return <CompleteProfileView />;

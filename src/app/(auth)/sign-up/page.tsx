@@ -1,5 +1,5 @@
-import { SignUpView } from '@/views/auth/signup-view';
+import { SignupView } from '@/views/auth';
 
 export default function SignUpPage() {
-  return <SignUpView />;
+  return <SignupView />;
 }

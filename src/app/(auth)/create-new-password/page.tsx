@@ -1,4 +1,4 @@
-import { CreateNewPasswordView } from '@/views/auth/create-new-password-view';
+import { CreateNewPasswordView } from '@/views/auth';
 
 export default function CreateNewPasswordPage() {
   return <CreateNewPasswordView />;

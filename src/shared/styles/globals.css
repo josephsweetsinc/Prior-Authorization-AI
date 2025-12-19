@@ -50,6 +50,9 @@
   --color-status-warning: var(--status-warning);
   --color-status-destructive: var(--status-destructive);
   --color-muted-blue: var(--muted-blue);
+
+  --color-brand-dark: var(--brand-dark);
+  --color-gray-dark: var(--gray-dark);
 }
 
 :root {
@@ -93,6 +96,9 @@
   --status-warning: #fc9d00;
   --status-destructive: #fe5c73;
   --muted-blue: #a3aed0;
+
+  --brand-dark: #193782;
+  --gray-dark: #4a5568;
 }
 
 .dark {
@@ -133,6 +139,9 @@
   --status-warning: #fbbf24;
   --status-destructive: #f87171;
   --muted-blue: #94a3b8;
+
+  --brand-dark: #60a5fa;
+  --gray-dark: #9ca3af;
 }
 
 @layer base {
