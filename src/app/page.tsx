@@ -1,8 +1,11 @@
 'use client';
 
+import { type ColumnDef } from '@tanstack/react-table';
+import Link from 'next/link';
 import { useState } from 'react';
 
 import {
+  ArrowTopRightIcon,
   BellIcon,
   DenyIcon,
   GearIcon,
@@ -13,6 +16,7 @@ import {
   Avatar,
   Button,
   Chip,
+  DataTable,
   DateInput,
   Input,
   InputOTPControlled,
@@ -20,8 +24,82 @@ import {
 } from '@/shared/components';
 import { Select } from '@/shared/components/select';
 
+export type Payment = {
+  id: string;
+  patient: string;
+  transportType: 'Ambulance' | 'Wheelchair' | 'Air Ambulance' | 'Stretcher';
+  status: 'Approved' | 'Pending' | 'Denied';
+  email: string;
+};
+
+function getData(): Payment[] {
+  return [
+    {
+      id: 'REQ-12850',
+      patient: 'John Anderson',
+      transportType: 'Ambulance',
+      status: 'Approved',
+      email: 'm@example.com',
+    },
+    {
+      id: 'REQ-12851',
+      patient: 'Mary Thompson',
+      transportType: 'Wheelchair',
+      status: 'Pending',
+      email: 'm@example.com',
+    },
+    {
+      id: 'REQ-12852',
+      patient: 'Robert Martinez',
+      transportType: 'Air Ambulance',
+      status: 'Denied',
+      email: 'm@example.com',
+    },
+    {
+      id: 'REQ-12853',
+      patient: 'Patricia Davis',
+      transportType: 'Stretcher',
+      status: 'Denied',
+      email: 'm@example.com',
+    },
+  ];
+}
+
+export const columns: ColumnDef<Payment>[] = [
+  {
+    accessorKey: 'id',
+    header: 'REQUEST ID',
+  },
+  {
+    accessorKey: 'patient',
+    header: 'PATIENT',
+  },
+  {
+    accessorKey: 'transportType',
+    header: 'TRANSPORT TYPE',
+  },
+  {
+    accessorKey: 'status',
+    header: 'STATUS',
+    cell: () => <Chip variant='success' size='sm' label='Approved' />,
+  },
+  {
+    id: 'actions',
+    header: 'ACTIONS',
+    cell: () => (
+      <div className='flex items-center gap-2'>
+        <Link className='text-accent-foreground' href='/'>
+          More Details
+        </Link>
+        <ArrowTopRightIcon />
+      </div>
+    ),
+  },
+];
+
 export default function Home() {
   const [period, setPeriod] = useState('');
+  const data = getData();
 
   const periodOptions = [
     { label: 'All Time', value: 'all' },
@@ -124,6 +202,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <DataTable columns={columns} data={data} />
       </main>
     </div>
   );
