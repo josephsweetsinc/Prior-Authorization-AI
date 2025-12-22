@@ -4,7 +4,7 @@ import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
-  useReactTable,
+  useReactTable as createReactTable,
   getPaginationRowModel,
 } from '@tanstack/react-table';
 
@@ -28,7 +28,7 @@ export function DataTable<TData, TValue>({
   data,
 }: DataTableProps<TData, TValue>) {
   // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({
+  const table = createReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),

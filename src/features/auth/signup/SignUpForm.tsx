@@ -2,20 +2,26 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { z } from 'zod';
 
 import { GoogleIcon } from '@/shared/assets/icons';
 import { Checkbox } from '@/shared/components';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
-import { emailSchema, passwordSchema } from '@/shared/lib/validations/schemas';
+import {
+  emailSchema,
+  passwordSchema,
+  nameSchema,
+  surnameSchema,
+} from '@/shared/lib/validations/schemas';
 
 export const signupSchema = z
   .object({
-    firstName: z.string().min(1, { message: 'First name is required' }),
-    lastName: z.string().min(1, { message: 'Last name is required' }),
+    name: nameSchema,
+    surname: surnameSchema,
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: passwordSchema,
@@ -39,11 +45,13 @@ export function SignUpForm() {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
+    watch,
   } = useForm<SignUpSchema>({
     resolver: zodResolver(signupSchema) as unknown as Resolver<SignUpSchema>,
     defaultValues: {
-      firstName: '',
-      lastName: '',
+      name: '',
+      surname: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -51,17 +59,104 @@ export function SignUpForm() {
     },
   });
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const rehydrate = () => {
+      const saved = sessionStorage.getItem('signup_step1');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          reset({
+            name: parsed.name ?? '',
+            surname: parsed.surname ?? '',
+            email: parsed.email ?? '',
+            password: parsed.password ?? '',
+            confirmPassword: parsed.password ?? '',
+            keepLoggedIn: parsed.keepLoggedIn ?? false,
+          });
+        } catch {}
+      }
+    };
+
+    rehydrate();
+
+    window.addEventListener('pageshow', rehydrate);
+
+    const subscription = watch((values) => {
+      try {
+        const toSave = {
+          name: values.name ?? '',
+          surname: values.surname ?? '',
+          email: values.email ?? '',
+          password: values.password ?? '',
+          keepLoggedIn: (values.keepLoggedIn as boolean) ?? false,
+        };
+        sessionStorage.setItem('signup_step1', JSON.stringify(toSave));
+      } catch {}
+    });
+
+    return () => {
+      subscription.unsubscribe?.();
+      window.removeEventListener('pageshow', rehydrate);
+    };
+  }, [reset, watch]);
+
+  const onInvalid = (errs: Record<string, unknown>) => {
+    const extractMessage = (obj: unknown): string | undefined => {
+      if (obj === null || obj === undefined) {
+        return undefined;
+      }
+
+      if (typeof obj === 'object') {
+        const record = obj as Record<string, unknown>;
+
+        if ('message' in record && typeof record.message === 'string') {
+          return record.message;
+        }
+
+        if ('root' in record && typeof record.root === 'object') {
+          const root = record.root as Record<string, unknown>;
+          if ('message' in root && typeof root.message === 'string') {
+            return root.message;
+          }
+        }
+
+        for (const key of Object.keys(record)) {
+          const nested = extractMessage(record[key]);
+          if (nested) {
+            return nested;
+          }
+        }
+      }
+
+      return undefined;
+    };
+
+    const msg = extractMessage(errs) ?? 'Please check the form for errors.';
+    toast.error(msg);
+  };
+
   const onSubmit: SubmitHandler<SignUpSchema> = async (data) => {
     setIsLoading(true);
-    console.warn(data);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const step1 = {
+        name: data.name,
+        surname: data.surname,
+        email: data.email,
+        password: data.password,
+      };
+      sessionStorage.setItem('signup_step1', JSON.stringify(step1));
       router.push('/sign-up/complete-profile');
-    }, 700);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className='space-y-5'>
       <Input
         label='Email'
         type='email'
@@ -73,15 +168,15 @@ export function SignUpForm() {
         <Input
           label='First name'
           type='text'
-          {...register('firstName')}
-          error={errors.firstName?.message}
+          {...register('name')}
+          error={errors.name?.message}
         />
 
         <Input
           label='Last name'
           type='text'
-          {...register('lastName')}
-          error={errors.lastName?.message}
+          {...register('surname')}
+          error={errors.surname?.message}
         />
       </div>
 
@@ -110,7 +205,7 @@ export function SignUpForm() {
       <div className='space-y-5'>
         <div className='pt-4'>
           <Button variant='primary' size='default' disabled={isLoading}>
-            {isLoading ? 'Sign Up' : 'Sign Up'}
+            {isLoading ? 'Signing...' : 'Sign Up'}
           </Button>
         </div>
 

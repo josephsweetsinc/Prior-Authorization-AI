@@ -3,9 +3,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { useForm, type SubmitHandler } from 'react-hook-form';
+import {
+  useForm,
+  type SubmitHandler,
+  type UseFormSetError,
+} from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { z } from 'zod';
 
+import { handleParsedApiError } from '@/services/api/errorHandlers';
+import { parseApiError } from '@/services/api/types';
+import { usePasswordResetConfirmMutation } from '@/services/auth/api/auth-api-service';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
 import { passwordSchema } from '@/shared/lib/validations/schemas';
@@ -31,6 +39,10 @@ export function CreateNewPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tokenFromQuery = searchParams?.get('token') ?? undefined;
+  const savedEmail =
+    typeof window !== 'undefined'
+      ? (sessionStorage.getItem('password_reset_email') ?? undefined)
+      : undefined;
 
   const {
     register,
@@ -42,14 +54,31 @@ export function CreateNewPasswordForm() {
   });
 
   const [_isSaving, setIsSaving] = useState(false);
+  const [confirmReset] = usePasswordResetConfirmMutation();
 
   const onSubmit: SubmitHandler<CreateNewPasswordSchema> = async (data) => {
     setIsSaving(true);
-    console.warn('Set new password', data);
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      const emailToSend = savedEmail ?? searchParams?.get('email') ?? '';
+      await confirmReset({
+        email: emailToSend,
+        new_password: data.password,
+      }).unwrap();
+      toast.success('Password reset successful — you can now log in');
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('password_reset_email');
+      }
       router.push('/login');
-    }, 700);
+    } catch (err: unknown) {
+      const parsed = parseApiError(err);
+      const dummySetError: UseFormSetError<CreateNewPasswordSchema> = () => {};
+      const handled = handleParsedApiError(parsed, dummySetError);
+      if (!handled) {
+        toast.error('Failed to reset password');
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (

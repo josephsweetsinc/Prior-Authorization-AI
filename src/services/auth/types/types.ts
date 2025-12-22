@@ -22,3 +22,22 @@ export type PasswordResetRequestBody = {
 };
 
 export type PasswordResetResponse = void;
+
+export type SignUpRequest = {
+  name: string;
+  surname: string;
+  email: string;
+  password: string;
+  phone_number: string;
+  position: string;
+  place_of_work: string;
+};
+
+export type SignUpResponse = {
+  id: number;
+  name: string;
+  surname: string;
+  email: string;
+  role: string;
+  is_active: boolean;
+};

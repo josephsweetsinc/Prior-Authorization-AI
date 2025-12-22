@@ -4,6 +4,8 @@ import type {
   LoginResponse,
   PasswordResetRequestBody,
   PasswordResetResponse,
+  SignUpRequest,
+  SignUpResponse,
 } from '@/services/auth/types';
 
 export const authApi = baseApi.injectEndpoints({
@@ -37,8 +39,41 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+
+    passwordResetVerify: build.mutation<void, { code: string }>({
+      query: (body) => ({
+        url: '/api/v1/auth/password-reset/verify',
+        method: 'POST',
+        body,
+      }),
+    }),
+
+    passwordResetConfirm: build.mutation<
+      void,
+      { email: string; new_password: string }
+    >({
+      query: (body) => ({
+        url: '/api/v1/auth/password-reset/confirm',
+        method: 'POST',
+        body,
+      }),
+    }),
+
+    signup: build.mutation<SignUpResponse, SignUpRequest>({
+      query: (body) => ({
+        url: '/api/v1/auth/signup',
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
   overrideExisting: false,
 });
 
-export const { useLoginMutation, usePasswordResetRequestMutation } = authApi;
+export const {
+  useLoginMutation,
+  usePasswordResetRequestMutation,
+  usePasswordResetVerifyMutation,
+  usePasswordResetConfirmMutation,
+  useSignupMutation,
+} = authApi;
