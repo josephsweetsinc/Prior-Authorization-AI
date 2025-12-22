@@ -4,11 +4,10 @@ import type { LoginRequest, LoginResponse } from '@/services/auth/types';
 export function useLogin() {
   const [loginMutation, { isLoading, error, data }] = useLoginMutation();
 
-  const login = async (payload: LoginRequest) => {
+  const login = async (payload: LoginRequest): Promise<LoginResponse> => {
     try {
-      const response = await loginMutation(payload).unwrap();
-      return response;
-    } catch (err) {
+      return await loginMutation(payload).unwrap();
+    } catch (err: unknown) {
       throw err;
     }
   };
