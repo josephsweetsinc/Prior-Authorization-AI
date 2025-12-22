@@ -1,17 +1,11 @@
 'use client';
 
 import { type ColumnDef } from '@tanstack/react-table';
+import { ArrowUpRight, CircleCheck, CircleX, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import {
-  ArrowTopRightIcon,
-  BellIcon,
-  DenyIcon,
-  GearIcon,
-  GoogleIcon,
-  SuccessIcon,
-} from '@/shared/assets/icons';
+import { BellIcon, GoogleIcon } from '@/shared/assets/icons';
 import {
   Avatar,
   Button,
@@ -30,6 +24,7 @@ import {
 } from '@/shared/components';
 import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Select } from '@/shared/components/select';
+import { TitleAndDesc } from '@/shared/components/title/TitleAndDesc';
 
 export type Payment = {
   id: string;
@@ -98,7 +93,7 @@ export const columns: ColumnDef<Payment>[] = [
         <Link className='text-accent-foreground' href='/'>
           More Details
         </Link>
-        <ArrowTopRightIcon />
+        <ArrowUpRight size={20} color='#047CB4' strokeWidth={1.25} />
       </div>
     ),
   },
@@ -138,7 +133,7 @@ export default function Home() {
             <BellIcon />
           </Button>
           <Button variant={'ghost'} size={'icon'}>
-            <GearIcon />
+            <Settings size={20} color='#047CB4' strokeWidth={1.25} />
           </Button>
         </div>
         <Button variant={'default'} size={'default'}>
@@ -151,10 +146,11 @@ export default function Home() {
           Delete User
         </Button>
         <Button variant={'destructive-outlined'} size={'default'}>
-          <DenyIcon /> Deny Request
+          <CircleX size={20} color='#FE5C73' strokeWidth={1.25} /> Deny Request
         </Button>
         <Button variant={'success'} size={'default'}>
-          <SuccessIcon /> Approve Request
+          <CircleCheck size={20} color='#FFFFFF' strokeWidth={1.25} /> Approve
+          Request
         </Button>
         <Button variant={'default-outlined'} size={'default'}>
           Cancel
@@ -261,7 +257,7 @@ export default function Home() {
         </Tabs>
 
         <div className='my-2 flex w-full flex-col gap-2'>
-          <p className='text-2xl font-bold text-[#193782]'>
+          <p className='text-brand-dark text-2xl font-bold'>
             Processing Time Distribution
           </p>
           <BarChart
@@ -281,6 +277,8 @@ export default function Home() {
             { label: 'Denied', value: 12, color: '#FF5C70' },
           ]}
         />
+
+        <TitleAndDesc title='Design Match' subtitle='test' />
       </main>
     </div>
   );
