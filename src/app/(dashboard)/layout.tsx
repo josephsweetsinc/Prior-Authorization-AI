@@ -1,5 +1,3 @@
-'use client';
-
 import LogoIcon from '@/shared/assets/icons/logo';
 import {
   Sidebar,

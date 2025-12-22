@@ -28,7 +28,7 @@ export const SidebarItem = forwardRef<HTMLAnchorElement, Props>(
         href={to}
         ref={ref}
         className={cn(
-          'text-muted-blue hover:text-sidebar-foreground relative flex items-center gap-2 rounded py-0.5 pr-2 text-base font-medium transition-all',
+          'text-muted-blue hover:text-sidebar-foreground relative flex items-center gap-2 rounded py-0.5 pr-2 text-base font-medium capitalize transition-all',
           'before:bg-status-info before:absolute before:inset-y-0 before:right-0 before:h-full before:w-1 before:rounded-full before:opacity-0 before:transition-opacity before:content-[""]',
           {
             'text-sidebar-foreground font-bold before:opacity-100': isActive,
