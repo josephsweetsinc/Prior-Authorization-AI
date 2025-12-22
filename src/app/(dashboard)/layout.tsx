@@ -1,3 +1,5 @@
+'use client';
+
 import LogoIcon from '@/shared/assets/icons/logo';
 import {
   Sidebar,
@@ -11,7 +13,7 @@ import {
 
 const layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className='flex items-stretch'>
+    <div className='grid max-h-dvh grid-cols-[minmax(290px,20.138%)_1fr]'>
       <Sidebar>
         <SidebarHeader className='flex items-center'>
           <LogoIcon />
@@ -19,15 +21,29 @@ const layout = ({ children }: { children: React.ReactNode }) => {
 
         <SidebarContent>
           <SidebarGroup aria-label='Main Navigation'>
-            <SidebarItem label='Dashboard' to='/dashboard' />
-            <SidebarItem label='New Request' to='/new-request' />
-            <SidebarItem label='Requests History' to='/history' />
-            <SidebarItem label='Settings' to='settings' />
+            <SidebarItem
+              icon='LayoutDashboard'
+              label='Dashboard'
+              to='/dashboard'
+            />
+            <SidebarItem
+              icon='FileChartColumnIncreasing'
+              label='New Request'
+              to='/new-request'
+            />
+            <SidebarItem
+              icon='ClockFading'
+              label='Requests History'
+              to='/history'
+              disabled
+            />
+            <SidebarItem icon='Settings' label='Settings' to='settings' />
           </SidebarGroup>
         </SidebarContent>
 
         <SidebarFooter>
           <SidebarCTA
+            icon='Plus'
             title='Take the next step'
             body='Stay organized and ahead of your work.'
             link={{
@@ -40,10 +56,9 @@ const layout = ({ children }: { children: React.ReactNode }) => {
           </SidebarCTA>
         </SidebarFooter>
       </Sidebar>
-      <main className='max-h-dvh flex-1 overflow-y-auto bg-[#F5F7FA]'>
+      <main className='bg-secondary max-h-dvh overflow-y-auto px-10 py-8.75'>
         {children}
       </main>
-      ;
     </div>
   );
 };

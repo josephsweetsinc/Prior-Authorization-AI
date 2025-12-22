@@ -1,8 +1,9 @@
 'use client';
 
+import { icons } from 'lucide-react';
 import Link, { type LinkProps } from 'next/link';
 import { usePathname } from 'next/navigation';
-import { type ReactNode, type HTMLProps, forwardRef } from 'react';
+import { type HTMLProps, forwardRef } from 'react';
 
 import { cn } from '@/shared/lib/utils';
 
@@ -12,13 +13,15 @@ export type Props = {
   /** Path or href to navigate to */
   to: LinkProps['href'];
   /** Optional icon element */
-  icon?: ReactNode;
+  icon?: keyof typeof icons;
 } & Omit<HTMLProps<HTMLAnchorElement>, 'href'>;
 
 export const SidebarItem = forwardRef<HTMLAnchorElement, Props>(
   ({ label, to, icon, className, ...props }, ref) => {
     const pathname = usePathname();
     const isActive = pathname?.startsWith(to.toString());
+
+    const Icon = icon ? icons[icon] : null;
 
     return (
       <Link
@@ -34,12 +37,10 @@ export const SidebarItem = forwardRef<HTMLAnchorElement, Props>(
         )}
         {...props}
       >
-        {icon && (
-          <span
+        {Icon && (
+          <Icon
             className={cn('size-6 shrink-0', { 'text-status-info': isActive })}
-          >
-            {icon}
-          </span>
+          />
         )}
         <span>{label}</span>
       </Link>

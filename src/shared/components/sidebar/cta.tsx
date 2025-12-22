@@ -1,5 +1,6 @@
+import { icons } from 'lucide-react';
 import Link from 'next/link';
-import { forwardRef, type HTMLProps, type ReactNode } from 'react';
+import { forwardRef, type HTMLProps } from 'react';
 
 import { cn } from '@/shared/lib/utils';
 
@@ -10,11 +11,13 @@ export type SidebarCTAProps = {
     label: string;
     to: string;
   };
-  icon?: ReactNode;
+  icon?: keyof typeof icons;
 } & HTMLProps<HTMLDivElement>;
 
 export const SidebarCTA = forwardRef<HTMLDivElement, SidebarCTAProps>(
   ({ title, body, link, className, icon, ...props }, ref) => {
+    const Icon = icon ? icons[icon] : null;
+
     return (
       <article
         ref={ref}
@@ -25,9 +28,9 @@ export const SidebarCTA = forwardRef<HTMLDivElement, SidebarCTAProps>(
         )}
         {...props}
       >
-        {icon && (
-          <div className='bg-primary-gradient absolute inset-x-1/2 top-0 aspect-square w-23.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-white'>
-            {icon}
+        {Icon && (
+          <div className='bg-primary-gradient absolute inset-x-1/2 top-0 flex aspect-square w-23.5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[5px] border-white'>
+            <Icon className='size-10 text-white' />
           </div>
         )}
         <p className='text-lg leading-7 font-bold'>{title}</p>

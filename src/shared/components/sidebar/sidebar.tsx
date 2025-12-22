@@ -10,7 +10,7 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
     <aside
       ref={ref}
       className={cn(
-        'bg-sidebar text-sidebar-foreground flex h-screen max-w-[20.137%] min-w-72.5 flex-col',
+        'bg-sidebar text-sidebar-foreground flex h-dvh w-full flex-col',
         className,
       )}
       {...props}
