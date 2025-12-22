@@ -1,6 +1,8 @@
 'use client';
 
-import { DenyIcon, SuccessFilledIcon } from '@/shared/assets/icons';
+import { CircleX } from 'lucide-react';
+
+import { SuccessFilledIcon } from '@/shared/assets/icons';
 import { cn } from '@/shared/lib/utils';
 
 type Status = 'success' | 'pending' | 'error';
@@ -32,7 +34,11 @@ export function StatusTimeline({ items }: StatusTimelineProps) {
               item.status === 'error' && 'bg-[#FC2A001A]',
             )}
           >
-            {item.status === 'error' ? <DenyIcon /> : <SuccessFilledIcon />}
+            {item.status === 'error' ? (
+              <CircleX size={20} color='#FE5C73' strokeWidth={1.25} />
+            ) : (
+              <SuccessFilledIcon />
+            )}
           </div>
 
           <div className='flex flex-col gap-1 pb-4'>
