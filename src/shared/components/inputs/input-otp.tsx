@@ -1,20 +1,30 @@
 'use client';
 
 import { OTPInput, OTPInputContext } from 'input-otp';
-import { MinusIcon } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/shared/lib/utils';
 
-export function InputOTPControlled() {
-  const [value, setValue] = React.useState('');
+export function InputOTPControlled({
+  value: controlledValue,
+  onChangeAction,
+}: {
+  value?: string;
+  onChangeAction?: (_value: string) => void;
+}) {
+  const [internalValue, setInternalValue] = React.useState('');
+  const value = controlledValue ?? internalValue;
+  const setValue = (val: string) => {
+    if (onChangeAction) {
+      onChangeAction(val);
+    } else {
+      setInternalValue(val);
+    }
+  };
+
   return (
     <div className='flex w-full content-center justify-center space-y-2'>
-      <InputOTP
-        maxLength={6}
-        value={value}
-        onChange={(value) => setValue(value)}
-      >
+      <InputOTP maxLength={6} value={value} onChange={(v) => setValue(v)}>
         <InputOTPGroup className='flex content-center justify-center gap-9'>
           <InputOTPSlot index={0} />
           <InputOTPSlot index={1} />
@@ -87,12 +97,4 @@ function InputOTPSlot({
   );
 }
 
-function InputOTPSeparator({ ...props }: React.ComponentProps<'div'>) {
-  return (
-    <div data-slot='input-otp-separator' role='separator' {...props}>
-      <MinusIcon />
-    </div>
-  );
-}
-
-export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator };
+export { InputOTP, InputOTPGroup, InputOTPSlot };

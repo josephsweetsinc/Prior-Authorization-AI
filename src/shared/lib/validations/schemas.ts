@@ -21,3 +21,13 @@ export const passwordSchema = z
 export type Password = z.infer<typeof passwordSchema>;
 
 export const phonePattern = /^[0-9()+\-\s]{7,20}$/;
+
+export const nameSchema = z
+  .string()
+  .min(3, { message: 'Name must be between 3 and 30 letters' })
+  .max(30, { message: 'Name must be between 3 and 30 letters' })
+  .regex(/^\p{L}+$/u, { message: 'Name must contain only letters' });
+export type Name = z.infer<typeof nameSchema>;
+
+export const surnameSchema = nameSchema;
+export type Surname = z.infer<typeof surnameSchema>;
