@@ -155,6 +155,13 @@
 }
 
 @layer utilities {
+  .recharts-surface,
+  .recharts-layer,
+  .recharts-rectangle {
+    outline: none;
+    border: transparent;
+  }
+
   .bg-primary-gradient {
     background: var(--primary-gradient);
   }
