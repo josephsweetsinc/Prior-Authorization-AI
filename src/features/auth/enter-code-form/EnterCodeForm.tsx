@@ -56,7 +56,7 @@ export function EnterCodeForm() {
         </Button>
       </div>
 
-      <div className='mt-4 text-sm text-[#4A5568]'>
+      <div className='text-gray-dark mt-4 text-sm'>
         {isSent ? (
           <div className='flex flex-col items-center justify-center'>
             <span>A code has been sent to your email</span>

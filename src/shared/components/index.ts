@@ -14,3 +14,6 @@ export { Checkbox } from './checkbox';
 export { StatusTimeline } from './timeline';
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 export { BarChart, DonutChart } from './charts';
+export { TitleAndDesc } from './title';
+export { Window } from './window';
+export { Modal } from './modal/Modal';

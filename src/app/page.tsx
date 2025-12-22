@@ -30,6 +30,7 @@ import {
 } from '@/shared/components';
 import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Select } from '@/shared/components/select';
+import { TitleAndDesc } from '@/shared/components/title/TitleAndDesc';
 
 export type Payment = {
   id: string;
@@ -261,7 +262,7 @@ export default function Home() {
         </Tabs>
 
         <div className='my-2 flex w-full flex-col gap-2'>
-          <p className='text-2xl font-bold text-[#193782]'>
+          <p className='text-brand-dark text-2xl font-bold'>
             Processing Time Distribution
           </p>
           <BarChart
@@ -281,6 +282,8 @@ export default function Home() {
             { label: 'Denied', value: 12, color: '#FF5C70' },
           ]}
         />
+
+        <TitleAndDesc title='Design Match' subtitle='test' />
       </main>
     </div>
   );
