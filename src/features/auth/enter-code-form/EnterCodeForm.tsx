@@ -30,7 +30,6 @@ export function EnterCodeForm() {
 
   const handleResend = () => {
     if (seconds === 0) {
-      // TODO: call API to resend code
       setIsSent(true);
       setSeconds(57);
       setIsCounting(true);

@@ -4,13 +4,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
+import { z } from 'zod';
 
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
-import {
-  completeProfileSchema,
-  type CompleteProfileSchema,
-} from '@/shared/lib/validations/auth';
+import { phonePattern } from '@/shared/lib/validations/schemas';
+export const completeProfileSchema = z.object({
+  phone: z
+    .string()
+    .min(7, { message: 'Phone is required' })
+    .refine((v) => phonePattern.test(v), { message: 'Invalid phone number' }),
+  company: z.string().min(1, { message: 'Company is required' }),
+  jobTitle: z.string().min(1, { message: 'Position is required' }),
+});
+export type CompleteProfileSchema = z.infer<typeof completeProfileSchema>;
 
 export function CompleteProfileForm() {
   const router = useRouter();
@@ -31,7 +38,6 @@ export function CompleteProfileForm() {
 
   const onSubmit: SubmitHandler<CompleteProfileSchema> = async (data) => {
     setIsSaving(true);
-    // TODO: call API to save profile data
     console.warn('Complete profile:', data);
     setTimeout(() => {
       setIsSaving(false);

@@ -2,10 +2,14 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { z } from 'zod';
 
+import { handleParsedApiError } from '@/services/api/errorHandlers';
+import { parseApiError } from '@/services/api/types';
+import { useLogin } from '@/services/auth/hooks/useLogin';
 import { GoogleIcon } from '@/shared/assets/icons';
 import { Button } from '@/shared/components/button';
 import { Checkbox } from '@/shared/components/checkbox/checkbox';
@@ -20,11 +24,13 @@ const loginSchema = z.object({
 type LoginSchema = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { login, isLoading } = useLogin();
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema) as unknown as Resolver<LoginSchema>,
@@ -36,9 +42,25 @@ export function LoginForm() {
   });
 
   const onSubmit: SubmitHandler<LoginSchema> = async (data) => {
-    setIsLoading(true);
-    console.warn(data);
-    setIsLoading(false);
+    try {
+      const response = await login({
+        username: data.email,
+        password: data.password,
+      });
+
+      localStorage.setItem('accessToken', response.access_token);
+      if (response.refresh_token) {
+        localStorage.setItem('refreshToken', response.refresh_token);
+      }
+
+      router.push('/');
+    } catch (err: unknown) {
+      const parsed = parseApiError(err);
+      const handled = handleParsedApiError(parsed, setError);
+      if (!handled) {
+        toast.error('Something went wrong. Please try again later.');
+      }
+    }
   };
 
   return (
@@ -76,10 +98,6 @@ export function LoginForm() {
         </div>
       </div>
 
-      {errors.root && (
-        <div className='text-destructive text-sm'>{errors.root.message}</div>
-      )}
-
       <div className='space-y-5'>
         <Button variant='primary' size='default' disabled={isLoading}>
           {isLoading ? 'Signing in...' : 'Sign In'}
@@ -94,7 +112,7 @@ export function LoginForm() {
           </div>
         </div>
 
-        <Button variant='default' size='default'>
+        <Button variant='default' size='default' type='button'>
           Sign in with Google
           <GoogleIcon />
         </Button>

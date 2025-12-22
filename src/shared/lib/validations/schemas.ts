@@ -20,13 +20,4 @@ export const passwordSchema = z
   });
 export type Password = z.infer<typeof passwordSchema>;
 
-const phonePattern = /^[0-9()+\-\s]{7,20}$/;
-export const completeProfileSchema = z.object({
-  phone: z
-    .string()
-    .min(7, { message: 'Phone is required' })
-    .refine((v) => phonePattern.test(v), { message: 'Invalid phone number' }),
-  company: z.string().min(1, { message: 'Company is required' }),
-  jobTitle: z.string().min(1, { message: 'Position is required' }),
-});
-export type CompleteProfileSchema = z.infer<typeof completeProfileSchema>;
+export const phonePattern = /^[0-9()+\-\s]{7,20}$/;
