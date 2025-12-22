@@ -21,6 +21,7 @@ const loginSchema = z.object({
   password: passwordSchema,
   keepLoggedIn: z.boolean().optional().default(false),
 });
+
 type LoginSchema = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
