@@ -21,10 +21,12 @@ import {
   Input,
   InputOTPControlled,
   SensitiveMessage,
+  BarChart,
   StatusTimeline,
   Tabs,
   TabsList,
   TabsTrigger,
+  DonutChart,
 } from '@/shared/components';
 import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Select } from '@/shared/components/select';
@@ -105,6 +107,22 @@ export const columns: ColumnDef<Payment>[] = [
 export default function Home() {
   const [period, setPeriod] = useState('');
   const data = getData();
+
+  const testChartData = [
+    { date: '02', uv: 15 },
+    { date: '03', uv: 22 },
+    { date: '04', uv: 10 },
+    { date: '05', uv: 18 },
+    { date: '06', uv: 15 },
+    { date: '07', uv: 22 },
+    { date: '08', uv: 10 },
+    { date: '09', uv: 18 },
+    { date: '10', uv: 18 },
+    { date: '11', uv: 15 },
+    { date: '12', uv: 22 },
+    { date: '13', uv: 10 },
+    { date: '14', uv: 18 },
+  ];
 
   const periodOptions = [
     { label: 'All Time', value: 'all' },
@@ -241,6 +259,28 @@ export default function Home() {
             <TabsTrigger value='requirements'>Requirements (2)</TabsTrigger>
           </TabsList>
         </Tabs>
+
+        <div className='my-2 flex w-full flex-col gap-2'>
+          <p className='text-2xl font-bold text-[#193782]'>
+            Processing Time Distribution
+          </p>
+          <BarChart
+            data={testChartData}
+            xKey='date'
+            valueKey='uv'
+            tooltipLabel='Requests'
+            height={250}
+            barSize={12}
+          />
+        </div>
+
+        <DonutChart
+          data={[
+            { label: 'Approved', value: 68, color: '#2FB400' },
+            { label: 'Pending', value: 22, color: '#FFA800' },
+            { label: 'Denied', value: 12, color: '#FF5C70' },
+          ]}
+        />
       </main>
     </div>
   );
