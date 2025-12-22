@@ -4,13 +4,28 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
+import { z } from 'zod';
 
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
-import {
-  createNewPasswordSchema,
-  type CreateNewPasswordSchema,
-} from '@/shared/lib/validations/auth';
+import { passwordSchema } from '@/shared/lib/validations/schemas';
+
+const createNewPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: passwordSchema,
+    token: z.string().optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.password !== val.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['confirmPassword'],
+        message: 'Passwords do not match',
+      });
+    }
+  });
+type CreateNewPasswordSchema = z.infer<typeof createNewPasswordSchema>;
 
 export function CreateNewPasswordForm() {
   const router = useRouter();
