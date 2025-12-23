@@ -1,4 +1,8 @@
+import { BellDot, Settings } from 'lucide-react';
+
 import LogoIcon from '@/shared/assets/icons/logo';
+import { Avatar, Button, GlobalSearch } from '@/shared/components';
+import { Header, HeaderActions, HeaderGroup } from '@/shared/components/header';
 import {
   Sidebar,
   SidebarContent,
@@ -11,8 +15,8 @@ import {
 
 const layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className='grid max-h-dvh grid-cols-[minmax(290px,20.138%)_1fr]'>
-      <Sidebar>
+    <div className='bg-secondary grid max-h-dvh grid-cols-[minmax(290px,20.138%)_1fr] grid-rows-[max-content_1fr]'>
+      <Sidebar className='row-span-2'>
         <SidebarHeader className='flex items-center'>
           <LogoIcon />
         </SidebarHeader>
@@ -54,9 +58,30 @@ const layout = ({ children }: { children: React.ReactNode }) => {
           </SidebarCTA>
         </SidebarFooter>
       </Sidebar>
-      <main className='bg-secondary max-h-dvh overflow-y-auto px-10 py-8.75'>
-        {children}
-      </main>
+      <Header className='row-span-1 mx-10 mt-9'>
+        <GlobalSearch
+          size='medium'
+          placeholder='Search patients or requests'
+          disabled
+        />
+
+        <HeaderGroup separate>
+          <HeaderActions>
+            <Button variant='ghost' size='icon' disabled>
+              <Settings className='text-status-info size-5' />
+            </Button>
+            <Button variant='ghost' size='icon' disabled>
+              <BellDot className='text-status-destructive size-5' />
+            </Button>
+          </HeaderActions>
+          <Avatar
+            src='/images/mock_avatar.jpg'
+            name='Dr. Kraude'
+            role='Ambulance'
+          />
+        </HeaderGroup>
+      </Header>
+      <main className='max-h-dvh overflow-y-auto p-10'>{children}</main>
     </div>
   );
 };
