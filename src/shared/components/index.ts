@@ -26,7 +26,29 @@ export {
   SidebarHeader,
   SidebarItem,
 } from './sidebar';
-
 export { GlobalSearch } from './globalSearch';
 export { Separator } from './separator';
-export { Header, HeaderActions, HeaderGroup } from './header';
+export {
+  Header,
+  HeaderActions,
+  HeaderGroup,
+  HeaderProfile,
+  type ProfileAction,
+} from './header';
+export {
+  DropdownMenu,
+  DropdownMenuPortal,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+} from './dropdown';
