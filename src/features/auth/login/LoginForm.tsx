@@ -1,12 +1,12 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import Cookies from 'js-cookie';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
-import Cookies from 'js-cookie';
 
 import { handleParsedApiError } from '@/services/api/errorHandlers';
 import { parseApiError } from '@/services/api/types';
