@@ -5,6 +5,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const emailSchema = z
   .string()
+  .trim()
   .min(1, { message: 'Email is required' })
   .refine((val) => emailPattern.test(val), {
     message: 'Invalid email address',

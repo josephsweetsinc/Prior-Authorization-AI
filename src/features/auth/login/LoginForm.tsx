@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import Cookies from 'js-cookie';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
@@ -15,6 +16,13 @@ import { Button } from '@/shared/components/button';
 import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Input } from '@/shared/components/inputs';
 import { emailSchema, passwordSchema } from '@/shared/lib/validations/schemas';
+
+interface LoginResponse {
+  access_token: string;
+  refresh_token: string;
+  user_role: string;
+  token_type: string;
+}
 
 const loginSchema = z.object({
   email: emailSchema,
@@ -44,14 +52,42 @@ export function LoginForm() {
 
   const onSubmit: SubmitHandler<LoginSchema> = async (data) => {
     try {
-      const response = await login({
+      const response = (await login({
         username: data.email,
         password: data.password,
+      })) as LoginResponse;
+
+      Cookies.set('accessToken', response.access_token, {
+        expires: 1,
+        secure: true,
+        sameSite: 'strict',
       });
 
-      localStorage.setItem('accessToken', response.access_token);
+      Cookies.set('userRole', response.user_role, {
+        expires: 1,
+        secure: true,
+        sameSite: 'strict',
+      });
+
       if (response.refresh_token) {
-        localStorage.setItem('refreshToken', response.refresh_token);
+        Cookies.set('refreshToken', response.refresh_token, {
+          expires: 7,
+          secure: true,
+          sameSite: 'strict',
+        });
+      }
+
+      if (data.keepLoggedIn) {
+        Cookies.set('accessToken', response.access_token, {
+          expires: 30,
+          secure: true,
+          sameSite: 'strict',
+        });
+        Cookies.set('userRole', response.user_role, {
+          expires: 30,
+          secure: true,
+          sameSite: 'strict',
+        });
       }
 
       router.push('/');
