@@ -17,3 +17,16 @@ export { BarChart, DonutChart } from './charts';
 export { TitleAndDesc } from './title';
 export { Window } from './window';
 export { Modal } from './modal/Modal';
+export {
+  SidebarFooter,
+  SidebarCTA,
+  SidebarContent,
+  SidebarGroup,
+  Sidebar,
+  SidebarHeader,
+  SidebarItem,
+} from './sidebar';
+
+export { GlobalSearch } from './globalSearch';
+export { Separator } from './separator';
+export { Header, HeaderActions, HeaderGroup } from './header';
