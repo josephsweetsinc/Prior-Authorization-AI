@@ -55,3 +55,4 @@ export {
 } from './dropdown';
 export { Stepper } from './stepper';
 export { Skeleton } from './skeleton';
+export { Uploader, type MediaItem } from './upload';
