@@ -2,6 +2,7 @@
 
 import { BellDot, type icons, Settings } from 'lucide-react';
 
+import { useLogout } from '@/services/auth/hooks/useLogout';
 import {
   Button,
   GlobalSearch,
@@ -12,22 +13,29 @@ import {
   type ProfileAction,
 } from '@/shared/components';
 
-const profileActions: ProfileAction[] = [
-  {
-    type: 'link',
-    label: 'My Account',
-    href: '/profile',
-    icon: 'CircleUserRound' as keyof typeof icons,
-  },
-  {
-    type: 'action',
-    label: 'Sign Out',
-    icon: 'LogOut' as keyof typeof icons,
-    variant: 'destructive',
-  },
-] as const;
-
 export const AppHeader = () => {
+  const { logout, isLoading: isLoggingOut } = useLogout();
+
+  const profileActions: ProfileAction[] = [
+    {
+      type: 'link',
+      label: 'My Account',
+      href: '/profile',
+      icon: 'CircleUserRound' as keyof typeof icons,
+    },
+    {
+      type: 'action',
+      label: 'Sign Out',
+      icon: 'LogOut' as keyof typeof icons,
+      variant: 'destructive',
+      onClick: () => {
+        if (!isLoggingOut) {
+          logout();
+        }
+      },
+    },
+  ] as const;
+
   return (
     <Header className='row-span-1 mx-10 mt-9'>
       <GlobalSearch

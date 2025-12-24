@@ -66,6 +66,16 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+
+    logout: build.mutation<void, { refresh_token: string }>({
+      query: ({ refresh_token }) => ({
+        url: '/auth/logout',
+        method: 'DELETE',
+        params: {
+          refresh_token,
+        },
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -76,4 +86,5 @@ export const {
   usePasswordResetVerifyMutation,
   usePasswordResetConfirmMutation,
   useSignupMutation,
+  useLogoutMutation,
 } = authApi;

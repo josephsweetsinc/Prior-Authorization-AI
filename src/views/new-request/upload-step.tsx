@@ -1,8 +1,8 @@
 import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
+import { Uploader, type MediaItem } from '@/shared/components';
 import { Button } from '@/shared/components/button';
-import Uploader, { type MediaItem } from '@/shared/components/upload/Uploader';
 
 interface UploadStepProps {
   onNext: () => void;

@@ -27,7 +27,7 @@ type Props = {
   maxSizeMB?: number;
 };
 
-export default function Uploader({
+export const Uploader = ({
   multiple = false,
   value,
   onChangeAction,
@@ -35,7 +35,7 @@ export default function Uploader({
   className,
   dropAreaClassName,
   maxSizeMB = 5,
-}: Props) {
+}: Props) => {
   const { uploadFile, isLoading: isUploading } = useUploadMedia();
 
   const { handleError } = useApiFormError();
@@ -266,4 +266,4 @@ export default function Uploader({
       )}
     </div>
   );
-}
+};
