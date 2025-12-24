@@ -1,4 +1,4 @@
-export { Button } from './button';
+export { Button, buttonVariants } from './button';
 export { Input, InputOTPControlled, DateInput } from './inputs';
 export { Label } from './label';
 export { Calendar } from './calendar';
