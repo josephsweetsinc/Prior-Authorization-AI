@@ -30,7 +30,6 @@ type Props = {
 export default function Uploader({
   multiple = false,
   value,
-  uploaded = null,
   onChangeAction,
   uploadType = 'logo',
   className,
