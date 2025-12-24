@@ -54,3 +54,4 @@ export {
   DropdownMenuSubContent,
 } from './dropdown';
 export { Stepper } from './stepper';
+export { Skeleton } from './skeleton';
