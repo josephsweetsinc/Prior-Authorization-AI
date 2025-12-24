@@ -9,7 +9,7 @@ import {
   SidebarItem,
 } from '@/shared/components';
 
-export const MainSidebar = () => {
+export const AppSidebar = () => {
   return (
     <Sidebar className='row-span-2'>
       <SidebarHeader className='flex items-center'>

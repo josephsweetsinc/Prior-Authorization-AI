@@ -27,7 +27,7 @@ const profileActions: ProfileAction[] = [
   },
 ] as const;
 
-export const MainHeader = () => {
+export const AppHeader = () => {
   return (
     <Header className='row-span-1 mx-10 mt-9'>
       <GlobalSearch
