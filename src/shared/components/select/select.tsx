@@ -1,7 +1,7 @@
 'use client';
 
 import { cva, type VariantProps } from 'class-variance-authority';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useId } from 'react';
 
 import ArrowDownIcon from '@/shared/assets/icons/arrow_down';
 import { cn } from '@/shared/lib/utils';
@@ -35,6 +35,9 @@ interface SelectProps extends VariantProps<typeof selectTriggerVariants> {
   placeholder?: string;
   className?: string;
   withIcon?: boolean;
+  label?: string;
+  labelClassName?: string;
+  id?: string;
 }
 
 export function Select({
@@ -46,11 +49,16 @@ export function Select({
   size,
   className,
   withIcon = true,
+  label,
+  labelClassName,
+  id,
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const generatedId = useId();
+  const triggerId = id || `select-trigger-${generatedId}`;
 
   const handleClose = () => {
     setIsClosing(true);
@@ -125,6 +133,7 @@ export function Select({
   }, [isOpen]);
 
   const selectedOption = options.find((opt) => opt.value === value);
+  const trimmedLabel = label?.trim();
 
   return (
     <div
@@ -132,13 +141,25 @@ export function Select({
       className={cn('relative w-full', className)}
       data-slot='select-container'
     >
+      {trimmedLabel ? (
+        <label
+          htmlFor={triggerId}
+          className={cn('mb-2 block text-sm font-medium', labelClassName)}
+        >
+          {trimmedLabel}
+        </label>
+      ) : null}
+
       <button
+        id={triggerId}
         type='button'
         onClick={toggleOpen}
         className={cn(
           selectTriggerVariants({ variant, size }),
           isOpen && 'border-status-info',
         )}
+        aria-haspopup='listbox'
+        aria-expanded={isOpen}
       >
         <span
           className={cn(
