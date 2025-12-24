@@ -1,7 +1,7 @@
 import { selectProviderDashboard, useGetDashboardQuery } from '../api';
 
 export const useGetProviderSummary = () => {
-  const { data, isLoading, error } = useGetDashboardQuery();
+  const { data, isLoading, error, refetch } = useGetDashboardQuery();
 
   const providerStatistics = selectProviderDashboard(data);
 
@@ -13,8 +13,8 @@ export const useGetProviderSummary = () => {
       approval_rate: 0,
     };
 
-    return { summary: fallbackSummary, isLoading, error: null };
+    return { summary: fallbackSummary, isLoading, error, refetch };
   }
 
-  return { summary: providerStatistics?.summary, isLoading, error };
+  return { summary: providerStatistics?.summary, isLoading, error, refetch };
 };

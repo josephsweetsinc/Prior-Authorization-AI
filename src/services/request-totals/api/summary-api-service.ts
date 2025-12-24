@@ -5,7 +5,7 @@ import { type DashboardResponse } from '../types';
 export const dashboardApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getDashboard: builder.query<DashboardResponse, void>({
-      query: () => '/api/v1/dashboard_metrics/',
+      query: () => '/dashboard_metrics/',
       providesTags: ['Dashboard'],
     }),
   }),
