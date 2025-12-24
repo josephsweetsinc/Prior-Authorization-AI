@@ -1,3 +1,4 @@
+export { OverlayIcon } from './overlayIcon';
 export { Button, buttonVariants } from './button';
 export { Input, InputOTPControlled, DateInput } from './inputs';
 export { Label } from './label';

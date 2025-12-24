@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 
+import { MetricsList } from '@/features/request-totals';
 import { TitleAndDesc, buttonVariants } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
@@ -24,6 +25,7 @@ export const Dashboard = () => {
           <span className='sr-only xl:not-sr-only'>New request</span>
         </Link>
       </div>
+      <MetricsList />
     </main>
   );
 };
