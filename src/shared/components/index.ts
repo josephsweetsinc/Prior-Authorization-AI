@@ -52,3 +52,4 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from './dropdown';
+export { Stepper } from './stepper';
