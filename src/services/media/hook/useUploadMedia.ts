@@ -1,20 +1,20 @@
-import { toast } from 'react-toastify';
-
-import { useUploadFileMutation } from '@/services';
+import { useUploadFileMutation } from '@/services'; // Перевір шлях до api
 
 export const useUploadMedia = () => {
-  const [upload, { isLoading, error }] = useUploadFileMutation();
+  const [upload, { isLoading, error, reset }] = useUploadFileMutation();
 
   const uploadFile = async (file: File, type?: string) => {
     try {
-      const res = await upload({ file, type }).unwrap();
-      return res;
+      return await upload({ file, type }).unwrap();
     } catch (err) {
-      console.error(err);
-      toast.error('');
       throw err;
     }
   };
 
-  return { uploadFile, isLoading, error };
+  return {
+    uploadFile,
+    isLoading,
+    error,
+    reset,
+  };
 };

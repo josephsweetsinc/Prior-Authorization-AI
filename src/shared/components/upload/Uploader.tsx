@@ -5,6 +5,7 @@ import React, { type ChangeEvent, type DragEvent, useState } from 'react';
 import { toast } from 'react-toastify';
 
 import { useUploadMedia } from '@/services';
+import { useApiFormError } from '@/shared/hooks/useApiFormError';
 import { cn, toAbs } from '@/shared/lib/utils';
 
 export type MediaItem = {
@@ -19,7 +20,6 @@ export type MediaItem = {
 type Props = {
   multiple?: boolean;
   value: MediaItem[];
-  uploaded?: MediaItem[] | null;
   onChangeAction: (_media: MediaItem[]) => void;
   uploadType?: string;
   className?: string;
@@ -37,6 +37,8 @@ export default function Uploader({
   maxSizeMB = 5,
 }: Props) {
   const { uploadFile, isLoading: isUploading } = useUploadMedia();
+
+  const { handleError } = useApiFormError();
 
   const [isDragOver, setIsDragOver] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -57,16 +59,9 @@ export default function Uploader({
   };
 
   const getFileName = (item: MediaItem) => {
-    if (item.name) {
-      return item.name;
-    }
-    if (item.filename) {
-      return item.filename;
-    }
-    if (item.url) {
-      return item.url.split('/').pop();
-    }
-    return 'Unknown file';
+    return (
+      item.name || item.filename || item.url?.split('/').pop() || 'Unknown file'
+    );
   };
 
   const getFileSize = (item: MediaItem) => {
@@ -104,36 +99,34 @@ export default function Uploader({
 
     setIsProcessing(true);
 
-    try {
-      const nextMedia: MediaItem[] = multiple ? [...value] : [];
+    const nextMedia: MediaItem[] = multiple ? [...value] : [];
 
-      for (const file of filesToProcess) {
-        if (!validateFile(file)) {
-          continue;
-        }
-
-        try {
-          const { url } = await uploadFile(file, uploadType);
-
-          const absUrl = normalizeUrl(url);
-          const tempId = Date.now() + Math.random();
-
-          nextMedia.push({
-            id: tempId,
-            url: absUrl,
-            name: file.name,
-            size: file.size,
-          });
-        } catch (error) {
-          console.error('Upload error for file:', file.name, error);
-        }
+    for (const file of filesToProcess) {
+      if (!validateFile(file)) {
+        continue;
       }
 
-      onChangeAction(multiple ? nextMedia : nextMedia.slice(-1));
-    } finally {
-      setIsProcessing(false);
-      setIsDragOver(false);
+      try {
+        const { url } = await uploadFile(file, uploadType);
+
+        const absUrl = normalizeUrl(url);
+        const tempId = Date.now() + Math.random();
+
+        nextMedia.push({
+          id: tempId,
+          url: absUrl,
+          name: file.name,
+          size: file.size,
+        });
+      } catch (error) {
+        handleError(error);
+      }
     }
+
+    onChangeAction(multiple ? nextMedia : nextMedia.slice(-1));
+
+    setIsProcessing(false);
+    setIsDragOver(false);
   };
 
   const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -223,8 +216,7 @@ export default function Uploader({
         <div className='flex flex-col gap-3'>
           {value.map((item) => {
             const fileName = getFileName(item);
-            const rawSize = getFileSize(item);
-            const fileSizeFormatted = formatFileSize(rawSize);
+            const fileSizeFormatted = formatFileSize(getFileSize(item));
 
             return (
               <div
