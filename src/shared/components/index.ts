@@ -53,3 +53,4 @@ export {
   DropdownMenuSubContent,
 } from './dropdown';
 export { Stepper } from './stepper';
+export { Uploader, type MediaItem } from './upload';

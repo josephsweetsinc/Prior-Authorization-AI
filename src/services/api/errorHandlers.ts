@@ -22,10 +22,5 @@ export function handleParsedApiError<
     return true;
   }
 
-  if (parsed.message) {
-    toast.error(parsed.message);
-    return true;
-  }
-
-  return false;
+  return !!parsed.message;
 }

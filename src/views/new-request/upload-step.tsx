@@ -1,5 +1,7 @@
 import { ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 
+import { Uploader, type MediaItem } from '@/shared/components';
 import { Button } from '@/shared/components/button';
 
 interface UploadStepProps {
@@ -7,15 +9,15 @@ interface UploadStepProps {
 }
 
 export const UploadStep = ({ onNext }: UploadStepProps) => {
+  const [files, setFiles] = useState<MediaItem[]>([]);
+
   return (
     <div className='space-y-8'>
       <h2 className='text-[22px] font-bold text-[#232323]'>
         Upload Required Documents
       </h2>
 
-      <div className='mt-4 flex h-64 w-full items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50'>
-        <span className='text-slate-400'>Drag & Drop Area placeholder</span>
-      </div>
+      <Uploader value={files} onChangeAction={setFiles} />
 
       <div className='flex justify-end'>
         <Button

@@ -19,7 +19,7 @@ export const authApi = baseApi.injectEndpoints({
         formData.append('password', credentials.password);
 
         return {
-          url: '/api/v1/auth/login',
+          url: '/auth/login',
           method: 'POST',
           body: formData.toString(),
           headers: {
@@ -34,7 +34,7 @@ export const authApi = baseApi.injectEndpoints({
       PasswordResetRequestBody
     >({
       query: (body) => ({
-        url: '/api/v1/auth/password-reset/request',
+        url: '/auth/password-reset/request',
         method: 'POST',
         body,
       }),
@@ -42,7 +42,7 @@ export const authApi = baseApi.injectEndpoints({
 
     passwordResetVerify: build.mutation<void, { code: string }>({
       query: (body) => ({
-        url: '/api/v1/auth/password-reset/verify',
+        url: '/auth/password-reset/verify',
         method: 'POST',
         body,
       }),
@@ -53,7 +53,7 @@ export const authApi = baseApi.injectEndpoints({
       { email: string; new_password: string }
     >({
       query: (body) => ({
-        url: '/api/v1/auth/password-reset/confirm',
+        url: '/auth/password-reset/confirm',
         method: 'POST',
         body,
       }),
@@ -61,9 +61,19 @@ export const authApi = baseApi.injectEndpoints({
 
     signup: build.mutation<SignUpResponse, SignUpRequest>({
       query: (body) => ({
-        url: '/api/v1/auth/signup',
+        url: '/auth/signup',
         method: 'POST',
         body,
+      }),
+    }),
+
+    logout: build.mutation<void, { refresh_token: string }>({
+      query: ({ refresh_token }) => ({
+        url: '/auth/logout',
+        method: 'DELETE',
+        params: {
+          refresh_token,
+        },
       }),
     }),
   }),
@@ -76,4 +86,5 @@ export const {
   usePasswordResetVerifyMutation,
   usePasswordResetConfirmMutation,
   useSignupMutation,
+  useLogoutMutation,
 } = authApi;
