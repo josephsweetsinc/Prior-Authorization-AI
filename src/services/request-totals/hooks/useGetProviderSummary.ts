@@ -1,4 +1,7 @@
-import { selectProviderDashboard, useGetDashboardQuery } from '../api';
+import {
+  selectProviderDashboard,
+  useGetDashboardQuery,
+} from '@/services/dashboard';
 
 export const useGetProviderSummary = () => {
   const { data, isLoading, error, refetch } = useGetDashboardQuery();

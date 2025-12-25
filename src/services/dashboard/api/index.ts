@@ -1,4 +1,4 @@
 export {
   useGetDashboardQuery,
   selectProviderDashboard,
-} from './summary-api-service';
+} from './dashboard-api-service';
