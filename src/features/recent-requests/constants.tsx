@@ -54,3 +54,13 @@ export const columns: ColumnDef<RecentRequest>[] = [
     ),
   },
 ];
+
+export const STATUS_CONFIG: Record<
+  RequestStatus,
+  { label: string; variant: 'info' | 'warning' | 'success' | 'destructive' }
+> = {
+  approved: { label: 'Approved', variant: 'success' },
+  pending: { label: 'Pending ', variant: 'warning' },
+  processing: { label: 'Processing', variant: 'info' },
+  denied: { label: 'Denied', variant: 'destructive' },
+} as const;

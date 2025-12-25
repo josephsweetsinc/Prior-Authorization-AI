@@ -1,4 +1,4 @@
-export type RequestStatus = 'approved' | 'pending_review' | 'denied';
+export type RequestStatus = 'approved' | 'pending' | 'processing' | 'denied';
 
 export interface RecentRequest {
   id: number;
