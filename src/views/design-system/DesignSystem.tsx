@@ -27,6 +27,7 @@ import {
   TabsList,
   TabsTrigger,
   DonutChart,
+  OverlayIcon,
 } from '@/shared/components';
 import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Select } from '@/shared/components/select';
@@ -68,8 +69,8 @@ export default function DesignSystem() {
   const data = getMockedPayments();
 
   return (
-    <div className='flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black'>
-      <main className='flex min-h-screen w-full max-w-3xl flex-col items-center justify-center gap-4 bg-white px-16 py-32 sm:items-start dark:bg-black'>
+    <main className='flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black'>
+      <div className='flex min-h-screen w-full max-w-3xl flex-col items-center justify-center gap-4 bg-white px-16 py-32 sm:items-start dark:bg-black'>
         <div className='flex gap-2'>
           <Button variant={'ghost'} size={'icon'}>
             <BellIcon />
@@ -100,6 +101,13 @@ export default function DesignSystem() {
         <Button variant={'ghost'} size={'default'}>
           Back
         </Button>
+
+        <div className='flex items-stretch gap-2'>
+          <OverlayIcon variant='Settings' color='blue' />
+          <OverlayIcon variant='HeartPulse' color='green' />
+          <OverlayIcon variant='TriangleAlert' color='orange' />
+          <OverlayIcon variant='ChartColumnDecreasing' color='indigo' />
+        </div>
 
         <Input label='Email' type='email' />
         <Input label='Password' type='password' />
@@ -221,7 +229,7 @@ export default function DesignSystem() {
         />
 
         <TitleAndDesc title='Design Match' subtitle='test' />
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
