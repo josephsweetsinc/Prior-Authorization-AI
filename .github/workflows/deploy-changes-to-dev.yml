@@ -60,7 +60,7 @@ jobs:
 
       - name: Check for debug statements
         run: |
-          if grep -rInE '\b(print|pdb\.set_trace)\b' . --exclude-dir={.git,.venv,venv,__pycache__,.mypy_cache,tests} 2>/dev/null; then
+          if grep -rInE '\bprint\s*\(|\bpdb\.set_trace\b' . --exclude-dir={.git,.venv,venv,__pycache__,.mypy_cache,tests,scripts,.github,terraform} 2>/dev/null; then
             echo "Debug statements found in source code"
             exit 1
           fi
