@@ -23,8 +23,9 @@ ambulance_request_router = APIRouter()
 
 
 @ambulance_request_router.post(
-    '/upload',
-    description='Step 1: Upload medical documents.',
+    '/files',
+    description='Upload medical documents from user.',
+    summary='Upload medical documents.',
     response_model=list[FileUploadResponseSchema],
 )
 @timing_handler
@@ -61,12 +62,13 @@ async def upload_files(
 
 
 @ambulance_request_router.post(
-    'create-request',
-    description='Step 2: Parse medical documents and get info from ai.',
+    '/extraction',
+    description='Step 2: Parse medical documents and get info from AI.',
+    summary='Get info from documents by AI.',
     response_model=FileUploadWithExtractionResponseSchema,
 )
-@exception_handler
 @timing_handler
+@exception_handler
 async def create_request_with_extraction(
         request_data: CreateAmbulanceRequestParseSchema,
         user: Annotated[User, Security(get_provider_user_from_token)],
@@ -83,8 +85,8 @@ async def create_request_with_extraction(
 
 @ambulance_request_router.post(
     '/create',
-    description='Step 2 & 3: Create ambulance request'
-                ' with transportation info and review data',
+    description='Create ambulance request with info verified by provider.',
+    summary='Create ambulance request.',
     response_model=AmbulanceRequestResponseSchema,
 )
 @exception_handler
