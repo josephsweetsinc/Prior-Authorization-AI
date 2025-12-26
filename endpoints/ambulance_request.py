@@ -66,6 +66,7 @@ async def upload_files(
     response_model=FileUploadWithExtractionResponseSchema,
 )
 @exception_handler
+@timing_handler
 async def create_request_with_extraction(
         request_data: CreateAmbulanceRequestParseSchema,
         user: Annotated[User, Security(get_provider_user_from_token)],
