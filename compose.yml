@@ -28,7 +28,7 @@ services:
     env_file:
       - ../prior-authorizationai/.env
     ports:
-      - "8000:8000"
+      - "3100:8000"
     volumes:
       - .:/app
       - /app/.venv  # Exclude .venv from host mount to preserve installed packages
