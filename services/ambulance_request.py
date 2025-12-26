@@ -14,6 +14,7 @@ from exceptions import (
     AmbulanceRequestAllFilesUploadFailedException,
     AmbulanceRequestEmptyDocumentEmtpyException,
     AmbulanceRequestEmptyDocumentFileNameException,
+    AmbulanceRequestFilesAlreadyLinkedException,
     AmbulanceRequestInvalidFileIdsException,
     AmbulanceRequestNotFoundException,
     AmbulanceRequestPermissionException,
@@ -195,31 +196,43 @@ class AmbulanceRequestService(BaseService):
             request_data:CreateAmbulanceRequestParseSchema,
             user_id: int
     ) -> FileUploadWithExtractionResponseSchema:
+        file_records: list[RequestFile] = await self._file_dao.get_by_ids(
+            request_data.file_ids
+        )
+        # Matches file_records by id for better perf
+        file_records_by_id = {
+            file_record.id: file_record
+            for file_record
+            in file_records
+        }
+        # Validate files and check if they're already linked to a request
         file_s3_keys: list[str] = []
         invalid_file_ids: list[int] = []
-        
+        linked_file_ids: list[int] = []
         for file_id in request_data.file_ids:
-            file_record = await self._file_dao.get_by_id(file_id) # TODO: Use batch!
-            # TODO: Check if file not already linked to some request
-            if file_record:
-                file_s3_keys.append(file_record.s3_key)
-            else:
+            file_record = file_records_by_id.get(file_id)
+            if not file_record: # File not found
                 invalid_file_ids.append(file_id)
-        
+            elif file_record.request_id is not None: # Already linked
+                linked_file_ids.append(file_id)
+            else: # Eligible for extraction
+                file_s3_keys.append(file_record.s3_key)
         # Validate that all files were found
         if invalid_file_ids:
             raise AmbulanceRequestInvalidFileIdsException(
                 invalid_file_ids=invalid_file_ids
             )
-        
+        # Check if any files are already linked to a request
+        if linked_file_ids:
+            raise AmbulanceRequestFilesAlreadyLinkedException(
+                file_ids=linked_file_ids
+            )
         ai_response: AIExtractionResponse = (
             await self._ai_extraction_service.extract_data_from_files(
                 file_s3_keys=file_s3_keys,
                 user_id=user_id,
             )
         )
-
-        # Return response with files and extracted data
         return FileUploadWithExtractionResponseSchema(
             extracted_data=ai_response.extracted_data,
         )
