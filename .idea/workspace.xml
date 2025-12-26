@@ -4,18 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3a83622c-ecbe-4b43-99b5-53f3c2475462" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/services/media/api/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/services/media/api/upload-api-service.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/services/media/hook/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/services/media/hook/useUploadMedia.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/services/media/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/shared/components/upload/Uploader.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/services/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/shared/lib/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/shared/lib/utils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/views/new-request/upload-step.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/new-request/upload-step.tsx" afterDir="false" />
-    </list>
+    <list default="true" id="3a83622c-ecbe-4b43-99b5-53f3c2475462" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
