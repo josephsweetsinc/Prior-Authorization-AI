@@ -1,11 +1,11 @@
 locals {
   environment = "dev"
-  name_prefix = "${var.REPO_NAME}-${local.environment}"  
+  name_prefix = "${var.REPO_NAME}-${local.environment}"
   common_tags = {
     Environment = local.environment
     Project     = var.REPO_NAME
     Terraform   = "true"
-  } 
+  }
   domain = "${var.domain}"
 }
 
@@ -19,7 +19,7 @@ data "aws_subnets" "default" {
     name   = "vpc-id"
     values = [data.aws_vpc.default.id]
   }
-  
+
   filter {
     name   = "default-for-az"
     values = ["true"]
@@ -28,7 +28,7 @@ data "aws_subnets" "default" {
 
 module "ec2" {
   source = "../../modules/ec2"
-  
+
   name           = local.name_prefix
   type           = var.instance_type
   vpc_id         = data.aws_vpc.default.id

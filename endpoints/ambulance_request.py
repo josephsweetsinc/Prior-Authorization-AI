@@ -10,10 +10,11 @@ from models import User
 from schemas.ambulance_request import (
     AmbulanceRequestResponseSchema,
     AmbulanceRequestsListResponseSchema,
-    CreateAmbulanceRequestSchema,
-    FileUploadWithExtractionResponseSchema,
-    RequestWithStatusHistorySchema, FileUploadResponseSchema,
     CreateAmbulanceRequestParseSchema,
+    CreateAmbulanceRequestSchema,
+    FileUploadResponseSchema,
+    FileUploadWithExtractionResponseSchema,
+    RequestWithStatusHistorySchema,
 )
 from services import AmbulanceRequestService
 
@@ -31,12 +32,11 @@ ambulance_request_router = APIRouter()
 @timing_handler
 @exception_handler
 async def upload_files(
-        files: Annotated[list[UploadFile], File()],
-        user: Annotated[User, Security(get_provider_user_from_token)],
-        service: Annotated[
-            AmbulanceRequestService, Depends(
-                get_service(AmbulanceRequestService))
-        ],
+    files: Annotated[list[UploadFile], File()],
+    user: Annotated[User, Security(get_provider_user_from_token)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
 ) -> list[FileUploadResponseSchema]:
     """Upload medical document files and extract data using AI.
 
@@ -70,16 +70,34 @@ async def upload_files(
 @timing_handler
 @exception_handler
 async def create_request_with_extraction(
-        request_data: CreateAmbulanceRequestParseSchema,
-        user: Annotated[User, Security(get_provider_user_from_token)],
-        service: Annotated[
-            AmbulanceRequestService, Depends(
-                get_service(AmbulanceRequestService))
-        ],
+    request_data: CreateAmbulanceRequestParseSchema,
+    user: Annotated[User, Security(get_provider_user_from_token)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
 ) -> FileUploadWithExtractionResponseSchema:
+    """Triggers AI extraction of medical data from previously uploaded files.
+
+    This endpoint acts as the second step in the request workflow.
+    It takes a list of file IDs (uploaded in Step 1), validates them, and
+    sends the documents to an AI service to parse medical details.
+
+    The result is returned for user verification and is not yet saved
+    as a permanent ambulance request in the system.
+
+    Args:
+        request_data (CreateAmbulanceRequestParseSchema): The input payload
+            containing the list of file IDs to be analyzed.
+        user (User): The currently authenticated provider user.
+        service (AmbulanceRequestService): The injected service instance.
+
+    Returns:
+        FileUploadWithExtractionResponseSchema: The structured data
+            extracted from the medical documents.
+
+    """
     return await service.create_request_with_extraction(
-        request_data=request_data,
-        user_id=user.id
+        request_data=request_data, user_id=user.id
     )
 
 
@@ -91,12 +109,11 @@ async def create_request_with_extraction(
 )
 @exception_handler
 async def create_request(
-        request_data: CreateAmbulanceRequestSchema,
-        user: Annotated[User, Security(get_provider_user_from_token)],
-        service: Annotated[
-            AmbulanceRequestService, Depends(
-                get_service(AmbulanceRequestService))
-        ],
+    request_data: CreateAmbulanceRequestSchema,
+    user: Annotated[User, Security(get_provider_user_from_token)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
 ) -> AmbulanceRequestResponseSchema:
     """Create a new ambulance request.
 
@@ -127,12 +144,11 @@ async def create_request(
 )
 @exception_handler
 async def get_request(
-        request_id: int,
-        user: Annotated[User, Security(get_current_user)],
-        service: Annotated[
-            AmbulanceRequestService, Depends(
-                get_service(AmbulanceRequestService))
-        ],
+    request_id: int,
+    user: Annotated[User, Security(get_current_user)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
 ) -> RequestWithStatusHistorySchema:
     """Get ambulance request by ID with status history.
 
@@ -161,23 +177,22 @@ async def get_request(
 )
 @exception_handler
 async def get_user_requests(
-        user: Annotated[User, Security(get_current_user)],
-        service: Annotated[
-            AmbulanceRequestService, Depends(
-                get_service(AmbulanceRequestService))
-        ],
-        cursor: int | None = Query(
-            None,
-            description='Cursor for pagination (request ID to start from)',
-            examples=[10],
-        ),
-        limit: int = Query(
-            20,
-            ge=1,
-            le=100,
-            description='Maximum number of items to return',
-            examples=[20],
-        ),
+    user: Annotated[User, Security(get_current_user)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+    cursor: int | None = Query(
+        None,
+        description='Cursor for pagination (request ID to start from)',
+        examples=[10],
+    ),
+    limit: int = Query(
+        20,
+        ge=1,
+        le=100,
+        description='Maximum number of items to return',
+        examples=[20],
+    ),
 ) -> AmbulanceRequestsListResponseSchema:
     """Get all ambulance requests with cursor pagination.
 

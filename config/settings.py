@@ -19,9 +19,9 @@ env_mode = os.getenv('ENV', 'dev')
 
 match env_mode:
     case 'prod':
-        env_file = BASE_DIR / f'.env'
+        env_file = BASE_DIR / '.env'
     case 'dev':
-        env_file = BASE_DIR / f'.env.dev'
+        env_file = BASE_DIR / '.env.dev'
 """Path to environment-specific .env file."""
 
 

@@ -21,21 +21,23 @@ from exceptions import (
     IncorrectFileSizeException,
     UnknownFiletypeException,
 )
-from models import User, RequestFile
 from models import (
     AmbulanceRequest,
+    RequestFile,
     RequestStatus,
+    User,
+    UserRole,
 )
-from models import UserRole
-from schemas import AIExtractionResponse
 from schemas import (
+    AIExtractionResponse,
     AmbulanceRequestResponseSchema,
+    CreateAmbulanceRequestParseSchema,
     CreateAmbulanceRequestSchema,
     FileUploadResponseSchema,
     FileUploadWithExtractionResponseSchema,
     RequestDocumentSchema,
     RequestStatusHistoryResponseSchema,
-    RequestWithStatusHistorySchema, CreateAmbulanceRequestParseSchema,
+    RequestWithStatusHistorySchema,
 )
 from services.ai.extractor import AIExtractionService
 from services.aws.actions import S3Actions
@@ -47,32 +49,32 @@ class AmbulanceRequestService(BaseService):
     """Service for ambulance request operations."""
 
     def __init__(
-            self,
-            db_session: AsyncSession,
-            *,
-            request_dao: AmbulanceRequestDAO | None = None,
-            file_dao: RequestFileDAO | None = None,
-            status_history_dao: RequestStatusHistoryDAO | None = None,
-            s3_actions: S3Actions | None = None,
-            ai_extraction_service: AIExtractionService | None = None,
+        self,
+        db_session: AsyncSession,
+        *,
+        request_dao: AmbulanceRequestDAO | None = None,
+        file_dao: RequestFileDAO | None = None,
+        status_history_dao: RequestStatusHistoryDAO | None = None,
+        s3_actions: S3Actions | None = None,
+        ai_extraction_service: AIExtractionService | None = None,
     ):
         """Initialize AmbulanceRequestService."""
         super().__init__(db_session)
         self._request_dao = request_dao or AmbulanceRequestDAO(db_session)
         self._file_dao = file_dao or RequestFileDAO(db_session)
         self._status_history_dao = (
-                status_history_dao or RequestStatusHistoryDAO(db_session)
+            status_history_dao or RequestStatusHistoryDAO(db_session)
         )
         self._s3_actions = s3_actions or S3Actions()
         self._ai_extraction_service = (
-                ai_extraction_service
-                or AIExtractionService(s3_actions=self._s3_actions)
+            ai_extraction_service
+            or AIExtractionService(s3_actions=self._s3_actions)
         )
 
     async def upload_file(
-            self,
-            file: UploadFile,
-            user_id: int,
+        self,
+        file: UploadFile,
+        user_id: int,
     ) -> FileUploadResponseSchema:
         """Upload a file to S3 and create file record.
 
@@ -139,11 +141,10 @@ class AmbulanceRequestService(BaseService):
         )
 
     async def _extract_s3_keys(
-            self, *, files: list[UploadFile], user_id: int
-    ) -> tuple[list[str], list[FileUploadResponseSchema]]:
+        self, *, files: list[UploadFile], user_id: int
+    ) -> list[FileUploadResponseSchema]:
         uploaded_files: list[FileUploadResponseSchema] = []
         errors: list[str] = []
-        file_s3_keys: list[str] = []
 
         # Upload files
         for file in files:
@@ -152,15 +153,11 @@ class AmbulanceRequestService(BaseService):
                     file=file, user_id=user_id
                 )
                 uploaded_files.append(uploaded_file)
-                # Get S3 key from file record
-                file_record = await self._file_dao.get_by_id(uploaded_file.id)
-                if file_record:
-                    file_s3_keys.append(file_record.s3_key)
             except (
-                    AmbulanceRequestEmptyDocumentFileNameException,
-                    AmbulanceRequestEmptyDocumentEmtpyException,
-                    UnknownFiletypeException,
-                    IncorrectFileSizeException,
+                AmbulanceRequestEmptyDocumentFileNameException,
+                AmbulanceRequestEmptyDocumentEmtpyException,
+                UnknownFiletypeException,
+                IncorrectFileSizeException,
             ) as e:
                 errors.append(f'{file.filename or "Unknown file"}: {e.detail}')
             except Exception:
@@ -177,31 +174,71 @@ class AmbulanceRequestService(BaseService):
                 )
             # If some files succeeded, log errors but continue
             logger.warning('Some files failed to upload: %s', '; '.join(errors))
-        return file_s3_keys, uploaded_files
-
-    async def upload_files(
-            self,
-            files: list[UploadFile],
-            user_id: int,
-    ) -> list[FileUploadResponseSchema]:
-        file_s3_keys, uploaded_files = await self._extract_s3_keys(
-            files=files, user_id=user_id
-        )
         return uploaded_files
 
+    async def upload_files(
+        self,
+        files: list[UploadFile],
+        user_id: int,
+    ) -> list[FileUploadResponseSchema]:
+        """Uploads multiple files to S3 and creates corresponding db records.
+
+        This method processes a batch of uploaded files, saving each
+        valid file to cloud storage and registering it in the system.
+        It delegates the actual upload logic and error aggregation
+        to an internal helper method.
+
+        Args:
+            files (list[UploadFile]): A list of file objects
+                received from the client request.
+            user_id (int): The unique id of the user performing the upload.
+
+        Returns:
+            list[FileUploadResponseSchema]: A list of schema objects
+                containing details for all successfully uploaded files.
+
+        Raises:
+            AmbulanceRequestAllFilesUploadFailedException: If every file
+                in the provided list fails to upload due to validation
+                or storage errors.
+
+        """
+        return await self._extract_s3_keys(files=files, user_id=user_id)
+
     async def create_request_with_extraction(
-            self,
-            request_data:CreateAmbulanceRequestParseSchema,
-            user_id: int
+        self, request_data: CreateAmbulanceRequestParseSchema, user_id: int
     ) -> FileUploadWithExtractionResponseSchema:
+        """Validates provided file IDs and performs extraction on documents.
+
+        This method checks that all requested files exist in the database
+        and are not already linked to another ambulance request.
+        If validation passes, it retrieves the corresponding S3 keys
+        and delegates processing to the AI extraction service.
+
+        Args:
+            request_data (CreateAmbulanceRequestParseSchema): Schema containing
+                the list of file IDs to be processed.
+            user_id (int): The ID of the user initiating the extraction request.
+
+        Returns:
+            FileUploadWithExtractionResponseSchema: A schema containing
+                the structured
+                data extracted from the documents by the AI.
+
+        Raises:
+            AmbulanceRequestInvalidFileIdsException: If one or more
+                provided file IDs do not exist in the database.
+            AmbulanceRequestFilesAlreadyLinkedException: If one or more
+                files are
+                already associated with an existing ambulance request.
+
+        """
         file_records: list[RequestFile] = await self._file_dao.get_by_ids(
             request_data.file_ids
         )
         # Matches file_records by id for better perf
         file_records_by_id = {
-            file_record.id: file_record
-            for file_record
-            in file_records
+            file_record.id: file_record for file_record in file_records
         }
         # Validate files and check if they're already linked to a request
         file_s3_keys: list[str] = []
@@ -209,11 +246,11 @@ class AmbulanceRequestService(BaseService):
         linked_file_ids: list[int] = []
         for file_id in request_data.file_ids:
             file_record = file_records_by_id.get(file_id)
-            if not file_record: # File not found
+            if not file_record:  # File not found
                 invalid_file_ids.append(file_id)
-            elif file_record.request_id is not None: # Already linked
+            elif file_record.request_id is not None:  # Already linked
                 linked_file_ids.append(file_id)
-            else: # Eligible for extraction
+            else:  # Eligible for extraction
                 file_s3_keys.append(file_record.s3_key)
         # Validate that all files were found
         if invalid_file_ids:
@@ -236,9 +273,9 @@ class AmbulanceRequestService(BaseService):
         )
 
     async def create_request(
-            self,
-            user_id: int,
-            request_data: CreateAmbulanceRequestSchema,
+        self,
+        user_id: int,
+        request_data: CreateAmbulanceRequestSchema,
     ) -> AmbulanceRequestResponseSchema:
         """Create a new ambulance request.
 
@@ -295,9 +332,9 @@ class AmbulanceRequestService(BaseService):
         return AmbulanceRequestResponseSchema.model_validate(request)
 
     async def get_request_by_id(
-            self,
-            user: User,
-            request_id: int,
+        self,
+        user: User,
+        request_id: int,
     ) -> RequestWithStatusHistorySchema:
         """Get request by id.
 
@@ -366,10 +403,10 @@ class AmbulanceRequestService(BaseService):
         return response
 
     async def get_all_requests(
-            self,
-            user: User,
-            cursor: int | None = None,
-            limit: int = 20,
+        self,
+        user: User,
+        cursor: int | None = None,
+        limit: int = 20,
     ) -> tuple[list[AmbulanceRequestResponseSchema], int | None, bool]:
         """Get all requests for a user with pagination.
 
@@ -421,8 +458,8 @@ class AmbulanceRequestService(BaseService):
         )
 
     async def get_request_status_history(
-            self,
-            request_id: int,
+        self,
+        request_id: int,
     ) -> list[RequestStatusHistoryResponseSchema]:
         """Get status history for a request.
 
@@ -442,10 +479,10 @@ class AmbulanceRequestService(BaseService):
         ]
 
     async def update_request_status(
-            self,
-            request_id: int,
-            new_status: RequestStatus,
-            notes: str | None = None,
+        self,
+        request_id: int,
+        new_status: RequestStatus,
+        notes: str | None = None,
     ) -> AmbulanceRequestResponseSchema:
         """Update the status of an existing ambulance request.
 

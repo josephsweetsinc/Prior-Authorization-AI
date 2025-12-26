@@ -18,5 +18,5 @@ __all__ = [
     'RequestStatusHistory',
     'TransportationType',
     'User',
-    'UserRole'
+    'UserRole',
 ]

@@ -33,6 +33,7 @@ class AmbulanceRequestsListResponseSchema(BaseModel):
         examples=[True],
     )
 
+
 class FileUploadResponseSchema(BaseModel):
     """Response schema for uploaded file."""
 
@@ -87,7 +88,21 @@ class FileUploadWithExtractionResponseSchema(BaseModel):
             for field in self.extracted_data.model_fields
         )
 
+
 class CreateAmbulanceRequestParseSchema(BaseModel):
+    """Input schema for initiating the AI data extraction process.
+
+    This schema validates the payload required to trigger the AI analysis
+    of previously uploaded medical documents. It ensures that at least one
+    file identifier is provided to perform the extraction.
+
+    Attributes:
+        file_ids (list[int]): A list of unique identifiers for the files to be
+            analyzed. Must contain at least one file ID. These IDs correspond
+            to the records created during the file upload step.
+
+    """
+
     file_ids: Annotated[
         list[int],
         Field(
@@ -96,6 +111,7 @@ class CreateAmbulanceRequestParseSchema(BaseModel):
             description='IDs of uploaded files (at least one required)',
         ),
     ]
+
 
 class CreateAmbulanceRequestSchema(BaseModel):
     """Schema for creating ambulance request (combines step 2 and 3)."""
