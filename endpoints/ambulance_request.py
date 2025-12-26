@@ -13,6 +13,7 @@ from schemas.ambulance_request import (
     CreateAmbulanceRequestSchema,
     FileUploadWithExtractionResponseSchema,
     RequestWithStatusHistorySchema, FileUploadResponseSchema,
+    CreateAmbulanceRequestParseSchema,
 )
 from services import AmbulanceRequestService
 
@@ -29,11 +30,12 @@ ambulance_request_router = APIRouter()
 @timing_handler
 @exception_handler
 async def upload_files(
-    files: Annotated[list[UploadFile], File()],
-    user: Annotated[User, Security(get_provider_user_from_token)],
-    service: Annotated[
-        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
-    ],
+        files: Annotated[list[UploadFile], File()],
+        user: Annotated[User, Security(get_provider_user_from_token)],
+        service: Annotated[
+            AmbulanceRequestService, Depends(
+                get_service(AmbulanceRequestService))
+        ],
 ) -> list[FileUploadResponseSchema]:
     """Upload medical document files and extract data using AI.
 
@@ -59,18 +61,39 @@ async def upload_files(
 
 
 @ambulance_request_router.post(
+    'create-request',
+    description='Step 2: Parse medical documents and get info from ai.',
+    response_model=FileUploadWithExtractionResponseSchema,
+)
+@exception_handler
+async def create_request_with_extraction(
+        request_data: CreateAmbulanceRequestParseSchema,
+        user: Annotated[User, Security(get_provider_user_from_token)],
+        service: Annotated[
+            AmbulanceRequestService, Depends(
+                get_service(AmbulanceRequestService))
+        ],
+) -> FileUploadWithExtractionResponseSchema:
+    return await service.create_request_with_extraction(
+        request_data=request_data,
+        user_id=user.id
+    )
+
+
+@ambulance_request_router.post(
     '/create',
     description='Step 2 & 3: Create ambulance request'
-    ' with transportation info and review data',
+                ' with transportation info and review data',
     response_model=AmbulanceRequestResponseSchema,
 )
 @exception_handler
 async def create_request(
-    request_data: CreateAmbulanceRequestSchema,
-    user: Annotated[User, Security(get_provider_user_from_token)],
-    service: Annotated[
-        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
-    ],
+        request_data: CreateAmbulanceRequestSchema,
+        user: Annotated[User, Security(get_provider_user_from_token)],
+        service: Annotated[
+            AmbulanceRequestService, Depends(
+                get_service(AmbulanceRequestService))
+        ],
 ) -> AmbulanceRequestResponseSchema:
     """Create a new ambulance request.
 
@@ -101,11 +124,12 @@ async def create_request(
 )
 @exception_handler
 async def get_request(
-    request_id: int,
-    user: Annotated[User, Security(get_current_user)],
-    service: Annotated[
-        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
-    ],
+        request_id: int,
+        user: Annotated[User, Security(get_current_user)],
+        service: Annotated[
+            AmbulanceRequestService, Depends(
+                get_service(AmbulanceRequestService))
+        ],
 ) -> RequestWithStatusHistorySchema:
     """Get ambulance request by ID with status history.
 
@@ -134,22 +158,23 @@ async def get_request(
 )
 @exception_handler
 async def get_user_requests(
-    user: Annotated[User, Security(get_current_user)],
-    service: Annotated[
-        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
-    ],
-    cursor: int | None = Query(
-        None,
-        description='Cursor for pagination (request ID to start from)',
-        examples=[10],
-    ),
-    limit: int = Query(
-        20,
-        ge=1,
-        le=100,
-        description='Maximum number of items to return',
-        examples=[20],
-    ),
+        user: Annotated[User, Security(get_current_user)],
+        service: Annotated[
+            AmbulanceRequestService, Depends(
+                get_service(AmbulanceRequestService))
+        ],
+        cursor: int | None = Query(
+            None,
+            description='Cursor for pagination (request ID to start from)',
+            examples=[10],
+        ),
+        limit: int = Query(
+            20,
+            ge=1,
+            le=100,
+            description='Maximum number of items to return',
+            examples=[20],
+        ),
 ) -> AmbulanceRequestsListResponseSchema:
     """Get all ambulance requests with cursor pagination.
 
