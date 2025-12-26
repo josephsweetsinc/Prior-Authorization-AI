@@ -3,7 +3,6 @@ import logging
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
 
 from config.logger import configure_logging
 from config.router import initialize_routers
@@ -29,9 +28,6 @@ app.add_middleware(
 )
 main_api_router = initialize_routers()
 app.include_router(main_api_router)
-
-handler = Mangum(app)
-"""AWS Lambda handler for serverless deployment."""
 
 
 def main() -> None:
