@@ -1,0 +1,588 @@
+"""Tests for AmbulanceRequestDAO, RequestStatusHistoryDAO, RequestFileDAO."""
+
+from datetime import date, time
+
+import pytest
+
+from dao import (
+    AmbulanceRequestDAO,
+    RequestFileDAO,
+    RequestStatusHistoryDAO,
+)
+from models.ambulance_request import RequestStatus, TransportationType
+
+
+class TestAmbulanceRequestDAO:
+    """Test suite for AmbulanceRequestDAO."""
+
+    @pytest.mark.asyncio
+    async def test_create(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test creating an ambulance request."""
+        user = await user_factory()
+        await db_session.commit()
+
+        dao = AmbulanceRequestDAO(db_session)
+        request = await dao.create(
+            user_id=user.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='John',
+            patient_last_name='Doe',
+            patient_date_of_birth=date(1980, 1, 1),
+            patient_id='DA123456789HY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(13, 40),
+            pickup_address='123 Main St, Springfield, IL 62701',
+            destination_address='Memorial Dialysis Center, 456 Medical Dr',
+            primary_diagnosis='Chronic heart failure',
+            medical_justification='Patient requires transport',
+            form_number='CMS-10344',
+            status=RequestStatus.PROCESSING,
+        )
+        await db_session.commit()
+
+        assert request.id is not None
+        assert request.user_id == user.id
+        assert request.transportation_type == TransportationType.AMBULANCE
+        assert request.patient_first_name == 'John'
+        assert request.patient_last_name == 'Doe'
+        assert request.patient_id == 'DA123456789HY'
+        assert request.status == RequestStatus.PROCESSING
+        assert request.form_number == 'CMS-10344'
+
+    @pytest.mark.asyncio
+    async def test_get_by_id(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test getting request by ID."""
+        user = await user_factory()
+        await db_session.commit()
+
+        dao = AmbulanceRequestDAO(db_session)
+        created = await dao.create(
+            user_id=user.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='John',
+            patient_last_name='Doe',
+            patient_date_of_birth=date(1980, 1, 1),
+            patient_id='DA123456789HY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(13, 40),
+            pickup_address='123 Main St',
+            destination_address='456 Medical Dr',
+        )
+        await db_session.commit()
+
+        found = await dao.get_by_id(created.id)
+
+        assert found is not None
+        assert found.id == created.id
+        assert found.patient_first_name == 'John'
+        # Should include relationships
+        assert hasattr(found, 'files')
+        assert hasattr(found, 'status_history')
+
+    @pytest.mark.asyncio
+    async def test_get_by_id_not_found(
+        self,
+        db_session,
+    ):
+        """Test getting non-existent request returns None."""
+        dao = AmbulanceRequestDAO(db_session)
+        found = await dao.get_by_id(99999)
+        assert found is None
+
+    @pytest.mark.asyncio
+    async def test_get_by_user_id(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test getting all requests for a user."""
+        user1 = await user_factory(email='user1@example.com')
+        user2 = await user_factory(email='user2@example.com')
+        await db_session.commit()
+
+        dao = AmbulanceRequestDAO(db_session)
+
+        # Create requests for user1
+        request1 = await dao.create(
+            user_id=user1.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='John',
+            patient_last_name='Doe',
+            patient_date_of_birth=date(1980, 1, 1),
+            patient_id='DA123456789HY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(13, 40),
+            pickup_address='123 Main St',
+            destination_address='456 Medical Dr',
+        )
+        request2 = await dao.create(
+            user_id=user1.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='Jane',
+            patient_last_name='Smith',
+            patient_date_of_birth=date(1975, 5, 15),
+            patient_id='DA987654321AB',
+            date_of_transport=date(2025, 12, 7),
+            time_of_transport=time(14, 0),
+            pickup_address='789 Oak Ave',
+            destination_address='321 Pine St',
+        )
+        # Create request for user2
+        await dao.create(
+            user_id=user2.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='Bob',
+            patient_last_name='Johnson',
+            patient_date_of_birth=date(1990, 3, 20),
+            patient_id='DA111222333CD',
+            date_of_transport=date(2025, 12, 8),
+            time_of_transport=time(15, 0),
+            pickup_address='555 Elm St',
+            destination_address='777 Maple Dr',
+        )
+        await db_session.commit()
+
+        user1_requests = await dao.get_by_user_id(user_id=user1.id)
+
+        assert len(user1_requests) == 2
+        assert all(req.user_id == user1.id for req in user1_requests)
+        # Should be ordered by created_at desc
+        request_ids = {req.id for req in user1_requests}
+        assert request_ids == {request1.id, request2.id}
+        # Verify ordering (newer first)
+        assert user1_requests[0].created_at >= user1_requests[1].created_at
+        # Verify status_history is always loaded
+        assert all(hasattr(req, 'status_history') for req in user1_requests)
+
+    @pytest.mark.asyncio
+    async def test_get_by_user_id_with_pagination(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test getting requests for a user with pagination."""
+        user = await user_factory()
+        await db_session.commit()
+
+        dao = AmbulanceRequestDAO(db_session)
+
+        # Create 5 requests
+        request_ids = []
+        for i in range(5):
+            request = await dao.create(
+                user_id=user.id,
+                transportation_type=TransportationType.AMBULANCE,
+                patient_first_name=f'Patient{i}',
+                patient_last_name='Doe',
+                patient_date_of_birth=date(1980, 1, 1),
+                patient_id=f'DA12345678{i}HY',
+                date_of_transport=date(2025, 12, 6),
+                time_of_transport=time(13, 40),
+                pickup_address='123 Main St',
+                destination_address='456 Medical Dr',
+            )
+            request_ids.append(request.id)
+            await db_session.commit()
+
+        # Get first page (limit=2, but DAO returns limit+1 for has_more check)
+        first_page_full = await dao.get_by_user_id(
+            user_id=user.id, cursor=None, limit=2
+        )
+        # DAO returns limit+1 items to check if there are more
+        assert len(first_page_full) == 3
+        # Verify descending order (newer first, then by ID desc)
+        # Since requests are created sequentially, newer ones have higher IDs
+        assert first_page_full[0].id > first_page_full[1].id
+        # Take only first 2 for actual page
+        first_page = first_page_full[:2]
+        # Cursor should be the ID of the last item in the actual page
+        cursor = first_page[-1].id
+
+        # Get next page using cursor (id < cursor)
+        second_page_full = await dao.get_by_user_id(
+            user_id=user.id, cursor=cursor, limit=2
+        )
+        # Should get remaining items (we have 5 total, first page has 2, so 3 remain)
+        # But we request limit=2, so should get 2 items (or 3 if limit+1)
+        assert len(second_page_full) >= 2
+        # Take only first 2 for actual page
+        second_page = second_page_full[:2]
+        # All IDs should be less than cursor
+        assert all(req.id < cursor for req in second_page)
+        # Should not overlap with first page
+        first_page_ids = {req.id for req in first_page}
+        second_page_ids = {req.id for req in second_page}
+        assert first_page_ids.isdisjoint(second_page_ids), (
+            f'Pages overlap: first_page={first_page_ids}, second_page={second_page_ids}, cursor={cursor}'
+        )
+
+    @pytest.mark.asyncio
+    async def test_get_all(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test getting all requests (for admin)."""
+        user1 = await user_factory(email='user1@example.com')
+        user2 = await user_factory(email='user2@example.com')
+        await db_session.commit()
+
+        dao = AmbulanceRequestDAO(db_session)
+
+        # Create requests for both users
+        await dao.create(
+            user_id=user1.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='John',
+            patient_last_name='Doe',
+            patient_date_of_birth=date(1980, 1, 1),
+            patient_id='DA123456789HY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(13, 40),
+            pickup_address='123 Main St',
+            destination_address='456 Medical Dr',
+        )
+        await dao.create(
+            user_id=user2.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='Jane',
+            patient_last_name='Smith',
+            patient_date_of_birth=date(1975, 5, 15),
+            patient_id='DA987654321AB',
+            date_of_transport=date(2025, 12, 7),
+            time_of_transport=time(14, 0),
+            pickup_address='789 Oak Ave',
+            destination_address='321 Pine St',
+        )
+        await db_session.commit()
+
+        all_requests = await dao.get_all()
+
+        assert len(all_requests) == 2
+        user_ids = {req.user_id for req in all_requests}
+        assert user_ids == {user1.id, user2.id}
+        # Verify status_history is always loaded
+        assert all(hasattr(req, 'status_history') for req in all_requests)
+
+    @pytest.mark.asyncio
+    async def test_get_all_with_pagination(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test getting all requests with pagination."""
+        user1 = await user_factory(email='user1@example.com')
+        user2 = await user_factory(email='user2@example.com')
+        await db_session.commit()
+
+        dao = AmbulanceRequestDAO(db_session)
+
+        # Create 5 requests across both users
+        request_ids = []
+        for i in range(5):
+            user = user1 if i % 2 == 0 else user2
+            request = await dao.create(
+                user_id=user.id,
+                transportation_type=TransportationType.AMBULANCE,
+                patient_first_name=f'Patient{i}',
+                patient_last_name='Doe',
+                patient_date_of_birth=date(1980, 1, 1),
+                patient_id=f'DA12345678{i}HY',
+                date_of_transport=date(2025, 12, 6),
+                time_of_transport=time(13, 40),
+                pickup_address='123 Main St',
+                destination_address='456 Medical Dr',
+            )
+            request_ids.append(request.id)
+            await db_session.commit()
+
+        # Get first page (limit=2, but DAO returns limit+1 for has_more check)
+        first_page_full = await dao.get_all(cursor=None, limit=2)
+        # DAO returns limit+1 items to check if there are more
+        assert len(first_page_full) == 3
+        # Verify descending order (newer first, then by ID desc)
+        assert first_page_full[0].id > first_page_full[1].id
+        # Take only first 2 for actual page
+        first_page = first_page_full[:2]
+        # Cursor should be the ID of the last item in the actual page
+        cursor = first_page[-1].id
+
+        # Get next page using cursor (id < cursor)
+        second_page_full = await dao.get_all(cursor=cursor, limit=2)
+        # Should get remaining items (we have 5 total, first page has 2, so 3 remain)
+        assert len(second_page_full) >= 2
+        # Take only first 2 for actual page
+        second_page = second_page_full[:2]
+        # All IDs should be less than cursor
+        assert all(req.id < cursor for req in second_page)
+        # Should not overlap with first page
+        first_page_ids = {req.id for req in first_page}
+        second_page_ids = {req.id for req in second_page}
+        assert first_page_ids.isdisjoint(second_page_ids), (
+            f'Pages overlap: first_page={first_page_ids}, second_page={second_page_ids}, cursor={cursor}'
+        )
+
+
+class TestRequestStatusHistoryDAO:
+    """Test suite for RequestStatusHistoryDAO."""
+
+    @pytest.mark.asyncio
+    async def test_create(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test creating status history entry."""
+        user = await user_factory()
+        await db_session.commit()
+
+        request_dao = AmbulanceRequestDAO(db_session)
+        request = await request_dao.create(
+            user_id=user.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='John',
+            patient_last_name='Doe',
+            patient_date_of_birth=date(1980, 1, 1),
+            patient_id='DA123456789HY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(13, 40),
+            pickup_address='123 Main St',
+            destination_address='456 Medical Dr',
+        )
+        await db_session.commit()
+
+        history_dao = RequestStatusHistoryDAO(db_session)
+        history = await history_dao.create(
+            request_id=request.id,
+            status=RequestStatus.PROCESSING,
+            notes='Request submitted',
+        )
+        await db_session.commit()
+
+        assert history.id is not None
+        assert history.request_id == request.id
+        assert history.status == RequestStatus.PROCESSING
+        assert history.notes == 'Request submitted'
+
+    @pytest.mark.asyncio
+    async def test_get_by_request_id(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test getting status history for a request."""
+        user = await user_factory()
+        await db_session.commit()
+
+        request_dao = AmbulanceRequestDAO(db_session)
+        request = await request_dao.create(
+            user_id=user.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='John',
+            patient_last_name='Doe',
+            patient_date_of_birth=date(1980, 1, 1),
+            patient_id='DA123456789HY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(13, 40),
+            pickup_address='123 Main St',
+            destination_address='456 Medical Dr',
+        )
+        await db_session.commit()
+
+        history_dao = RequestStatusHistoryDAO(db_session)
+        history1 = await history_dao.create(
+            request_id=request.id,
+            status=RequestStatus.PROCESSING,
+            notes='Request submitted',
+        )
+        history2 = await history_dao.create(
+            request_id=request.id,
+            status=RequestStatus.PENDING,
+            notes='Under review',
+        )
+        await db_session.commit()
+
+        all_history = await history_dao.get_by_request_id(request.id)
+
+        assert len(all_history) == 2
+        # Should be ordered by created_at asc
+        assert all_history[0].id == history1.id
+        assert all_history[1].id == history2.id
+        assert all_history[0].status == RequestStatus.PROCESSING
+        assert all_history[1].status == RequestStatus.PENDING
+
+
+class TestRequestFileDAO:
+    """Test suite for RequestFileDAO."""
+
+    @pytest.mark.asyncio
+    async def test_create(
+        self,
+        db_session,
+    ):
+        """Test creating a file record."""
+        dao = RequestFileDAO(db_session)
+        file = await dao.create(
+            request_id=None,
+            filename='test.pdf',
+            s3_key='users/1/ambulance-requests/test.pdf',
+            file_size=1024,
+            content_type='application/pdf',
+        )
+        await db_session.commit()
+
+        assert file.id is not None
+        assert file.request_id is None
+        assert file.filename == 'test.pdf'
+        assert file.s3_key == 'users/1/ambulance-requests/test.pdf'
+        assert file.file_size == 1024
+        assert file.content_type == 'application/pdf'
+
+    @pytest.mark.asyncio
+    async def test_get_by_id(
+        self,
+        db_session,
+    ):
+        """Test getting file by ID."""
+        dao = RequestFileDAO(db_session)
+        created = await dao.create(
+            request_id=None,
+            filename='test.pdf',
+            s3_key='users/1/test.pdf',
+            file_size=1024,
+            content_type='application/pdf',
+        )
+        await db_session.commit()
+
+        found = await dao.get_by_id(created.id)
+
+        assert found is not None
+        assert found.id == created.id
+        assert found.filename == 'test.pdf'
+
+    @pytest.mark.asyncio
+    async def test_get_by_request_id(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test getting all files for a request."""
+        user = await user_factory()
+        await db_session.commit()
+
+        request_dao = AmbulanceRequestDAO(db_session)
+        request = await request_dao.create(
+            user_id=user.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='John',
+            patient_last_name='Doe',
+            patient_date_of_birth=date(1980, 1, 1),
+            patient_id='DA123456789HY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(13, 40),
+            pickup_address='123 Main St',
+            destination_address='456 Medical Dr',
+        )
+        await db_session.commit()
+
+        file_dao = RequestFileDAO(db_session)
+        file1 = await file_dao.create(
+            request_id=request.id,
+            filename='file1.pdf',
+            s3_key='users/1/file1.pdf',
+            file_size=1024,
+            content_type='application/pdf',
+        )
+        file2 = await file_dao.create(
+            request_id=request.id,
+            filename='file2.pdf',
+            s3_key='users/1/file2.pdf',
+            file_size=2048,
+            content_type='application/pdf',
+        )
+        # File without request_id
+        await file_dao.create(
+            request_id=None,
+            filename='file3.pdf',
+            s3_key='users/1/file3.pdf',
+            file_size=3072,
+            content_type='application/pdf',
+        )
+        await db_session.commit()
+
+        request_files = await file_dao.get_by_request_id(request.id)
+
+        assert len(request_files) == 2
+        assert all(f.request_id == request.id for f in request_files)
+        assert {f.id for f in request_files} == {file1.id, file2.id}
+
+    @pytest.mark.asyncio
+    async def test_update_request_id(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test updating request_id for a file."""
+        user = await user_factory()
+        await db_session.commit()
+
+        request_dao = AmbulanceRequestDAO(db_session)
+        request = await request_dao.create(
+            user_id=user.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='John',
+            patient_last_name='Doe',
+            patient_date_of_birth=date(1980, 1, 1),
+            patient_id='DA123456789HY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(13, 40),
+            pickup_address='123 Main St',
+            destination_address='456 Medical Dr',
+        )
+        await db_session.commit()
+
+        file_dao = RequestFileDAO(db_session)
+        file = await file_dao.create(
+            request_id=None,
+            filename='test.pdf',
+            s3_key='users/1/test.pdf',
+            file_size=1024,
+            content_type='application/pdf',
+        )
+        await db_session.commit()
+
+        updated = await file_dao.update_request_id(
+            file_id=file.id,
+            request_id=request.id,
+        )
+        await db_session.commit()
+
+        assert updated is not None
+        assert updated.id == file.id
+        assert updated.request_id == request.id
+
+        # Verify it's updated in DB
+        found = await file_dao.get_by_id(file.id)
+        assert found is not None
+        assert found.request_id == request.id
+
+    @pytest.mark.asyncio
+    async def test_update_request_id_not_found(
+        self,
+        db_session,
+    ):
+        """Test updating request_id for non-existent file returns None."""
+        file_dao = RequestFileDAO(db_session)
+        updated = await file_dao.update_request_id(
+            file_id=99999,
+            request_id=1,
+        )
+        assert updated is None
