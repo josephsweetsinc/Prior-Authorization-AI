@@ -13,12 +13,30 @@ import {
   clearTokens,
 } from './token';
 
-const baseQuery = fetchBaseQuery({
+const rawBaseQuery = fetchBaseQuery({
   baseUrl: process.env.NEXT_PUBLIC_API_URL,
-  prepareHeaders: (headers) => {
-    return headers;
-  },
 });
+
+const authPaths = ['/auth/login', '/auth/refresh', '/auth/signup'];
+
+const withAuthHeader = (args: string | FetchArgs, token: string): FetchArgs => {
+  if (typeof args === 'string') {
+    return {
+      url: args,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+  }
+
+  return {
+    ...args,
+    headers: {
+      ...(args.headers || {}),
+      Authorization: `Bearer ${token}`,
+    },
+  };
+};
 
 let refreshPromise: Promise<boolean> | null = null;
 
@@ -28,115 +46,86 @@ const baseQueryWithReauth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   const url = typeof args === 'string' ? args : args.url;
-
-  const authPaths = ['/auth/login', '/auth/refresh', '/auth/signup'];
   const skipAuth = authPaths.some((path) => url.includes(path));
 
+  let requestArgs = args;
+
   if (!skipAuth) {
-    const token = getAccessToken();
-    if (token) {
-      if (typeof args === 'string') {
-        args = {
-          url: args,
-          headers: { Authorization: `Bearer ${token}` },
-        };
-      } else {
-        args = {
-          ...args,
-          headers: {
-            ...(args.headers || {}),
-            Authorization: `Bearer ${token}`,
-          },
-        };
-      }
+    const accessToken = getAccessToken();
+    if (accessToken) {
+      requestArgs = withAuthHeader(args, accessToken);
     }
   }
 
-  let result = await baseQuery(args, api, extraOptions);
+  const result = await rawBaseQuery(requestArgs, api, extraOptions);
 
-  if (result.error && result.error.status === 401 && !skipAuth) {
-    try {
-      if (!refreshPromise) {
-        refreshPromise = (async () => {
-          const refreshToken = getRefreshToken();
+  if (result.error?.status !== 401 || skipAuth) {
+    return result;
+  }
 
-          if (!refreshToken) {
-            clearTokens();
-            if (typeof window !== 'undefined') {
-              window.location.replace('/login');
-            }
-            return false;
+  try {
+    if (!refreshPromise) {
+      refreshPromise = (async () => {
+        const refreshToken = getRefreshToken();
+
+        if (!refreshToken) {
+          clearTokens();
+          if (typeof window !== 'undefined') {
+            window.location.replace('/login');
           }
-
-          const refreshRes = await baseQuery(
-            {
-              url: '/auth/refresh',
-              method: 'POST',
-              body: { refresh_token: refreshToken },
-            },
-            api,
-            extraOptions,
-          );
-
-          if (refreshRes.data) {
-            setTokens(
-              refreshRes.data as {
-                access_token: string;
-                refresh_token?: string;
-              },
-            );
-            return true;
-          }
-
-          if (
-            refreshRes.error &&
-            (refreshRes.error.status === 401 || refreshRes.error.status === 403)
-          ) {
-            clearTokens();
-            if (typeof window !== 'undefined') {
-              window.location.replace('/login');
-            }
-          }
-
           return false;
-        })();
-      }
-
-      const ok = await refreshPromise;
-      refreshPromise = null;
-
-      if (ok) {
-        const token2 = getAccessToken();
-        if (token2) {
-          if (typeof args === 'string') {
-            args = {
-              url: args,
-              headers: { Authorization: `Bearer ${token2}` },
-            };
-          } else {
-            args = {
-              ...args,
-              headers: {
-                ...(args.headers || {}),
-                Authorization: `Bearer ${token2}`,
-              },
-            };
-          }
-          result = await baseQuery(args, api, extraOptions);
         }
-      } else {
-        if (
-          typeof window !== 'undefined' &&
-          !window.location.pathname.includes('/login')
-        ) {
+
+        const refreshResult = await rawBaseQuery(
+          {
+            url: `/auth/refresh?refresh_token=${refreshToken}`,
+            method: 'POST',
+          },
+          api,
+          extraOptions,
+        );
+
+        if (refreshResult.data) {
+          setTokens(
+            refreshResult.data as {
+              access_token: string;
+              refresh_token?: string;
+            },
+          );
+          return true;
         }
-      }
-    } catch {
-      refreshPromise = null;
+
+        clearTokens();
+        if (typeof window !== 'undefined') {
+          window.location.replace('/login');
+        }
+
+        return false;
+      })();
     }
-  }
 
-  return result;
+    const refreshed = await refreshPromise;
+    refreshPromise = null;
+
+    if (!refreshed) {
+      return result;
+    }
+
+    const newAccessToken = getAccessToken();
+    if (!newAccessToken) {
+      return result;
+    }
+
+    const retryArgs = withAuthHeader(args, newAccessToken);
+    return await rawBaseQuery(retryArgs, api, extraOptions);
+  } catch {
+    refreshPromise = null;
+    clearTokens();
+    if (typeof window !== 'undefined') {
+      window.location.replace('/login');
+    }
+    return result;
+  }
 };
 
 export const api = createApi({
