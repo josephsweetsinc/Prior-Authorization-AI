@@ -1,6 +1,7 @@
 'use client';
 
-import { useGetProviderRecentRequests } from '@/services/recent-requests';
+import { useGetCurrentUserQuery } from '@/services/auth';
+import { useGetRecentRequests } from '@/services/recent-requests';
 import {
   DataTable,
   DataTableSkeleton,
@@ -10,7 +11,14 @@ import {
 import { columns } from '../constants';
 
 const RequestsTable = () => {
-  const { requests, isLoading } = useGetProviderRecentRequests();
+  const { data: currentUser, isLoading: userLoading } =
+    useGetCurrentUserQuery();
+
+  const { requests, isLoading: requestsLoading } = useGetRecentRequests({
+    role: currentUser?.role,
+  });
+
+  const isLoading = userLoading || requestsLoading;
 
   if (isLoading) {
     return <DataTableSkeleton columnCount={6} />;

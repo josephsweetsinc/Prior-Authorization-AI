@@ -1,1 +1,1 @@
-export { MetricsList } from './components';
+export { RequestsSummary } from './components';

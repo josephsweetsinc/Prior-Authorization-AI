@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 import { RecentRequests } from '@/features/recent-requests';
 import { Analytics } from '@/features/request-analytics';
-import { MetricsList } from '@/features/request-totals';
+import { RequestsSummary } from '@/features/request-totals';
 import { TitleAndDesc, buttonVariants } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
@@ -27,7 +27,7 @@ export const Dashboard = () => {
           <span className='sr-only xl:not-sr-only'>New request</span>
         </Link>
       </div>
-      <MetricsList />
+      <RequestsSummary />
       <RecentRequests />
       <Analytics />
     </main>

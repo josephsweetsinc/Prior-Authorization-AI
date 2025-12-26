@@ -14,5 +14,6 @@ export const dashboardApi = baseApi.injectEndpoints({
 
 export const selectProviderDashboard = (data?: DashboardResponse) =>
   data?.provider;
+export const selectAdminDashboard = (data?: DashboardResponse) => data?.admin;
 
 export const { useGetDashboardQuery } = dashboardApi;
