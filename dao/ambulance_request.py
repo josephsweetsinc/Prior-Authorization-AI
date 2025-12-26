@@ -1,0 +1,338 @@
+from datetime import date, time
+
+from sqlalchemy import select, update
+from sqlalchemy.orm import selectinload
+
+from core.dao import BaseDAO
+from models.ambulance_request import (
+    AmbulanceRequest,
+    RequestStatus,
+    RequestStatusHistory,
+)
+from models.request_file import RequestFile
+
+
+class AmbulanceRequestDAO(BaseDAO):
+    """DAO for AmbulanceRequest model."""
+
+    async def create(
+        self,
+        *,
+        user_id: int,
+        transportation_type: str,
+        patient_first_name: str,
+        patient_last_name: str,
+        patient_date_of_birth: date,
+        patient_id: str,
+        date_of_transport: date,
+        time_of_transport: time,
+        pickup_address: str,
+        destination_address: str,
+        primary_diagnosis: str | None = None,
+        medical_justification: str | None = None,
+        form_number: str | None = None,
+        status: RequestStatus = RequestStatus.PROCESSING,
+    ) -> AmbulanceRequest:
+        """Create a new ambulance request.
+
+        Args:
+            user_id: ID of the user creating the request.
+            transportation_type: Type of transportation.
+            patient_first_name: Patient's first name.
+            patient_last_name: Patient's last name.
+            patient_date_of_birth: Patient's date of birth.
+            patient_id: Patient's ID.
+            date_of_transport: Date of transport.
+            time_of_transport: Time of transport.
+            pickup_address: Pickup address.
+            destination_address: Destination address.
+            primary_diagnosis: Primary diagnosis (optional).
+            medical_justification: Medical justification (optional).
+            form_number: CMS form number (optional).
+            status: Request status (default: PROCESSING).
+
+        Returns:
+            AmbulanceRequest: Created request instance.
+
+        """
+        request = AmbulanceRequest(
+            user_id=user_id,
+            transportation_type=transportation_type,
+            patient_first_name=patient_first_name,
+            patient_last_name=patient_last_name,
+            patient_date_of_birth=patient_date_of_birth,
+            patient_id=patient_id,
+            date_of_transport=date_of_transport,
+            time_of_transport=time_of_transport,
+            pickup_address=pickup_address,
+            destination_address=destination_address,
+            primary_diagnosis=primary_diagnosis,
+            medical_justification=medical_justification,
+            form_number=form_number,
+            status=status,
+        )
+        self._session.add(request)
+        await self._session.flush()
+        await self._session.refresh(request)
+        return request
+
+    async def get_by_id(
+        self,
+        request_id: int,
+    ) -> AmbulanceRequest | None:
+        """Get request by id.
+
+        Args:
+            request_id: Request ID.
+            include_files: Whether to include related files.
+            include_status_history: Whether to include status history.
+
+        Returns:
+            AmbulanceRequest | None: Request instance or None if not found.
+
+        """
+        stmt = (
+            select(AmbulanceRequest)
+            .where(
+                AmbulanceRequest.id == request_id,
+                AmbulanceRequest.is_active.is_(True),
+            )
+            .options(
+                selectinload(AmbulanceRequest.files),
+                selectinload(AmbulanceRequest.status_history),
+            )
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_by_user_id(
+        self,
+        user_id: int,
+        cursor: int | None = None,
+        limit: int = 20,
+    ) -> list[AmbulanceRequest]:
+        """Get all requests for a user.
+
+        Args:
+            user_id: User ID.
+            include_files: Whether to include related files.
+            cursor: Cursor for pagination (request ID to start from).
+            limit: Maximum number of items to return.
+
+        Returns:
+            list[AmbulanceRequest]: List of requests.
+
+        """
+        stmt = (
+            select(AmbulanceRequest)
+            .where(
+                AmbulanceRequest.user_id == user_id,
+                AmbulanceRequest.is_active == True,  # noqa: E712
+            )
+            .order_by(
+                AmbulanceRequest.created_at.desc(), AmbulanceRequest.id.desc()
+            )
+        )
+
+        if cursor:
+            stmt = stmt.where(AmbulanceRequest.id < cursor)
+
+        stmt = stmt.limit(limit + 1)
+        stmt = stmt.options(selectinload(AmbulanceRequest.status_history))
+        stmt = stmt.options(selectinload(AmbulanceRequest.files))
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_all(
+        self,
+        cursor: int | None = None,
+        limit: int = 20,
+    ) -> list[AmbulanceRequest]:
+        """Get all requests (for admin users).
+
+        Args:
+            include_files: Whether to include related files.
+            cursor: Cursor for pagination (request ID to start from).
+            limit: Maximum number of items to return.
+
+        Returns:
+            list[AmbulanceRequest]: List of all requests.
+
+        """
+        stmt = (
+            select(AmbulanceRequest)
+            .where(
+                AmbulanceRequest.is_active == True,  # noqa: E712
+            )
+            .order_by(
+                AmbulanceRequest.created_at.desc(), AmbulanceRequest.id.desc()
+            )
+        )
+
+        if cursor:
+            stmt = stmt.where(AmbulanceRequest.id < cursor)
+        stmt = stmt.limit(limit + 1)
+        stmt = stmt.options(selectinload(AmbulanceRequest.status_history))
+        stmt = stmt.options(selectinload(AmbulanceRequest.files))
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+
+class RequestStatusHistoryDAO(BaseDAO):
+    """DAO for RequestStatusHistory model."""
+
+    async def create(
+        self,
+        *,
+        request_id: int,
+        status: RequestStatus,
+        notes: str | None = None,
+    ) -> RequestStatusHistory:
+        """Create a new status history entry.
+
+        Args:
+            request_id: ID of the request.
+            status: Status at this point in time.
+            notes: Optional notes about the status change.
+
+        Returns:
+            RequestStatusHistory: Created status history instance.
+
+        """
+        status_history = RequestStatusHistory(
+            request_id=request_id,
+            status=status,
+            notes=notes,
+        )
+        self._session.add(status_history)
+        await self._session.flush()
+        await self._session.refresh(status_history)
+        return status_history
+
+    async def get_by_request_id(
+        self,
+        request_id: int,
+    ) -> list[RequestStatusHistory]:
+        """Get all status history entries for a request.
+
+        Args:
+            request_id: Request ID.
+
+        Returns:
+            list[RequestStatusHistory]: List of status history entries.
+
+        """
+        stmt = (
+            select(RequestStatusHistory)
+            .where(RequestStatusHistory.request_id == request_id)
+            .order_by(RequestStatusHistory.created_at.asc())
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+
+class RequestFileDAO(BaseDAO):
+    """DAO for RequestFile model."""
+
+    async def create(
+        self,
+        *,
+        request_id: int | None,
+        filename: str,
+        s3_key: str,
+        file_size: int,
+        content_type: str,
+    ) -> RequestFile:
+        """Create a new request file entry.
+
+        Args:
+            request_id: ID of the request (nullable for temporary files).
+            filename: Original filename.
+            s3_key: S3 object key.
+            file_size: File size in bytes.
+            content_type: MIME type of the file.
+
+        Returns:
+            RequestFile: Created file instance.
+
+        """
+        request_file = RequestFile(
+            request_id=request_id,
+            filename=filename,
+            s3_key=s3_key,
+            file_size=file_size,
+            content_type=content_type,
+        )
+        self._session.add(request_file)
+        await self._session.flush()
+        await self._session.refresh(request_file)
+        return request_file
+
+    async def get_by_id(self, file_id: int) -> RequestFile | None:
+        """Get file by id.
+
+        Args:
+            file_id: File ID.
+
+        Returns:
+            RequestFile | None: File instance or None if not found.
+
+        """
+        stmt = select(RequestFile).where(RequestFile.id == file_id)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_by_request_id(self, request_id: int) -> list[RequestFile]:
+        """Get all files for a request.
+
+        Args:
+            request_id: Request ID.
+
+        Returns:
+            list[RequestFile]: List of files.
+
+        """
+        stmt = select(RequestFile).where(RequestFile.request_id == request_id)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def update_request_id(
+        self,
+        file_id: int,
+        request_id: int,
+    ) -> RequestFile | None:
+        """Update request_id for a file.
+
+        Args:
+            file_id: File ID.
+            request_id: Request ID to link.
+
+        Returns:
+            RequestFile | None: Updated file instance or None if not found.
+
+        """
+        stmt = (
+            update(RequestFile)
+            .where(RequestFile.id == file_id)
+            .values(request_id=request_id)
+            .returning(RequestFile)
+        )
+        result = await self._session.execute(stmt)
+        await self._session.flush()
+        return result.scalar_one_or_none()
+
+    async def delete_by_id(self, file_id: int) -> RequestFile | None:
+        """Delete file by id.
+
+        Args:
+            file_id: File ID.
+
+        Returns:
+            RequestFile | None: Deleted file instance or None if not found.
+
+        """
+        file = await self.get_by_id(file_id)
+        if file:
+            await self._session.delete(file)
+            await self._session.flush()
+        return file

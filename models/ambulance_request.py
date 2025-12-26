@@ -1,0 +1,210 @@
+from datetime import date, time
+from enum import StrEnum
+from typing import TYPE_CHECKING
+
+from sqlalchemy import (
+    Date,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Time,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from core.models import BaseIdMixin, BaseTimeStampMixin, SoftDelete
+
+if TYPE_CHECKING:
+    from models import RequestFile, User
+
+
+class TransportationType(StrEnum):
+    """Enumeration of transportation types."""
+
+    AMBULANCE = 'ambulance'
+    WHEELCHAIR = 'wheelchair'
+    STRETCHER = 'stretcher'
+    BLS = 'bls'  # Basic Life Support
+    ALS = 'als'  # Advanced Life Support
+    CCT = 'cct'  # Critical Care Transport
+
+
+class RequestStatus(StrEnum):
+    """Enumeration of request statuses."""
+
+    APPROVED = 'approved'
+    PENDING = 'pending'
+    PROCESSING = 'processing'
+    DENIED = 'denied'
+
+
+class AmbulanceRequest(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
+    """Ambulance request model.
+
+    Fields:
+    - user_id: ID of the user (provider) who created the request.
+    - transportation_type: Type of transportation (enum).
+    - patient_first_name: Patient's first name.
+    - patient_last_name: Patient's last name.
+    - patient_date_of_birth: Patient's date of birth.
+    - patient_id: Patient's ID.
+    - date_of_transport: Date of transport.
+    - time_of_transport: Time of transport.
+    - pickup_address: Pickup address.
+    - destination_address: Destination address.
+    - primary_diagnosis: Primary diagnosis (filled by AI later).
+    - medical_justification: Medical justification (filled by AI later).
+    - status: Current status of the request.
+    - form_number: CMS form number (e.g., CMS-10344).
+    - reviewer_id: ID of the reviewer (provider) who set the request status.
+    """
+
+    __tablename__ = 'ambulance_requests'
+
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('users.id', ondelete='CASCADE'),
+        nullable=False,
+        comment='ID of the user who created the request',
+    )
+    transportation_type: Mapped[TransportationType] = mapped_column(
+        Enum(TransportationType),
+        nullable=False,
+        comment='Type of transportation',
+    )
+    patient_first_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        comment='Patient first name',
+    )
+    patient_last_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        comment='Patient last name',
+    )
+    patient_date_of_birth: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+        comment='Patient date of birth',
+    )
+    patient_id: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        comment='Patient ID',  #  Medicare number
+    )
+    date_of_transport: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+        comment='Date of transport',
+    )
+    time_of_transport: Mapped[time] = mapped_column(
+        Time,
+        nullable=False,
+        comment='Time of transport',
+    )
+    pickup_address: Mapped[str] = mapped_column(
+        String(500),
+        nullable=False,
+        comment='Pickup address',
+    )
+    destination_address: Mapped[str] = mapped_column(
+        String(500),
+        nullable=False,
+        comment='Destination address',
+    )
+    primary_diagnosis: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment='Primary diagnosis (filled by AI)',
+    )
+    medical_justification: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment='Medical justification (filled by AI)',
+    )
+    status: Mapped[RequestStatus] = mapped_column(
+        Enum(RequestStatus),
+        nullable=False,
+        server_default='PROCESSING',
+        comment='Current status of the request',
+    )
+    form_number: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        comment='CMS form number (e.g., CMS-10344)',
+    )
+    reviewer_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey('users.id', ondelete='SET NULL'),
+        nullable=True,
+        comment='ID of the reviewer (provider) who set the request status',
+    )
+
+    # Relationships
+    reviewer: Mapped['User | None'] = relationship(
+        'User',
+        foreign_keys=[reviewer_id],
+    )
+    status_history: Mapped[list['RequestStatusHistory']] = relationship(
+        'RequestStatusHistory',
+        back_populates='request',
+        cascade='all, delete-orphan',
+    )
+    files: Mapped[list['RequestFile']] = relationship(
+        'RequestFile',
+        back_populates='request',
+        cascade='all, delete-orphan',
+    )
+
+    # TODO: Save ai accunancy, consiedering add new fields due to design update
+    @property
+    def patient_full_name(self) -> str:
+        """Return patient full name."""
+        return f'{self.patient_first_name} {self.patient_last_name}'
+
+    def __repr__(self) -> str:
+        """Return a string representation of the request."""
+        return f'<AmbulanceRequest {self.id} - {self.status}>'
+
+
+class RequestStatusHistory(BaseIdMixin, BaseTimeStampMixin):
+    """Request status history model for tracking status changes.
+
+    Fields:
+    - request_id: ID of the ambulance request.
+    - status: Status at this point in time.
+    - notes: Optional notes about the status change.
+    """
+
+    __tablename__ = 'request_status_history'
+
+    request_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('ambulance_requests.id', ondelete='CASCADE'),
+        nullable=False,
+        comment='ID of the ambulance request',
+    )
+    status: Mapped[RequestStatus] = mapped_column(
+        Enum(RequestStatus),
+        nullable=False,
+        comment='Status at this point in time',
+    )
+    notes: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment='Optional notes about the status change',
+    )
+
+    # Relationships
+    request: Mapped['AmbulanceRequest'] = relationship(
+        'AmbulanceRequest',
+        back_populates='status_history',
+    )
+
+    def __repr__(self) -> str:
+        """Return a string representation of the status history."""
+        return (
+            f'<RequestStatusHistory {self.id} - '
+            f'Request {self.request_id} - {self.status}>'
+        )

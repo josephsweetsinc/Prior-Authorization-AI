@@ -1,0 +1,118 @@
+"""Pydantic schemas for AI-extracted data from medical documents."""
+
+from datetime import date, time
+
+from pydantic import BaseModel, Field
+
+from models.ambulance_request import TransportationType
+
+
+class ExtractedTransportationData(BaseModel):
+    """Data extracted by AI from medical documents.
+
+    This schema represents the structured data that AI extracts
+    from uploaded medical documents. It matches the fields
+    required for the transportation information form.
+
+    All fields are optional as AI may not be able to extract
+    all information from the provided documents.
+
+    """
+
+    transportation_type: TransportationType | None = Field(
+        default=None,
+        examples=[TransportationType.AMBULANCE],
+        description=(
+            'Type of medical transportation required. '
+            'Options: ambulance, wheelchair, stretcher, bls, als, cct'
+        ),
+    )
+    patient_first_name: str | None = Field(
+        default=None,
+        examples=['John'],
+        description='Patient first name as it appears in the document',
+    )
+    patient_last_name: str | None = Field(
+        default=None,
+        examples=['Doe'],
+        description='Patient last name as it appears in the document',
+    )
+    patient_date_of_birth: date | None = Field(
+        default=None,
+        examples=['1980-01-01'],
+        description='Patient date of birth in YYYY-MM-DD format',
+    )
+    patient_id: str | None = Field(
+        default=None,
+        examples=['13874414D'],
+        description=(
+            'Patient Medicare Beneficiary Identifier (MBI) or other ID. '
+            'Medicare MBI format: 1AA0A00AA00 (11 characters)'
+        ),
+    )
+    date_of_transport: date | None = Field(
+        default=None,
+        examples=['2025-12-06'],
+        description='Scheduled or requested date of transport',
+    )
+    time_of_transport: time | None = Field(
+        default=None,
+        examples=['13:45'],
+        description='Scheduled or requested time of transport in HH:MM format',
+    )
+    pickup_address: str | None = Field(
+        default=None,
+        examples=['123 Main St, Springfield, IL 62701'],
+        description='Full pickup address including street, city, state, ZIP',
+    )
+    destination_address: str | None = Field(
+        default=None,
+        examples=['123 Main St, Springfield, IL 62701'],
+        description=(
+            'Full destination address (hospital, clinic, etc.) '
+            'including street, city, state, ZIP'
+        ),
+    )
+    primary_diagnosis: str | None = Field(
+        default=None,
+        examples=['Chronic heart failure, mobility impaired'],
+        description=(
+            'Primary diagnosis or medical condition requiring transport. '
+            'Include ICD-10 code if present in document'
+        ),
+    )
+    medical_justification: str | None = Field(
+        default=None,
+        examples=[
+            'Patient requires ambulance transport for dialysis treatment'
+        ],
+        description=(
+            'Medical necessity justification explaining why ambulance '
+            'transport is required (patient condition, mobility status, etc.)'
+        ),
+    )
+    form_number: str | None = Field(
+        default=None,
+        examples=['CMS-10344'],
+        description='CMS form number if present (e.g., CMS-10344)',
+    )
+    confidence_score: float | None = Field(
+        default=None,
+        description="AI's self-assessment of extraction accuracy (0 to 100)",
+    )
+
+
+class AIExtractionResponse(BaseModel):
+    """Response from AI extraction service.
+
+    Contains extracted data and metadata about the extraction process.
+
+    """
+
+    extracted_data: ExtractedTransportationData = Field(
+        description='Data extracted by AI from documents',
+    )
+    extraction_metadata: dict[str, str] | None = Field(
+        None,
+        description='Additional metadata about the extraction process',
+    )
