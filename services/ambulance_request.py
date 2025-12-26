@@ -196,14 +196,12 @@ class AmbulanceRequestService(BaseService):
             user_id: int
     ) -> FileUploadWithExtractionResponseSchema:
         file_s3_keys: list[str] = []
-        file_records: list[RequestFile] = []
         invalid_file_ids: list[int] = []
         
         for file_id in request_data.file_ids:
             file_record = await self._file_dao.get_by_id(file_id) # TODO: Use batch!
             # TODO: Check if file not already linked to some request
             if file_record:
-                file_records.append(file_record)
                 file_s3_keys.append(file_record.s3_key)
             else:
                 invalid_file_ids.append(file_id)
