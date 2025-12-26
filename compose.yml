@@ -26,7 +26,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     env_file:
-      - ../prior-authorization-ai/.env.prod
+      - ../prior-authorization-ai/.env
     ports:
       - "8000:8000"
     volumes:
