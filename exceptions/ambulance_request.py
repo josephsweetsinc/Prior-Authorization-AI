@@ -81,7 +81,18 @@ class AmbulanceRequestInvalidFileIdsException(AmbulanceRequestException):
         super().__init__(
             status_code=400,
             detail=f'Invalid file IDs provided: {file_ids_str}.'
-            f' Files not found.',
+            f' Files not found. Or already attached to a different request',
+        )
+
+
+class AmbulanceRequestFilesAlreadyLinkedException(AmbulanceRequestException):
+    """Exception raised when files are already linked to a request."""
+
+    def __init__(self) -> None:
+        """Initialize AmbulanceRequestFilesAlreadyLinkedException."""
+        super().__init__(
+            status_code=400,
+            detail='Files are already linked to a request.',
         )
 
 

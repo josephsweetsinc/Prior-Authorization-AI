@@ -282,6 +282,25 @@ class RequestFileDAO(BaseDAO):
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_by_ids(
+        self,
+        file_ids: list[int],
+    ) -> list[RequestFile]:
+        """Get files by list of IDs.
+
+        Args:
+            file_ids: List of file IDs.
+
+        Returns:
+            list[RequestFile]: List of file instances.
+
+        """
+        if not file_ids:
+            return []
+        stmt = select(RequestFile).where(RequestFile.id.in_(file_ids))
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
     async def get_by_request_id(self, request_id: int) -> list[RequestFile]:
         """Get all files for a request.
 

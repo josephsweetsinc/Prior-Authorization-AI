@@ -14,23 +14,24 @@ from exceptions import (
     AmbulanceRequestAllFilesUploadFailedException,
     AmbulanceRequestEmptyDocumentEmtpyException,
     AmbulanceRequestEmptyDocumentFileNameException,
+    AmbulanceRequestFilesAlreadyLinkedException,
     AmbulanceRequestInvalidFileIdsException,
     AmbulanceRequestNotFoundException,
     AmbulanceRequestPermissionException,
-)
-from exceptions.file import (
     IncorrectFileSizeException,
     UnknownFiletypeException,
 )
-from models import User
-from models.ambulance_request import (
+from models import (
     AmbulanceRequest,
+    RequestFile,
     RequestStatus,
+    User,
+    UserRole,
 )
-from models.user import UserRole
-from schemas.ai_extraction import AIExtractionResponse
-from schemas.ambulance_request import (
+from schemas import (
+    AIExtractionResponse,
     AmbulanceRequestResponseSchema,
+    CreateAmbulanceRequestParseSchema,
     CreateAmbulanceRequestSchema,
     FileUploadResponseSchema,
     FileUploadWithExtractionResponseSchema,
@@ -141,10 +142,9 @@ class AmbulanceRequestService(BaseService):
 
     async def _extract_s3_keys(
         self, *, files: list[UploadFile], user_id: int
-    ) -> tuple[list[str], list[FileUploadResponseSchema]]:
+    ) -> list[FileUploadResponseSchema]:
         uploaded_files: list[FileUploadResponseSchema] = []
         errors: list[str] = []
-        file_s3_keys: list[str] = []
 
         # Upload files
         for file in files:
@@ -153,10 +153,6 @@ class AmbulanceRequestService(BaseService):
                     file=file, user_id=user_id
                 )
                 uploaded_files.append(uploaded_file)
-                # Get S3 key from file record
-                file_record = await self._file_dao.get_by_id(uploaded_file.id)
-                if file_record:
-                    file_s3_keys.append(file_record.s3_key)
             except (
                 AmbulanceRequestEmptyDocumentFileNameException,
                 AmbulanceRequestEmptyDocumentEmtpyException,
@@ -178,39 +174,92 @@ class AmbulanceRequestService(BaseService):
                 )
             # If some files succeeded, log errors but continue
             logger.warning('Some files failed to upload: %s', '; '.join(errors))
-        return file_s3_keys, uploaded_files
+        return uploaded_files
 
     async def upload_files(
         self,
         files: list[UploadFile],
         user_id: int,
-    ) -> FileUploadWithExtractionResponseSchema:
-        """Upload multiple files to S3, create records, and extract data.
+    ) -> list[FileUploadResponseSchema]:
+        """Uploads multiple files to S3 and creates corresponding db records.
 
-        This method:
-        1. Uploads files to S3
-        2. Creates file records in database
-        3. Calls AI service to extract data from uploaded documents
-        4. Returns uploaded files info + extracted data
+        This method processes a batch of uploaded files, saving each
+        valid file to cloud storage and registering it in the system.
+        It delegates the actual upload logic and error aggregation
+        to an internal helper method.
 
         Args:
-            files: List of uploaded files.
-            user_id: ID of the user uploading the files.
+            files (list[UploadFile]): A list of file objects
+                received from the client request.
+            user_id (int): The unique id of the user performing the upload.
 
         Returns:
-            FileUploadWithExtractionResponseSchema: Uploaded files.
+            list[FileUploadResponseSchema]: A list of schema objects
+                containing details for all successfully uploaded files.
 
         Raises:
-            AmbulanceRequestAllFilesUploadFailedException: All files failed.
-            AmbulanceRequestEmptyDocumentFileNameException: No filename.
-            AmbulanceRequestEmptyDocumentEmtpyException: File is empty.
-            UnknownFiletypeException: File type is not supported.
-            IncorrectFileSizeException: If file size exceeds maximum allowed.
+            AmbulanceRequestAllFilesUploadFailedException: If every file
+                in the provided list fails to upload due to validation
+                or storage errors.
 
         """
-        file_s3_keys, uploaded_files = await self._extract_s3_keys(
-            files=files, user_id=user_id
+        return await self._extract_s3_keys(files=files, user_id=user_id)
+
+    async def create_request_with_extraction(
+        self, request_data: CreateAmbulanceRequestParseSchema, user_id: int
+    ) -> FileUploadWithExtractionResponseSchema:
+        """Validates provided file IDs and performs extraction on documents.
+
+        This method checks that all requested files exist in the database
+        and are not already linked to another ambulance request.
+        If validation passes, it retrieves the corresponding S3 keys
+        and delegates processing to the AI extraction service.
+
+        Args:
+            request_data (CreateAmbulanceRequestParseSchema): Schema containing
+                the list of file IDs to be processed.
+            user_id (int): The ID of the user initiating the extraction request.
+
+        Returns:
+            FileUploadWithExtractionResponseSchema: A schema containing
+                the structured
+                data extracted from the documents by the AI.
+
+        Raises:
+            AmbulanceRequestInvalidFileIdsException: If one or more
+                provided file IDs do not exist in the database.
+            AmbulanceRequestFilesAlreadyLinkedException: If one or more
+                files are
+                already associated with an existing ambulance request.
+
+        """
+        file_records: list[RequestFile] = await self._file_dao.get_by_ids(
+            request_data.file_ids
         )
+        # Matches file_records by id for better perf
+        file_records_by_id = {
+            file_record.id: file_record for file_record in file_records
+        }
+        # Validate files and check if they're already linked to a request
+        file_s3_keys: list[str] = []
+        invalid_file_ids: list[int] = []
+        linked_file_ids: list[int] = []
+        for file_id in request_data.file_ids:
+            file_record = file_records_by_id.get(file_id)
+            if not file_record:  # File not found
+                invalid_file_ids.append(file_id)
+            elif file_record.request_id is not None:  # Already linked
+                linked_file_ids.append(file_id)
+            else:  # Eligible for extraction
+                file_s3_keys.append(file_record.s3_key)
+        # Validate that all files were found
+        if invalid_file_ids:
+            raise AmbulanceRequestInvalidFileIdsException(
+                invalid_file_ids=invalid_file_ids
+            )
+        # Check if any files are already linked to a request
+        if linked_file_ids:
+            raise AmbulanceRequestFilesAlreadyLinkedException
         ai_response: AIExtractionResponse = (
             await self._ai_extraction_service.extract_data_from_files(
                 file_s3_keys=file_s3_keys,
@@ -218,7 +267,6 @@ class AmbulanceRequestService(BaseService):
             )
         )
         return FileUploadWithExtractionResponseSchema(
-            files=uploaded_files,
             extracted_data=ai_response.extracted_data,
         )
 

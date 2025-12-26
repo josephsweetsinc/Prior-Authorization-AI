@@ -1,24 +1,24 @@
 locals {
   environment = "prod"
-  name_prefix = "${var.REPO_NAME}-${local.environment}"  
+  name_prefix = "${var.REPO_NAME}-${local.environment}"
   common_tags = {
     Environment = local.environment
     Project     = var.REPO_NAME
     Terraform   = "true"
-  } 
+  }
   domain = "${var.domain}"
 }
 
 module "vpc" {
   source = "../../modules/vpc"
-  
+
   name = local.name_prefix
   tags = local.common_tags
 }
 
 module "ec2" {
   source = "../../modules/ec2"
-  
+
   name           = local.name_prefix
   type           = var.instance_type
   vpc_id         = module.vpc.vpc_id
@@ -30,6 +30,6 @@ module "ec2" {
   REPO_NAME      = var.REPO_NAME
   FULL_REPO_NAME = var.FULL_REPO_NAME
   tags           = local.common_tags
-  
+
   depends_on = [module.vpc]
 }

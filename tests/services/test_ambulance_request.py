@@ -181,9 +181,8 @@ class TestAmbulanceRequestService:
         service: AmbulanceRequestService,
         user_factory,
         db_session,
-        mock_ai_service,
     ):
-        """Test successful multiple file upload with AI extraction."""
+        """Test successful multiple file upload."""
         user = await user_factory()
         await db_session.commit()
 
@@ -194,32 +193,23 @@ class TestAmbulanceRequestService:
 
         result = await service.upload_files(files=files, user_id=user.id)
 
-        assert len(result.files) == 2
-        assert result.extracted_data is not None
-        # Verify AI service was called with correct arguments
-        mock_ai_service.extract_data_from_files.assert_called_once()
-        call_args = mock_ai_service.extract_data_from_files.call_args
-        assert 'file_s3_keys' in call_args.kwargs or len(call_args.args) > 0
-        if 'user_id' in call_args.kwargs:
-            assert call_args.kwargs['user_id'] == user.id
+        assert len(result) == 2
+        assert result[0].filename == 'file1.pdf'
+        assert result[1].filename == 'file2.pdf'
 
     @pytest.mark.asyncio
     async def test_upload_files_no_files(
         self,
         service: AmbulanceRequestService,
         user_factory,
-        mock_ai_service,
     ):
         """Test upload files with empty list."""
         user = await user_factory()
 
-        # Empty list should result in empty uploaded_files and empty file_s3_keys
-        # AI service will be called with empty list
+        # Empty list should result in empty list
         result = await service.upload_files(files=[], user_id=user.id)
 
-        assert len(result.files) == 0
-        # AI service should still be called (may return empty data)
-        mock_ai_service.extract_data_from_files.assert_called_once()
+        assert len(result) == 0
 
     @pytest.mark.asyncio
     async def test_upload_files_all_failed(
@@ -267,8 +257,8 @@ class TestAmbulanceRequestService:
         # Should not raise exception, but log warning
         result = await service.upload_files(files=files, user_id=user.id)
 
-        assert len(result.files) == 1
-        assert result.files[0].filename == 'file1.pdf'
+        assert len(result) == 1
+        assert result[0].filename == 'file1.pdf'
 
     @pytest.mark.asyncio
     async def test_create_request_success(
@@ -287,7 +277,7 @@ class TestAmbulanceRequestService:
         upload_result = await service.upload_files(
             files=[file1, file2], user_id=user.id
         )
-        file_ids = [f.id for f in upload_result.files]
+        file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
         request_data = CreateAmbulanceRequestSchema(
@@ -378,7 +368,7 @@ class TestAmbulanceRequestService:
         upload_result = await service.upload_files(
             files=[file1], user_id=user.id
         )
-        file_ids = [f.id for f in upload_result.files]
+        file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
         request_data = CreateAmbulanceRequestSchema(
@@ -440,7 +430,7 @@ class TestAmbulanceRequestService:
         upload_result = await service.upload_files(
             files=[file1], user_id=user1.id
         )
-        file_ids = [f.id for f in upload_result.files]
+        file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
         request_data = CreateAmbulanceRequestSchema(
@@ -484,7 +474,7 @@ class TestAmbulanceRequestService:
         upload_result = await service.upload_files(
             files=[file1], user_id=user1.id
         )
-        file_ids = [f.id for f in upload_result.files]
+        file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
         request_data = CreateAmbulanceRequestSchema(
@@ -531,7 +521,7 @@ class TestAmbulanceRequestService:
             upload_result = await service.upload_files(
                 files=[file1], user_id=user1.id
             )
-            file_ids = [f.id for f in upload_result.files]
+            file_ids = [f.id for f in upload_result]
             await db_session.commit()
 
             request_data = CreateAmbulanceRequestSchema(
@@ -556,7 +546,7 @@ class TestAmbulanceRequestService:
         upload_result = await service.upload_files(
             files=[file1], user_id=user2.id
         )
-        file_ids = [f.id for f in upload_result.files]
+        file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
         request_data = CreateAmbulanceRequestSchema(
@@ -608,7 +598,7 @@ class TestAmbulanceRequestService:
             upload_result = await service.upload_files(
                 files=[file1], user_id=user.id
             )
-            file_ids = [f.id for f in upload_result.files]
+            file_ids = [f.id for f in upload_result]
             await db_session.commit()
 
             request_data = CreateAmbulanceRequestSchema(
@@ -658,7 +648,7 @@ class TestAmbulanceRequestService:
             upload_result = await service.upload_files(
                 files=[file1], user_id=user.id
             )
-            file_ids = [f.id for f in upload_result.files]
+            file_ids = [f.id for f in upload_result]
             await db_session.commit()
 
             # Format: 2 letters + 9 digits + 2 letters (e.g., DA123456789HY)
@@ -726,7 +716,7 @@ class TestAmbulanceRequestService:
         upload_result = await service.upload_files(
             files=[file1], user_id=user.id
         )
-        file_ids = [f.id for f in upload_result.files]
+        file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
         request_data = CreateAmbulanceRequestSchema(

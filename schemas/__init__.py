@@ -7,6 +7,7 @@ from .ai_extraction import (
 from .ambulance_request import (
     AmbulanceRequestResponseSchema,
     AmbulanceRequestsListResponseSchema,
+    CreateAmbulanceRequestParseSchema,
     CreateAmbulanceRequestSchema,
     FileUploadResponseSchema,
     FileUploadWithExtractionResponseSchema,
@@ -35,6 +36,7 @@ __all__ = [
     'AIExtractionResponse',
     'AmbulanceRequestResponseSchema',
     'AmbulanceRequestsListResponseSchema',
+    'CreateAmbulanceRequestParseSchema',
     'CreateAmbulanceRequestSchema',
     'CreateUserByAdminRequestSchema',
     'CreateUserRequestSchema',

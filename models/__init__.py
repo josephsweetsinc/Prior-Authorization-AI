@@ -7,7 +7,7 @@ from .ambulance_request import (
 from .blacklist_token import BlacklistToken
 from .password_reset_code import PasswordResetCode
 from .request_file import RequestFile
-from .user import User
+from .user import User, UserRole
 
 __all__ = [
     'AmbulanceRequest',
@@ -18,4 +18,5 @@ __all__ = [
     'RequestStatusHistory',
     'TransportationType',
     'User',
+    'UserRole',
 ]

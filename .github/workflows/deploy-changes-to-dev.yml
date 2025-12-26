@@ -49,9 +49,7 @@ jobs:
         git checkout main
         git pull
         echo "${{ secrets.ENV }}" > .env
-        docker compose down 
-        docker system prune -af && docker builder prune --all --force 
+        docker compose down
+        docker system prune -af && docker builder prune --all --force
         docker compose up -d --build
         EOF
-        
-        

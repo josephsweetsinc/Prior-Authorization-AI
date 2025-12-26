@@ -10,7 +10,9 @@ from models import User
 from schemas.ambulance_request import (
     AmbulanceRequestResponseSchema,
     AmbulanceRequestsListResponseSchema,
+    CreateAmbulanceRequestParseSchema,
     CreateAmbulanceRequestSchema,
+    FileUploadResponseSchema,
     FileUploadWithExtractionResponseSchema,
     RequestWithStatusHistorySchema,
 )
@@ -22,9 +24,10 @@ ambulance_request_router = APIRouter()
 
 
 @ambulance_request_router.post(
-    '/upload',
-    description='Step 1: Upload medical documents and extract data with AI',
-    response_model=FileUploadWithExtractionResponseSchema,
+    '/files',
+    description='Upload medical documents from user.',
+    summary='Upload medical documents.',
+    response_model=list[FileUploadResponseSchema],
 )
 @timing_handler
 @exception_handler
@@ -34,14 +37,13 @@ async def upload_files(
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
-) -> FileUploadWithExtractionResponseSchema:
-    """Upload medical document files and extract data using AI.
+) -> list[FileUploadResponseSchema]:
+    """Upload medical document files to S3.
 
     This endpoint:
     1. Uploads files to S3
     2. Creates file records in database
-    3. Calls AI service to extract structured data from documents
-    4. Returns uploaded files info + extracted data for form pre-filling
+    3. Returns uploaded files info
 
     Args:
         files: List of files (PDF, DOC, DOCX, XLS, XLSX, max 10MB each).
@@ -49,7 +51,7 @@ async def upload_files(
         service: Ambulance request service.
 
     Returns:
-        FileUploadWithExtractionResponseSchema: Uploaded files and AI data.
+        list[FileUploadResponseSchema]: List of uploaded files info.
 
     Raises:
         HTTPException: If file upload fails.
@@ -59,9 +61,49 @@ async def upload_files(
 
 
 @ambulance_request_router.post(
+    '/extraction',
+    description='Step 2: Parse medical documents and get info from AI.',
+    summary='Get info from documents by AI.',
+    response_model=FileUploadWithExtractionResponseSchema,
+)
+@timing_handler
+@exception_handler
+async def create_request_with_extraction(
+    request_data: CreateAmbulanceRequestParseSchema,
+    user: Annotated[User, Security(get_provider_user_from_token)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+) -> FileUploadWithExtractionResponseSchema:
+    """Triggers AI extraction of medical data from previously uploaded files.
+
+    This endpoint acts as the second step in the request workflow.
+    It takes a list of file IDs (uploaded in Step 1), validates them, and
+    sends the documents to an AI service to parse medical details.
+
+    The result is returned for user verification and is not yet saved
+    as a permanent ambulance request in the system.
+
+    Args:
+        request_data (CreateAmbulanceRequestParseSchema): The input payload
+            containing the list of file IDs to be analyzed.
+        user (User): The currently authenticated provider user.
+        service (AmbulanceRequestService): The injected service instance.
+
+    Returns:
+        FileUploadWithExtractionResponseSchema: The structured data
+            extracted from the medical documents.
+
+    """
+    return await service.create_request_with_extraction(
+        request_data=request_data, user_id=user.id
+    )
+
+
+@ambulance_request_router.post(
     '/create',
-    description='Step 2 & 3: Create ambulance request'
-    ' with transportation info and review data',
+    description='Create ambulance request with info verified by provider.',
+    summary='Create ambulance request.',
     response_model=AmbulanceRequestResponseSchema,
 )
 @exception_handler
