@@ -184,43 +184,11 @@ class AmbulanceRequestService(BaseService):
         self,
         files: list[UploadFile],
         user_id: int,
-    ) -> FileUploadWithExtractionResponseSchema:
-        """Upload multiple files to S3, create records, and extract data.
-
-        This method:
-        1. Uploads files to S3
-        2. Creates file records in database
-        3. Calls AI service to extract data from uploaded documents
-        4. Returns uploaded files info + extracted data
-
-        Args:
-            files: List of uploaded files.
-            user_id: ID of the user uploading the files.
-
-        Returns:
-            FileUploadWithExtractionResponseSchema: Uploaded files.
-
-        Raises:
-            AmbulanceRequestAllFilesUploadFailedException: All files failed.
-            AmbulanceRequestEmptyDocumentFileNameException: No filename.
-            AmbulanceRequestEmptyDocumentEmtpyException: File is empty.
-            UnknownFiletypeException: File type is not supported.
-            IncorrectFileSizeException: If file size exceeds maximum allowed.
-
-        """
+    ) -> list[FileUploadResponseSchema]:
         file_s3_keys, uploaded_files = await self._extract_s3_keys(
             files=files, user_id=user_id
         )
-        ai_response: AIExtractionResponse = (
-            await self._ai_extraction_service.extract_data_from_files(
-                file_s3_keys=file_s3_keys,
-                user_id=user_id,
-            )
-        )
-        return FileUploadWithExtractionResponseSchema(
-            files=uploaded_files,
-            extracted_data=ai_response.extracted_data,
-        )
+        return uploaded_files
 
     async def create_request(
         self,

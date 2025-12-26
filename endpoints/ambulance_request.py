@@ -12,7 +12,7 @@ from schemas.ambulance_request import (
     AmbulanceRequestsListResponseSchema,
     CreateAmbulanceRequestSchema,
     FileUploadWithExtractionResponseSchema,
-    RequestWithStatusHistorySchema,
+    RequestWithStatusHistorySchema, FileUploadResponseSchema,
 )
 from services import AmbulanceRequestService
 
@@ -23,8 +23,8 @@ ambulance_request_router = APIRouter()
 
 @ambulance_request_router.post(
     '/upload',
-    description='Step 1: Upload medical documents and extract data with AI',
-    response_model=FileUploadWithExtractionResponseSchema,
+    description='Step 1: Upload medical documents.',
+    response_model=list[FileUploadResponseSchema],
 )
 @timing_handler
 @exception_handler
@@ -34,7 +34,7 @@ async def upload_files(
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
-) -> FileUploadWithExtractionResponseSchema:
+) -> list[FileUploadResponseSchema]:
     """Upload medical document files and extract data using AI.
 
     This endpoint:
