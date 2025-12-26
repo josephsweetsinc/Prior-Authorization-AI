@@ -259,9 +259,7 @@ class AmbulanceRequestService(BaseService):
             )
         # Check if any files are already linked to a request
         if linked_file_ids:
-            raise AmbulanceRequestFilesAlreadyLinkedException(
-                file_ids=linked_file_ids
-            )
+            raise AmbulanceRequestFilesAlreadyLinkedException
         ai_response: AIExtractionResponse = (
             await self._ai_extraction_service.extract_data_from_files(
                 file_s3_keys=file_s3_keys,
