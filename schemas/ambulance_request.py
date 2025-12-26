@@ -1,0 +1,289 @@
+from datetime import date, datetime, time
+from typing import Annotated
+
+from pydantic import BaseModel, ConfigDict, Field, computed_field
+
+from models.ambulance_request import (
+    RequestStatus,
+    TransportationType,
+)
+from schemas.ai_extraction import ExtractedTransportationData
+
+
+class AmbulanceRequestsListResponseSchema(BaseModel):
+    """Response schema for paginated list of requests.
+
+    Attributes:
+        items: List of ambulance requests.
+        next_cursor: Cursor for the next page (None if no more pages).
+        has_more: Whether there are more items available.
+
+    """
+
+    items: list['AmbulanceRequestResponseSchema'] = Field(
+        description='List of ambulance requests',
+    )
+    next_cursor: int | None = Field(
+        None,
+        description='Cursor for the next page (None if no more pages)',
+        examples=[30],
+    )
+    has_more: bool = Field(
+        description='Whether there are more items available',
+        examples=[True],
+    )
+
+
+class FileUploadResponseSchema(BaseModel):
+    """Response schema for uploaded file."""
+
+    id: Annotated[
+        int,
+        Field(
+            description='Unique identifier of the uploaded file.', examples=[1]
+        ),
+    ]
+    filename: Annotated[
+        str,
+        Field(
+            description='Original name of the uploaded file.',
+            examples=['medical_data.pdf'],
+        ),
+    ]
+    file_size: Annotated[
+        int,
+        Field(
+            description='Size of the uploaded file in bytes.', examples=[254920]
+        ),
+    ]
+    content_type: Annotated[
+        str,
+        Field(
+            description='MIME type detected for the uploaded file.',
+            examples=['application/pdf'],
+        ),
+    ]
+    file_url: Annotated[
+        str,
+        Field(
+            description='Presigned URL for downloading the uploaded file.',
+            examples=['https://s3.amazonaws.com/bucket/file.pdf'],
+        ),
+    ]
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FileUploadWithExtractionResponseSchema(BaseModel):
+    """Response schema for file upload with AI-extracted data."""
+
+    files: list[FileUploadResponseSchema] = Field(
+        description='List of uploaded files',
+    )
+    extracted_data: 'ExtractedTransportationData' = Field(
+        description='Data extracted by AI from uploaded documents',
+    )
+
+    @computed_field
+    def is_complete(self) -> bool:
+        """Check if all required fields are populated."""
+        return all(
+            getattr(self.extracted_data, field) is not None
+            for field in self.extracted_data.model_fields
+        )
+
+
+class CreateAmbulanceRequestSchema(BaseModel):
+    """Schema for creating ambulance request (combines step 2 and 3)."""
+
+    file_ids: Annotated[
+        list[int],
+        Field(
+            min_length=1,
+            examples=[[1, 2, 3]],
+            description='IDs of uploaded files (at least one required)',
+        ),
+    ]
+    transportation_type: TransportationType
+    patient_first_name: Annotated[
+        str,
+        Field(
+            min_length=3,
+            max_length=15,
+            pattern=r'^[a-zA-Z]+$',
+            examples=['John'],
+            description='Patient first name as it appears in the document',
+        ),
+    ]
+    patient_last_name: Annotated[  # TODO: Consider moving to mixin
+        str,
+        Field(
+            min_length=3,
+            max_length=15,
+            pattern=r'^[a-zA-Z]+$',
+            examples=['Doe'],
+            description='Patient last name as it appears in the document',
+        ),
+    ]
+    patient_date_of_birth: Annotated[
+        date,
+        Field(
+            description='Patient date of birth',
+            examples=[date(1960, 1, 1)],
+        ),
+    ]
+    patient_id: Annotated[
+        str,
+        Field(
+            min_length=1,
+            max_length=50,
+            description=(
+                'Patient Medicare Beneficiary Identifier (MBI) or other ID'
+            ),
+            examples=['1EG4-TE5-MK72'],
+        ),
+    ]
+    date_of_transport: Annotated[
+        date,
+        Field(
+            description='Patient date of transport',
+            examples=[date(2025, 12, 6)],
+        ),
+    ]
+    time_of_transport: Annotated[
+        time,
+        Field(
+            description='Time of transport',
+            examples=[time(13, 40)],
+        ),
+    ]
+    pickup_address: Annotated[
+        str,
+        Field(
+            min_length=5,
+            max_length=500,
+            examples=['123 Main St, Springfield, IL 62701'],
+        ),
+    ]
+    destination_address: Annotated[
+        str,
+        Field(
+            min_length=5,
+            max_length=500,
+            examples=[
+                'Memorial Dialysis Center, '
+                '456 Medical Dr, Springfield, IL 62702'
+            ],
+        ),
+    ]
+    primary_diagnosis: str | None = Field(
+        None,
+        examples=['Chronic heart failure, mobility impaired'],
+    )
+    medical_justification: str | None = Field(
+        None,
+        examples=[
+            'Patient requires repetitive non-emergent ambulance transport'
+            ' for dialysis treatment three times weekly.'
+            ' Patient is bedbound and unable to sit upright'
+            ' for extended periods due to '
+            'severe cardiovascular complications.'
+            ' Standard wheelchair van transport is contraindicated.'
+        ],
+    )
+    form_number: str | None = None
+
+
+class AmbulanceRequestResponseSchema(BaseModel):
+    """Response schema for ambulance request."""
+
+    id: Annotated[
+        int,
+        Field(
+            description='Unique identifier of the ambulance request.',
+            examples=[1],
+        ),
+    ]
+    user_id: Annotated[
+        int,
+        Field(
+            description='Unique identifier of user that created the request.',
+            examples=[2],
+        ),
+    ]
+    patient_first_name: Annotated[
+        str,
+        Field(
+            min_length=3,
+            max_length=15,
+            pattern=r'^[a-zA-Z]+$',
+            examples=['John'],
+        ),
+    ]
+    patient_last_name: Annotated[
+        str,
+        Field(
+            min_length=3,
+            max_length=15,
+            pattern=r'^[a-zA-Z]+$',
+            examples=['Doe'],
+        ),
+    ]
+    primary_diagnosis: Annotated[
+        str | None,
+        Field(
+            ...,
+            examples=['Chronic heart failure, mobility impaired'],
+        ),
+    ]
+    status: RequestStatus
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RequestStatusHistoryResponseSchema(BaseModel):
+    """Response schema for request status history."""
+
+    id: Annotated[
+        int,
+        Field(
+            description='Unique identifier of ambulance request status.',
+            examples=[1],
+        ),
+    ]
+    request_id: Annotated[
+        int,
+        Field(
+            description='Unique identifier of ambulance request.', examples=[1]
+        ),
+    ]
+    status: RequestStatus
+    notes: str | None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RequestDocumentSchema(BaseModel):
+    """Schema for request document with download URL."""
+
+    id: int
+    filename: str
+    file_size: int
+    content_type: str
+    download_url: str = Field(
+        description='Presigned URL for downloading the document',
+    )
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RequestWithStatusHistorySchema(AmbulanceRequestResponseSchema):
+    """Response schema for request with status history."""
+
+    status_history: list[RequestStatusHistoryResponseSchema] = []
+    documents: list[RequestDocumentSchema] = Field(
+        default_factory=list,
+        description='List of documents attached to the request',
+    )
+    model_config = ConfigDict(from_attributes=True)
