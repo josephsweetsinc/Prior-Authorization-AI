@@ -77,15 +77,6 @@ class TestAmbulanceRequestEndpoints:
             )
 
             mock_upload.return_value = FileUploadWithExtractionResponseSchema(
-                files=[
-                    FileUploadResponseSchema(
-                        id=1,
-                        filename='test.pdf',
-                        file_size=1024,
-                        content_type='application/pdf',
-                        file_url='https://s3.amazonaws.com/bucket/file.pdf',
-                    )
-                ],
                 extracted_data=ExtractedTransportationData(
                     transportation_type=None,
                     patient_first_name='John',

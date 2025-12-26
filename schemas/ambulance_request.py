@@ -75,9 +75,6 @@ class FileUploadResponseSchema(BaseModel):
 class FileUploadWithExtractionResponseSchema(BaseModel):
     """Response schema for file upload with AI-extracted data."""
 
-    files: list[FileUploadResponseSchema] = Field(
-        description='List of uploaded files',
-    )
     extracted_data: 'ExtractedTransportationData' = Field(
         description='Data extracted by AI from uploaded documents',
     )
