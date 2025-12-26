@@ -13,6 +13,7 @@ from .ambulance_request import (
     RequestDocumentSchema,
     RequestStatusHistoryResponseSchema,
     RequestWithStatusHistorySchema,
+    CreateAmbulanceRequestParseSchema,
 )
 from .auth import (
     PasswordChangeRequestSchema,
@@ -51,6 +52,7 @@ __all__ = [
     'RequestDocumentSchema',
     'RequestStatusHistoryResponseSchema',
     'RequestWithStatusHistorySchema',
+    'CreateAmbulanceRequestParseSchema',
     'TokenSchemas',
     'UpdateUserRequestSchema',
     'UserResponseShema',

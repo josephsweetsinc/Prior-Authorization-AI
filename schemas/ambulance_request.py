@@ -33,7 +33,6 @@ class AmbulanceRequestsListResponseSchema(BaseModel):
         examples=[True],
     )
 
-
 class FileUploadResponseSchema(BaseModel):
     """Response schema for uploaded file."""
 
@@ -91,6 +90,15 @@ class FileUploadWithExtractionResponseSchema(BaseModel):
             for field in self.extracted_data.model_fields
         )
 
+class CreateAmbulanceRequestParseSchema(BaseModel):
+    file_ids: Annotated[
+        list[int],
+        Field(
+            min_length=1,
+            examples=[[1, 2, 3]],
+            description='IDs of uploaded files (at least one required)',
+        ),
+    ]
 
 class CreateAmbulanceRequestSchema(BaseModel):
     """Schema for creating ambulance request (combines step 2 and 3)."""
