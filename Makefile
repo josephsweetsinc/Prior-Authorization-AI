@@ -1,28 +1,18 @@
-.PHONY: help install db-up db-down db-restart db-logs db-shell migrate migrate-up migrate-down migrate-create migrate-current migrate-history run run-dev test format lint type-check clean setup create-admin compose-up compose-down compose-logs api-logs compose-restart
+.PHONY: help install migrate migrate-up migrate-down migrate-create migrate-current migrate-history run run-dev test format lint type-check clean setup create-admin compose-up compose-down compose-logs api-logs compose-restart
 
 # Variables
 ALEMBIC_CONFIG = models/alembic.ini
 PYTHON = uv run python
 UV = uv
 DOCKER_COMPOSE = docker compose
-DB_SERVICE = paai_database
-DB_USER = postgres
-DB_NAME = paai_db
 
 # Default target
 help:
 	@echo "Available commands:"
-	@echo "  make setup          - Initial project setup (install deps, start DB, run migrations)"
-	@echo ""
-	@echo "Database:"
-	@echo "  make db-up          - Start PostgreSQL database"
-	@echo "  make db-down        - Stop PostgreSQL database"
-	@echo "  make db-restart     - Restart PostgreSQL database"
-	@echo "  make db-logs        - View database logs"
-	@echo "  make db-shell       - Connect to database shell"
+	@echo "  make setup          - Initial project setup (install deps, run migrations)"
 	@echo ""
 	@echo "Docker Compose:"
-	@echo "  make compose-up     - Start all services (DB + API)"
+	@echo "  make compose-up     - Start API service"
 	@echo "  make compose-down   - Stop all services"
 	@echo "  make compose-logs  - View logs from all services"
 	@echo "  make api-logs       - View API logs only"
@@ -49,42 +39,19 @@ help:
 	@echo "  make create-admin   - Create an admin user (usage: make create-admin EMAIL=email@example.com PASSWORD=password)"
 
 # Initial setup
-setup: install db-up migrate
-	@echo "✅ Setup complete! Database is running and migrations are applied."
+setup: install migrate
+	@echo "✅ Setup complete! Migrations are applied."
 
 # Install dependencies
 install:
 	@echo "📦 Installing dependencies..."
 	$(UV) sync
 
-# Database commands
-db-up:
-	@echo "🐘 Starting PostgreSQL database..."
-	$(DOCKER_COMPOSE) up -d $(DB_SERVICE)
-	@echo "✅ Database started. Waiting for it to be ready..."
-	@sleep 3
-	@$(DOCKER_COMPOSE) ps $(DB_SERVICE)
-
-db-down:
-	@echo "🛑 Stopping PostgreSQL database..."
-	$(DOCKER_COMPOSE) down
-
-db-restart: db-down db-up
-	@echo "✅ Database restarted."
-
-db-logs:
-	@echo "📋 Database logs:"
-	$(DOCKER_COMPOSE) logs -f $(DB_SERVICE)
-
-db-shell:
-	@echo "🔌 Connecting to database shell..."
-	$(DOCKER_COMPOSE) exec $(DB_SERVICE) psql -U $(DB_USER) -d $(DB_NAME)
-
 # Docker Compose commands
 compose-up:
-	@echo "🚀 Starting all services (DB + API)..."
+	@echo "🚀 Starting API service..."
 	$(DOCKER_COMPOSE) up -d
-	@echo "✅ Services started. API available at http://localhost:8000"
+	@echo "✅ API service started. API available at http://localhost:8000"
 
 compose-down:
 	@echo "🛑 Stopping all services..."
