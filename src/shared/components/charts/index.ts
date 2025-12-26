@@ -1,2 +1,2 @@
 export { BarChart } from './bar-chart';
-export { DonutChart } from './donut-chart';
+export { DonutChart, type DonutDatum } from './donut-chart';

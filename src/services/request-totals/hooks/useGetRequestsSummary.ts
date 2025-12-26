@@ -3,7 +3,7 @@ import {
   useGetDashboardQuery,
 } from '@/services/dashboard';
 
-export const useGetProviderSummary = () => {
+export const useGetRequestsSummary = () => {
   const { data, isLoading, error, refetch } = useGetDashboardQuery();
 
   const providerStatistics = selectProviderDashboard(data);
