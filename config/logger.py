@@ -20,9 +20,8 @@ def configure_logging() -> None:
     Sets up Python logging with the configured log level and format
     from application settings. Should be called at application startup.
 
-    For Lambda deployments, logs are automatically sent to CloudWatch
-    via stdout/stderr. This configuration ensures proper formatting
-    for CloudWatch logs.
+    Logs are sent to stdout/stderr and can be collected by logging
+    services (e.g., CloudWatch, Docker logs, etc.).
 
     """
     settings = Settings.load()
@@ -34,7 +33,7 @@ def configure_logging() -> None:
     # Remove existing handlers to avoid duplicates
     root_logger.handlers.clear()
 
-    # Create console handler (stdout) - Lambda captures this automatically
+    # Create console handler (stdout) - captured by Docker/logging services
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(settings.LOG_LEVEL)
 
@@ -47,7 +46,7 @@ def configure_logging() -> None:
     # Add handler to root logger
     root_logger.addHandler(console_handler)
 
-    # Ensure logs are flushed immediately (important for Lambda)
+    # Ensure logs are flushed immediately
     console_handler.flush()
 
     # Suppress noisy third-party loggers
