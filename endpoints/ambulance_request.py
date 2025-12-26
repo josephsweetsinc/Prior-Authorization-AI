@@ -38,13 +38,12 @@ async def upload_files(
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
 ) -> list[FileUploadResponseSchema]:
-    """Upload medical document files and extract data using AI.
+    """Upload medical document files to S3.
 
     This endpoint:
     1. Uploads files to S3
     2. Creates file records in database
-    3. Calls AI service to extract structured data from documents
-    4. Returns uploaded files info + extracted data for form pre-filling
+    3. Returns uploaded files info
 
     Args:
         files: List of files (PDF, DOC, DOCX, XLS, XLSX, max 10MB each).
@@ -52,7 +51,7 @@ async def upload_files(
         service: Ambulance request service.
 
     Returns:
-        FileUploadWithExtractionResponseSchema: Uploaded files and AI data.
+        list[FileUploadResponseSchema]: List of uploaded files info.
 
     Raises:
         HTTPException: If file upload fails.

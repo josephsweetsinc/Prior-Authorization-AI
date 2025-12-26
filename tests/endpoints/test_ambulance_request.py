@@ -68,30 +68,17 @@ class TestAmbulanceRequestEndpoints:
             'services.ambulance_request.AmbulanceRequestService.upload_files',
             new_callable=AsyncMock,
         ) as mock_upload:
-            from schemas.ai_extraction import (
-                ExtractedTransportationData,
-            )
-            from schemas.ambulance_request import (
-                FileUploadResponseSchema,
-                FileUploadWithExtractionResponseSchema,
-            )
+            from schemas.ambulance_request import FileUploadResponseSchema
 
-            mock_upload.return_value = FileUploadWithExtractionResponseSchema(
-                extracted_data=ExtractedTransportationData(
-                    transportation_type=None,
-                    patient_first_name='John',
-                    patient_last_name='Doe',
-                    patient_date_of_birth=date(1980, 1, 1),
-                    patient_id='DA123456789HY',
-                    date_of_transport=None,
-                    time_of_transport=None,
-                    pickup_address='123 Main St',
-                    destination_address='456 Medical Dr',
-                    primary_diagnosis='Chronic heart failure',
-                    medical_justification='Patient requires transport',
-                    form_number='CMS-10344',
+            mock_upload.return_value = [
+                FileUploadResponseSchema(
+                    id=1,
+                    filename='test.pdf',
+                    file_size=1024,
+                    content_type='application/pdf',
+                    file_url='https://s3.example.com/test.pdf',
                 ),
-            )
+            ]
 
             files = {
                 'files': (
@@ -101,17 +88,16 @@ class TestAmbulanceRequestEndpoints:
                 )
             }
             response = client.post(
-                '/Prod/api/v1/ambulance-request/upload',
+                '/Prod/api/v1/ambulance-request/files',
                 files=files,
                 headers=auth_headers,
             )
 
             assert response.status_code == 200
             data = response.json()
-            assert 'files' in data
-            assert 'extracted_data' in data
-            assert len(data['files']) == 1
-            assert data['files'][0]['filename'] == 'test.pdf'
+            assert isinstance(data, list)
+            assert len(data) == 1
+            assert data[0]['filename'] == 'test.pdf'
 
     @pytest.mark.asyncio
     async def test_upload_files_unauthorized(
@@ -124,7 +110,7 @@ class TestAmbulanceRequestEndpoints:
             'files': ('test.pdf', BytesIO(b'PDF content'), 'application/pdf')
         }
         response = client.post(
-            '/Prod/api/v1/ambulance-request/upload',
+            '/Prod/api/v1/ambulance-request/files',
             files=files,
         )
 
