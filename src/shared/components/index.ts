@@ -1,3 +1,4 @@
+export { Progress } from './progress';
 export { OverlayIcon } from './overlayIcon';
 export { Button, buttonVariants } from './button';
 export { Input, InputOTPControlled, DateInput } from './inputs';
@@ -56,3 +57,4 @@ export {
 export { Stepper } from './stepper';
 export { Skeleton } from './skeleton';
 export { Uploader, type MediaItem } from './upload';
+export { RequestStatusChip, RequestsHeadCell } from './requests-table';

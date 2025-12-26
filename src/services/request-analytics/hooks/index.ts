@@ -1,0 +1,1 @@
+export { useGetProviderAnalytics } from './useGetProviderAnalytics';

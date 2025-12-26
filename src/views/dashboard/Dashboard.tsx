@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react';
 import Link from 'next/link';
 
 import { RecentRequests } from '@/features/recent-requests';
+import { Analytics } from '@/features/request-analytics';
 import { MetricsList } from '@/features/request-totals';
 import { TitleAndDesc, buttonVariants } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
@@ -28,6 +29,7 @@ export const Dashboard = () => {
       </div>
       <MetricsList />
       <RecentRequests />
+      <Analytics />
     </main>
   );
 };

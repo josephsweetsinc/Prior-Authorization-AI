@@ -2,10 +2,8 @@ import { type ColumnDef } from '@tanstack/react-table';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 
-import { type RequestStatus, type RecentRequest } from '@/services/dashboard';
-
-import { RequestsHeadCell } from './components/RequestsHeadCell';
-import { RequestStatusChip } from './components/RequestStatusChip';
+import { type RecentRequest, type RequestStatus } from '@/services/dashboard';
+import { RequestsHeadCell, RequestStatusChip } from '@/shared/components';
 
 export const columns: ColumnDef<RecentRequest>[] = [
   {
@@ -54,13 +52,3 @@ export const columns: ColumnDef<RecentRequest>[] = [
     ),
   },
 ];
-
-export const STATUS_CONFIG: Record<
-  RequestStatus,
-  { label: string; variant: 'info' | 'warning' | 'success' | 'destructive' }
-> = {
-  approved: { label: 'Approved', variant: 'success' },
-  pending: { label: 'Pending ', variant: 'warning' },
-  processing: { label: 'Processing', variant: 'info' },
-  denied: { label: 'Denied', variant: 'destructive' },
-} as const;

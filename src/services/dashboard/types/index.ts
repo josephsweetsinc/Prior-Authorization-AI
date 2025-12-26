@@ -3,4 +3,7 @@ export type {
   DashboardResponse,
   RecentRequest,
   RequestStatus,
+  ProviderRequestProgress,
+  ProviderDailySubmittedRequests,
+  DateCount,
 } from './types';

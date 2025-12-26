@@ -26,7 +26,7 @@ export function DataTableSkeleton({
 }: DataTableSkeletonProps) {
   return (
     <div className='w-full'>
-      <div className='overflow-hidden rounded-md border'>
+      <div className='overflow-hidden rounded-md'>
         <Table>
           <TableHeader>
             <TableRow>
