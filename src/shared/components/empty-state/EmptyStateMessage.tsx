@@ -33,7 +33,7 @@ type Props = {
 
 export const EmptyStateMessage = ({
   variant,
-  message = 'No requests found',
+  message = 'No data found',
   className,
   ...props
 }: Props) => {

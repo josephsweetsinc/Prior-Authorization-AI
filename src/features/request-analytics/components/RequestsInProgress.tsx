@@ -1,12 +1,10 @@
 import { type HTMLProps } from 'react';
 
 import { type ProviderRequestProgress } from '@/services/dashboard';
-import { DataTable, Window } from '@/shared/components';
+import { DataTable, EmptyStateMessage, Window } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
 import { columns } from '../constants';
-
-import { EmptyStateMessage } from './EmptyStateMessage';
 
 type Props = {
   data: ProviderRequestProgress[];
@@ -19,7 +17,7 @@ export const RequestsInProgress = ({ data, className, ...props }: Props) => {
         <h2 className='text-brand-dark text-2xl leading-8 font-bold capitalize'>
           Requests in Progress
         </h2>
-        <EmptyStateMessage />
+        <EmptyStateMessage message='No requests found' />
       </Window>
     );
   }

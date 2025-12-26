@@ -2,11 +2,10 @@ import { type HTMLProps } from 'react';
 
 import { type ProviderDailySubmittedRequests } from '@/services/dashboard';
 import { transformDateCount } from '@/services/request-analytics';
-import { BarChart, Window } from '@/shared/components';
+import { BarChart, EmptyStateMessage, Window } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
 import { ChangeIndicator } from './ChangeRateIndicator';
-import { EmptyStateMessage } from './EmptyStateMessage';
 
 type Props = {
   data: ProviderDailySubmittedRequests;
@@ -31,7 +30,7 @@ export const DailySubmittedRequests = ({
             changeRate={data.change_percent}
           />
         </div>
-        <EmptyStateMessage />
+        <EmptyStateMessage message='No requests found' />
       </Window>
     );
   }
