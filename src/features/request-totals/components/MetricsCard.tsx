@@ -29,8 +29,16 @@ const Value = ({ children, className }: HTMLProps<HTMLParagraphElement>) => (
   </p>
 );
 
+const Description = ({
+  children,
+  className,
+}: HTMLProps<HTMLParagraphElement>) => (
+  <p className={cn('text-sm text-black', className)}>{children}</p>
+);
+
 export default Object.assign(Card, {
   Label,
   Value,
   Group,
+  Description,
 });

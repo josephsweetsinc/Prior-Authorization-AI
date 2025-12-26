@@ -1,2 +1,2 @@
+export { RequestsSummary } from './RequestsSummary';
 export { default as MetricsCard } from './MetricsCard';
-export { MetricsList } from './MetricsList';

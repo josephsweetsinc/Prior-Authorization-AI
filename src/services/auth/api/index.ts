@@ -1,1 +1,1 @@
-export { useLoginMutation } from './auth-api-service';
+export { useLoginMutation, useGetCurrentUserQuery } from './auth-api-service';
