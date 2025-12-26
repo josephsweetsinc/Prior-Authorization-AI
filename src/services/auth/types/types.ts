@@ -1,3 +1,5 @@
+export type UserRoles = 'admin' | 'provider';
+
 export type LoginRequest = {
   grant_type?: string | null;
   username: string;
@@ -39,6 +41,6 @@ export type SignUpResponse = {
   name: string;
   surname: string;
   email: string;
-  role: string;
+  role: UserRoles;
   is_active: boolean;
 };

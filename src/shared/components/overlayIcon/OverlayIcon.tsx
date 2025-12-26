@@ -11,6 +11,7 @@ const variants = cva('box-content size-8 p-3.5 rounded-lg', {
       blue: 'text-status-info bg-blue-100',
       green: 'text-status-success bg-green-100',
       orange: 'text-status-warning bg-orange-100',
+      red: 'text-status-destructive bg-red-100',
       indigo: 'text-indigo-500 bg-indigo-100',
     },
   },
@@ -21,7 +22,7 @@ const variants = cva('box-content size-8 p-3.5 rounded-lg', {
 
 type Props = {
   variant: keyof typeof icons;
-  color?: 'blue' | 'green' | 'orange' | 'indigo';
+  color?: 'blue' | 'green' | 'orange' | 'red' | 'indigo';
   className?: string;
 } & LucideProps;
 

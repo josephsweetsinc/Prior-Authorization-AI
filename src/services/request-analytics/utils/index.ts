@@ -1,1 +1,2 @@
-export { transformDateCount } from './transformDateCount';
+export { transformTimeSeries } from './transformTimeSeries';
+export { transformRequestsByStatus } from './transformRequestsByStatus';

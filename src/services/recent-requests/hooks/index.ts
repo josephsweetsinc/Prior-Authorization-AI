@@ -1,1 +1,1 @@
-export { useGetProviderRecentRequests } from './useGetProviderRecentRequests';
+export { useGetRecentRequests } from './useGetRecentRequests';

@@ -1,1 +1,2 @@
-export { Analytics } from './Analytics';
+export { DecisionInsights } from './DecisionInsights';
+export { RequestsAnalytics } from './RequestsAnalytics';

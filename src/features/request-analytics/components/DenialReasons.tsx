@@ -1,16 +1,16 @@
 import { type HTMLProps } from 'react';
 
-import { type ProviderRequestProgress } from '@/services/dashboard';
+import { type DenialReason } from '@/services/dashboard';
 import { DataTable, EmptyStateMessage, Window } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
-import { requestsInProgressColumns } from '../constants';
+import { denialReasonsColumns } from '../constants';
 
 type Props = {
-  data: ProviderRequestProgress[];
+  data: DenialReason[];
 } & Omit<HTMLProps<HTMLDivElement>, 'data'>;
 
-export const RequestsInProgress = ({ data, className, ...props }: Props) => {
+export const DenialReasons = ({ data, className, ...props }: Props) => {
   if (data.length === 0) {
     return (
       <Window
@@ -18,9 +18,9 @@ export const RequestsInProgress = ({ data, className, ...props }: Props) => {
         {...props}
       >
         <h2 className='text-brand-dark text-2xl leading-8 font-bold capitalize'>
-          Requests in Progress
+          Common Denial Reasons
         </h2>
-        <EmptyStateMessage message='No requests found' />
+        <EmptyStateMessage message='Unable to find denial reasons data' />
       </Window>
     );
   }
@@ -34,7 +34,7 @@ export const RequestsInProgress = ({ data, className, ...props }: Props) => {
         Requests in Progress
       </h2>
 
-      <DataTable columns={requestsInProgressColumns} data={data} />
+      <DataTable columns={denialReasonsColumns} data={data} />
     </Window>
   );
 };

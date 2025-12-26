@@ -1,1 +1,1 @@
-export { Analytics } from './components';
+export { RequestsAnalytics, DecisionInsights } from './components';

@@ -59,6 +59,10 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
 
+    getCurrentUser: build.query<SignUpResponse, void>({
+      query: () => '/user/me',
+    }),
+
     signup: build.mutation<SignUpResponse, SignUpRequest>({
       query: (body) => ({
         url: '/auth/signup',
@@ -87,4 +91,5 @@ export const {
   usePasswordResetConfirmMutation,
   useSignupMutation,
   useLogoutMutation,
+  useGetCurrentUserQuery,
 } = authApi;
