@@ -24,8 +24,11 @@ export const DailySubmittedRequests = ({
 
   if (transformedData.length === 0) {
     return (
-      <Window className={cn('space-y-7.25 p-5', className)} {...props}>
-        <div className='flex items-center justify-between'>
+      <Window
+        className={cn('flex flex-col justify-between gap-7.25 p-5', className)}
+        {...props}
+      >
+        <div className='flex items-center justify-between gap-8'>
           <h2 className='text-brand-dark text-2xl leading-8 font-bold capitalize'>
             Daily Submitted Requests
           </h2>
@@ -40,8 +43,11 @@ export const DailySubmittedRequests = ({
   }
 
   return (
-    <Window className={cn('space-y-7.25 p-5', className)} {...props}>
-      <div className='flex items-center justify-between'>
+    <Window
+      className={cn('flex flex-col justify-between gap-7.25 p-5', className)}
+      {...props}
+    >
+      <div className='flex items-center justify-between gap-8'>
         <h2 className='text-brand-dark text-2xl leading-8 font-bold capitalize'>
           Daily Submitted Requests
         </h2>
@@ -53,6 +59,7 @@ export const DailySubmittedRequests = ({
         xKey='date'
         valueKey='count'
         tooltipLabel='Requests'
+        height={250}
       />
     </Window>
   );

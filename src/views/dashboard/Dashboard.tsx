@@ -1,11 +1,11 @@
-import { Plus } from 'lucide-react';
-import Link from 'next/link';
-
+import { NewRequestLink } from '@/features/new-request';
 import { RecentRequests } from '@/features/recent-requests';
-import { RequestsAnalytics } from '@/features/request-analytics';
+import {
+  DecisionInsights,
+  RequestsAnalytics,
+} from '@/features/request-analytics';
 import { RequestsSummary } from '@/features/request-totals';
-import { TitleAndDesc, buttonVariants } from '@/shared/components';
-import { cn } from '@/shared/lib/utils';
+import { TitleAndDesc } from '@/shared/components';
 
 export const Dashboard = () => {
   return (
@@ -16,20 +16,12 @@ export const Dashboard = () => {
           subtitle='Welcome back, manage your authorization requests'
         />
 
-        <Link
-          className={cn(
-            buttonVariants({ variant: 'primary' }),
-            'aspect-square w-max p-3 text-base font-medium capitalize xl:aspect-auto xl:px-10! xl:py-3!',
-          )}
-          href='/new-request'
-        >
-          <Plus className='size-4' />
-          <span className='sr-only xl:not-sr-only'>New request</span>
-        </Link>
+        <NewRequestLink />
       </div>
       <RequestsSummary />
       <RecentRequests />
       <RequestsAnalytics />
+      <DecisionInsights />
     </main>
   );
 };

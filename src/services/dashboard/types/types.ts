@@ -70,7 +70,7 @@ export interface ProviderResponse {
   daily_submitted_requests: ProviderDailySubmittedRequests;
 }
 
-export interface RecentActivity {
+export interface IRecentActivity {
   request_id: number;
   status: RequestStatus;
   author_name: string;
@@ -88,7 +88,7 @@ export interface AdminResponse {
   processing_time_distribution: ProcessingTimeDistribution[];
   requests_by_status: RequestsByStatus[];
   recent_requests: RecentRequest[];
-  recent_activity: RecentActivity[];
+  recent_activity: IRecentActivity[];
   denial_reasons: DenialReason[];
 }
 

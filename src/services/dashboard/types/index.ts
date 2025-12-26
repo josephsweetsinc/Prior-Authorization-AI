@@ -8,4 +8,6 @@ export type {
   DateCount,
   ProcessingTimeDistribution,
   RequestsByStatus,
+  DenialReason,
+  IRecentActivity,
 } from './types';
