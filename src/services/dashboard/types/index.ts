@@ -6,4 +6,6 @@ export type {
   ProviderRequestProgress,
   ProviderDailySubmittedRequests,
   DateCount,
+  ProcessingTimeDistribution,
+  RequestsByStatus,
 } from './types';

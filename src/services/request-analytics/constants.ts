@@ -1,23 +1,23 @@
 import { type RequestStatus } from '../dashboard';
 
-export const REQUEST_STATUS_CONFIG: Record<
+export const STATUS_CHART_CONFIG: Record<
   RequestStatus,
   { label: string; color: string }
 > = {
   approved: {
     label: 'Approved',
-    color: '#22c55e',
+    color: '#2FB400',
   },
   pending: {
     label: 'Pending',
-    color: '#eab308',
+    color: '#FACC15',
   },
   processing: {
     label: 'Processing',
-    color: '#3b82f6',
+    color: '#3B82F6',
   },
   denied: {
     label: 'Denied',
-    color: '#ef4444',
+    color: '#EF4444',
   },
 };

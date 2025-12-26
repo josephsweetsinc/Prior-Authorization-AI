@@ -1,1 +1,1 @@
-export { Analytics } from './Analytics';
+export { RequestsAnalytics } from './RequestsAnalytics';

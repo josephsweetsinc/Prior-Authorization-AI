@@ -80,7 +80,7 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
           <OverlayIcon variant='BrainCircuit' color='indigo' />
           <MetricsCard.Group>
             <MetricsCard.Label>AI Form Accuracy</MetricsCard.Label>
-            <MetricsCard.Value>{kpi.ai_accuracy}</MetricsCard.Value>
+            <MetricsCard.Value>{kpi.ai_accuracy}%</MetricsCard.Value>
           </MetricsCard.Group>
         </MetricsCard.Group>
         <Separator className='bg-gray-200' />

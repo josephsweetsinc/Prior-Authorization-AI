@@ -8,7 +8,7 @@ import {
   type PieLabelRenderProps,
 } from 'recharts';
 
-type DonutDatum = {
+export type DonutDatum = {
   label: string;
   value: number;
   color: string;

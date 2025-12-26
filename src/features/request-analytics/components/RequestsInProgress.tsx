@@ -13,7 +13,10 @@ type Props = {
 export const RequestsInProgress = ({ data, className, ...props }: Props) => {
   if (data.length === 0) {
     return (
-      <Window className={cn('space-y-7.25 p-5', className)} {...props}>
+      <Window
+        className={cn('flex flex-col justify-between gap-7.25 p-5', className)}
+        {...props}
+      >
         <h2 className='text-brand-dark text-2xl leading-8 font-bold capitalize'>
           Requests in Progress
         </h2>
@@ -23,7 +26,10 @@ export const RequestsInProgress = ({ data, className, ...props }: Props) => {
   }
 
   return (
-    <Window className={cn('space-y-7.25 p-5', className)} {...props}>
+    <Window
+      className={cn('flex flex-col justify-between gap-7.25 p-5', className)}
+      {...props}
+    >
       <h2 className='text-brand-dark text-2xl leading-8 font-bold capitalize'>
         Requests in Progress
       </h2>

@@ -3,14 +3,14 @@
 import { useGetProviderAnalytics } from '@/services/request-analytics';
 
 import { DailySubmittedRequests } from './DailySubmittedRequests';
-import { ProviderAnalyticsSkeleton } from './ProviderAnalyticsSkeleton';
+import { RequestsAnalyticsSkeleton } from './RequestsAnalyticsSkeleton';
 import { RequestsInProgress } from './RequestsInProgress';
 
-export const Analytics = () => {
+export const ProviderAnalytics = () => {
   const { analytics, isLoading } = useGetProviderAnalytics();
 
   if (isLoading) {
-    return <ProviderAnalyticsSkeleton />;
+    return <RequestsAnalyticsSkeleton />;
   }
 
   return (
