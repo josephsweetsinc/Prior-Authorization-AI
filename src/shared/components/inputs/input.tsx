@@ -37,7 +37,7 @@ function Input({
         <label
           htmlFor={inputId}
           className={cn(
-            'mb-1 block text-sm font-medium text-slate-700',
+            'font-nunito-sans mb-1 block text-[16px] leading-[150%] font-medium text-[#232323]',
             invalid && 'text-destructive',
           )}
         >
