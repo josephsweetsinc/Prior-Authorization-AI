@@ -59,6 +59,14 @@
   --primary-gradient: linear-gradient(135deg, #0db2a6 0%, #047cb4 100%);
   --success: oklch(66.51% 0.22 141.32);
   --radius: 0.625rem;
+
+  --font-geist-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans';
+  --font-geist-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New',
+    monospace;
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -99,6 +107,11 @@
 
   --brand-dark: #193782;
   --gray-dark: #4a5568;
+
+  --font-nunito-sans:
+    'Nunito Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', sans-serif;
 }
 
 .dark {
@@ -168,5 +181,13 @@
 
   .bg-success {
     background: var(--success);
+  }
+
+  .font-nunito {
+    font-family: var(--font-nunito-sans) !important;
+  }
+
+  .font-nunito-sans {
+    font-family: var(--font-nunito-sans) !important;
   }
 }
