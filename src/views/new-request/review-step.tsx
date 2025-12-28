@@ -1,38 +1,47 @@
 import { ChevronLeft, ChevronRight, SquarePen } from 'lucide-react';
 
-import { SensitiveMessage } from '@/shared/components';
+import type { FormState } from '@/features/new-request/info-form/types/types';
 import { Button } from '@/shared/components/button';
 
 interface ReviewStepProps {
   onBack: () => void;
   onSubmit: () => void;
+  onEdit?: () => void;
+  form?: FormState | null;
+  isSubmitting?: boolean;
 }
 
-export const ReviewStep = ({ onBack, onSubmit }: ReviewStepProps) => {
+const display = (v?: string | null) => (v && String(v).trim() !== '' ? v : '-');
+
+export const ReviewStep = ({
+  onBack,
+  onSubmit,
+  onEdit,
+  form,
+  isSubmitting,
+}: ReviewStepProps) => {
   return (
     <div className='space-y-8'>
       <div className='flex items-center justify-between'>
         <div>
           <h2 className='text-[22px] font-bold text-[#232323]'>
-            Review Form - CMS-10344
+            Review Form - {display(form?.formNumber ?? null)}
           </h2>
           <p className='mt-2 text-lg font-medium text-[#232323]'>
             Specify the transportation type, schedule and locations
           </p>
         </div>
         <div className='flex items-center gap-1'>
-          <SquarePen color='#047CB4' strokeWidth={2.25} width={16} />{' '}
-          <span className='cursor-pointer font-semibold text-[#047CB4] underline'>
+          <SquarePen color='#047CB4' strokeWidth={2.25} width={16} />
+          <button
+            type='button'
+            onClick={onEdit}
+            className='cursor-pointer font-semibold text-[#047CB4] underline'
+          >
             Edit
-          </span>
+          </button>
         </div>
       </div>
-
-      <SensitiveMessage
-        variant='success'
-        title='All Required Fields Validated'
-        description='The AI has successfully extracted and validated all required information from your documents.'
-      />
 
       <div>
         <h3 className='text-lg font-bold text-[#193782]'>
@@ -43,70 +52,76 @@ export const ReviewStep = ({ onBack, onSubmit }: ReviewStepProps) => {
             <span className='text-sm font-medium text-[#4A5568]'>
               Transportation Type:
             </span>
-            <p className='font-medium text-[#232323]'>Ambulance - BLS</p>
+            <p className='font-medium text-[#232323]'>
+              {display(form?.transportationType ?? null)}
+            </p>
           </div>
           <div>
             <span className='text-sm font-medium text-[#4A5568]'>
               Patient Name:
             </span>
-
-            <p className='font-medium text-[#232323]'>John Doe</p>
+            <p className='font-medium text-[#232323]'>
+              {display(
+                `${form?.patientFirstName ?? ''} ${form?.patientLastName ?? ''}`,
+              )}
+            </p>
           </div>
           <div>
             <span className='text-sm font-medium text-[#4A5568]'>
               Date of Birth:
             </span>
-
-            <p className='font-medium text-[#232323]'>12-07-1987</p>
+            <p className='font-medium text-[#232323]'>
+              {display(form?.patientDob ?? null)}
+            </p>
           </div>
 
           <div>
             <span className='text-sm font-medium text-[#4A5568]'>
               Patient ID:
             </span>
-
-            <p className='font-medium text-[#232323]'>AB1234567890ID</p>
+            <p className='font-medium text-[#232323]'>
+              {display(form?.patientId ?? null)}
+            </p>
           </div>
           <div>
             <span className='text-sm font-medium text-[#4A5568]'>
               Date of Transport:
             </span>
-
-            <p className='font-medium text-[#232323]'>08-19-2025</p>
+            <p className='font-medium text-[#232323]'>
+              {display(form?.dateOfTransport ?? null)}
+            </p>
           </div>
           <div>
             <span className='text-sm font-medium text-[#4A5568]'>
               Time of Transport:
             </span>
-
-            <p className='font-medium text-[#232323]'>10:20 AM</p>
+            <p className='font-medium text-[#232323]'>
+              {display(form?.timeOfTransport ?? null)}
+            </p>
           </div>
 
           <div>
             <span className='text-sm font-medium text-[#4A5568]'>
               Primary Diagnosis:
             </span>
-
             <p className='font-medium text-[#232323]'>
-              Chronic heart failure, mobility impaired
+              {display(form?.primaryDiagnosis ?? null)}
             </p>
           </div>
           <div>
             <span className='text-sm font-medium text-[#4A5568]'>
               Pickup Address:
             </span>
-
             <p className='font-medium text-[#232323]'>
-              123 Main St, Springfield, IL 62701
+              {display(form?.pickupAddress ?? null)}
             </p>
           </div>
           <div>
             <span className='text-sm font-medium text-[#4A5568]'>
               Destination Address:
             </span>
-
             <p className='font-medium text-[#232323]'>
-              Memorial Dialysis Center, 456 Medical Dr, Springfield, IL 62702
+              {display(form?.destinationAddress ?? null)}
             </p>
           </div>
         </div>
@@ -120,11 +135,7 @@ export const ReviewStep = ({ onBack, onSubmit }: ReviewStepProps) => {
         </h3>
         <div className='mt-6'>
           <p className='font-medium text-[#232323]'>
-            Patient requires repetitive non-emergent ambulance transport for
-            dialysis treatment three times weekly. Patient is bedbound and
-            unable to sit upright for extended periods due to severe
-            cardiovascular complications. Standard wheelchair van transport is
-            contraindicated.
+            {display(form?.medicalJustification ?? null)}
           </p>
         </div>
       </div>
@@ -141,6 +152,7 @@ export const ReviewStep = ({ onBack, onSubmit }: ReviewStepProps) => {
         <Button
           variant='primary'
           onClick={onSubmit}
+          disabled={isSubmitting}
           className='w-fit !px-10 !py-3 font-medium'
         >
           Create Request

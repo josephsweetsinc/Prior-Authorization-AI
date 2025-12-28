@@ -15,7 +15,7 @@ export const mediaApi = api.injectEndpoints({
         }
 
         return {
-          url: '/ambulance-request/upload',
+          url: '/ambulance-request/files',
           method: 'POST',
           body: formData,
         };

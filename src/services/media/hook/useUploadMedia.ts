@@ -1,4 +1,4 @@
-import { useUploadFileMutation } from '@/services'; // Перевір шлях до api
+import { useUploadFileMutation } from '@/services';
 
 export const useUploadMedia = () => {
   const [upload, { isLoading, error, reset }] = useUploadFileMutation();
