@@ -38,7 +38,6 @@ function Input({
           htmlFor={inputId}
           className={cn(
             'font-nunito-sans mb-1 block text-[16px] leading-[150%] font-medium text-[#232323]',
-            invalid && 'text-destructive',
           )}
         >
           {label?.trim()}
