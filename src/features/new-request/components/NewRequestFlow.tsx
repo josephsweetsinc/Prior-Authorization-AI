@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
@@ -7,12 +8,14 @@ import { toast } from 'react-toastify';
 import {
   setExtractionResult,
   setForm,
+  clear,
   type NewRequestState,
 } from '@/features/new-request/helpers/newRequestSlice';
 import type { FormState } from '@/features/new-request/info-form/types/types';
 import { useCreateRequest } from '@/services/new-request/hook/useCreateRequest';
 import { TitleAndDesc, Window } from '@/shared/components';
 import { Stepper } from '@/shared/components/stepper/stepper';
+import type { MediaItem } from '@/shared/components/upload/Uploader';
 import type { RootState } from '@/store';
 import { InfoStep } from '@/views/new-request/info-step';
 import { ReviewStep } from '@/views/new-request/review-step';
@@ -35,18 +38,40 @@ export function NewRequestFlow() {
   const dispatch = useDispatch();
   const [isReviewEditing, setIsReviewEditing] = useState(false);
   const { createRequest, isLoading: isCreating } = useCreateRequest();
+  const router = useRouter();
 
-  const handleNext = (extraction?: Record<string, unknown> | null) => {
+  const handleNext = (
+    extraction?: Record<string, unknown> | null,
+    uploadedFiles?: MediaItem[] | null,
+  ) => {
     if (extraction) {
       const extracted =
         (extraction as Record<string, unknown>)?.extracted_data ?? null;
       setExtractedData(extracted as Record<string, unknown> | null);
-      setExtractionResultState(extraction ?? null);
+
+      const enriched = {
+        ...(extraction ?? ({} as Record<string, unknown>)),
+      } as Record<string, unknown>;
+
+      if (
+        uploadedFiles &&
+        Array.isArray(uploadedFiles) &&
+        uploadedFiles.length > 0
+      ) {
+        enriched.files = uploadedFiles.map((f) => ({
+          id: f.id,
+          filename: f.filename ?? f.name,
+          file_size: f.file_size ?? f.size,
+        }));
+      }
+
+      setExtractionResultState(enriched ?? null);
+
       try {
-        const safe = JSON.parse(JSON.stringify(extraction ?? null));
+        const safe = JSON.parse(JSON.stringify(enriched ?? extraction ?? null));
         dispatch(setExtractionResult(safe));
       } catch {
-        dispatch(setExtractionResult(extraction ?? null));
+        dispatch(setExtractionResult(enriched ?? extraction ?? null));
       }
     }
 
@@ -114,7 +139,30 @@ export function NewRequestFlow() {
   const handleCreate = async () => {
     try {
       await createRequest();
-      toast.success('Ambulance request created successfully');
+      try {
+        dispatch(clear());
+      } catch {}
+
+      toast(
+        <div>
+          <div className='text-[#171923]'>Request Successfully Created</div>
+          <div className='text-[#4A5568]'>
+            Your authorization request has been submitted and is now awaiting
+            review.
+          </div>
+        </div>,
+        {
+          style: {
+            background: 'rgba(255,255,255,0.9)',
+            color: '',
+            padding: '14px 16px',
+            border: '1px solid #EAEAEA',
+            borderRadius: '16px',
+          },
+        },
+      );
+
+      router.push('/dashboard');
     } catch (err: unknown) {
       let msg = 'Failed to create ambulance request';
 
@@ -139,7 +187,6 @@ export function NewRequestFlow() {
 
       toast.error(msg);
 
-      // Log the raw error for debugging
       console.error('create request error', err);
     }
   };

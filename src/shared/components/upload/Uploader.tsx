@@ -51,9 +51,7 @@ export const Uploader = ({
 
   const normalizeUrl = (u?: string) => (u ? toAbs(u) : '');
 
-  // Accept unknown and safely normalize into MediaItem
   const resolveMediaItem = (raw: unknown): MediaItem => {
-    // If no raw data, return a minimal item with id 0 (stable, avoids impure Date.now in render)
     if (!raw) {
       return { id: 0 } as MediaItem;
     }
@@ -75,7 +73,6 @@ export const Uploader = ({
       return resolveMediaItem(raw[0]);
     }
 
-    // helper to guard object
     const asRecord = (v: unknown): Record<string, unknown> | null =>
       v && typeof v === 'object' ? (v as Record<string, unknown>) : null;
 
@@ -120,7 +117,6 @@ export const Uploader = ({
     const finalUrl = normalizeUrl(rawUrl as string | undefined);
 
     if (!rawUrl) {
-      // use warn (allowed) instead of console.log
       console.warn('Warning: No URL found in item:', raw);
     }
 
@@ -229,7 +225,6 @@ export const Uploader = ({
 
     setIsProcessing(true);
 
-    // Копіюємо поточний стан
     const nextMedia: MediaItem[] = multiple ? [...value] : [];
 
     for (const file of filesToProcess) {
@@ -238,10 +233,8 @@ export const Uploader = ({
       }
 
       try {
-        // 1. Отримуємо повну відповідь, а не деструктуризуємо { url }
         const response = await uploadFile(file, uploadType);
 
-        // 2. Витягуємо дані (враховуємо, що бекенд може повернути масив або об'єкт)
         let data: unknown = response;
         if (Array.isArray(response) && response.length > 0) {
           data = response[0];
@@ -259,10 +252,8 @@ export const Uploader = ({
         const serverContentType =
           rec?.content_type ?? rec?.contentType ?? file.type;
 
-        // Нормалізуємо URL
         const absUrl = normalizeUrl(serverUrl as string | undefined);
 
-        // Якщо сервер повернув ID, використовуємо його, інакше генеруємо тимчасовий (stable fallback using timestamp avoided)
         let finalId: number;
         if (typeof serverId === 'number') {
           finalId = serverId;
@@ -278,8 +269,8 @@ export const Uploader = ({
 
         nextMedia.push({
           id: finalId,
-          url: absUrl, // URL для відображення
-          file_url: serverUrl as string | undefined, // Сирий ключ з бекенду
+          url: absUrl,
+          file_url: serverUrl as string | undefined,
           name: (serverFilename as string) || file.name,
           size: serverFileSize ? Number(serverFileSize) : file.size,
           content_type: (serverContentType as string) || file.type,
@@ -349,7 +340,7 @@ export const Uploader = ({
 
         <div className='flex flex-col items-center gap-2 py-10 text-center'>
           {isLoading ? (
-            <div className='flex flex-col items-center gap-2 text-blue-600'>
+            <div className='flex flex-col items-center gap-2 py-13 text-blue-600'>
               <Loader2 className='animate-spin' size={40} />
               <span className='text-sm font-medium'>Uploading files...</span>
             </div>

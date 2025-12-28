@@ -56,7 +56,6 @@ const extractFileIdsFromStored = (
     return [];
   }
 
-  // Try common locations where files might be present
   const extractionResult = stored.extractionResult ?? null;
   const extractedData = stored.extractedData ?? null;
 

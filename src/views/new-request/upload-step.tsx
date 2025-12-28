@@ -7,7 +7,10 @@ import { Uploader, type MediaItem } from '@/shared/components';
 import { Button } from '@/shared/components/button';
 
 interface UploadStepProps {
-  onNext: (_extractionResult?: ExtractionResponse | null) => void;
+  onNext: (
+    _extractionResult?: ExtractionResponse | null,
+    _uploadedFiles?: MediaItem[],
+  ) => void;
 }
 
 export const UploadStep = ({ onNext }: UploadStepProps) => {
@@ -40,7 +43,9 @@ export const UploadStep = ({ onNext }: UploadStepProps) => {
       const result = await extractFiles(fileIds);
       console.warn('Extraction result', result);
 
-      onNext(result ?? null);
+      // pass both the extraction result and the uploaded files so the flow
+      // can persist file IDs for the final create request
+      onNext(result ?? null, files);
     } catch (err: unknown) {
       let msg = 'Failed to extract data from documents. Please try again.';
       if (err && typeof err === 'object') {
