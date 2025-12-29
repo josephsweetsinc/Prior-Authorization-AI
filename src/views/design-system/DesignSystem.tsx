@@ -92,8 +92,8 @@ export default function DesignSystem() {
           <CircleX size={20} color='#FE5C73' strokeWidth={1.25} /> Deny Request
         </Button>
         <Button variant={'success'} size={'default'}>
-          <CircleCheck size={20} color='#FFFFFF' strokeWidth={1.25} /> Approve
-          Request
+          <CircleCheck size={20} className='text-white' strokeWidth={1.25} />{' '}
+          Approve Request
         </Button>
         <Button variant={'default-outlined'} size={'default'}>
           Cancel

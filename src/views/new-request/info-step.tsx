@@ -1,71 +1,123 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { DateInput, Input, Select } from '@/shared/components';
-import { Button } from '@/shared/components/button';
+import {
+  type FormState,
+  InfoFormFields,
+  useInfoForm,
+} from '@/features/new-request';
+import { type IExtractedData } from '@/services';
+import { Button, SensitiveMessage } from '@/shared/components';
 
 interface InfoStepProps {
   onBack: () => void;
-  onNext: () => void;
+  // eslint-disable-next-line no-unused-vars
+  onNext: (res?: FormState | null) => void;
+  initialValues?: IExtractedData['extracted_data'] | null;
+  isComplete?: boolean;
+  mode?: 'default' | 'review-edit';
 }
 
-export const InfoStep = ({ onBack, onNext }: InfoStepProps) => {
+export const InfoStep = ({
+  onBack,
+  onNext,
+  initialValues = null,
+  isComplete = false,
+  mode = 'default',
+}: InfoStepProps) => {
+  const { form, setForm, errors, isFormComplete } = useInfoForm(initialValues);
+
+  const isReviewEdit = mode === 'review-edit';
+
   return (
     <div className='space-y-8'>
       <div>
-        <h2 className='text-[22px] font-bold text-[#232323]'>
-          Transportation Information
-        </h2>
-        <p className='mt-2 text-lg font-medium text-[#232323]'>
-          Specify the transportation type, schedule and locations
-        </p>
+        {isReviewEdit ? (
+          <>
+            <h2 className='text-[22px] font-bold text-black'>
+              Review Form - {form.formNumber}
+            </h2>
+            <p className='mt-2 text-lg font-medium text-black'>
+              Specify the transportation type, schedule and locations
+            </p>
+
+            <p className='text-brand-dark mt-8 text-lg font-bold'>
+              Transportation Details
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className='text-[22px] font-bold text-black'>
+              Transportation Information
+            </h2>
+            <p className='mt-2 text-lg font-medium text-black'>
+              Specify the transportation type, schedule and locations
+            </p>
+          </>
+        )}
       </div>
+
+      {isComplete && (
+        <SensitiveMessage
+          variant='success'
+          title='All Required Fields Validated'
+          description='The AI has successfully extracted and validated all required information from your documents.'
+        />
+      )}
 
       <div className='space-y-5'>
-        <Select
-          options={[{ label: 'test', value: 'test' }]}
-          label='Transportation Type'
-        />
-        <div className='flex w-full justify-between gap-5'>
-          <Input label='Patient First Name' labelVariant='static' />
-          <Input label='Patient Last Name' labelVariant='static' />
-        </div>
-        <div className='flex w-full justify-between gap-5'>
-          <DateInput label='Date of Birth' />
-          <Input label='Patient ID' labelVariant='static' />
-        </div>
-        <div className='flex w-full justify-between gap-5'>
-          <DateInput label='Patient First Name' />
-          <Input label='Time of Transport' labelVariant='static' />
-        </div>
-        <Select
-          options={[{ label: 'test', value: 'test' }]}
-          label='Pickup Address'
-        />
-        <Select
-          options={[{ label: 'test', value: 'test' }]}
-          label='Destination Address'
-        />
+        <InfoFormFields form={form} setForm={setForm} errors={errors} />
       </div>
 
-      <div className='flex justify-between pt-4'>
-        <Button
-          variant='gray'
-          size='lg'
-          onClick={onBack}
-          className='w-fit !px-10 !py-3 font-medium'
-        >
-          <ChevronLeft color='#232323' strokeWidth={1.5} />
-          Back
-        </Button>
-        <Button
-          variant='primary'
-          size='lg'
-          onClick={onNext}
-          className='w-fit !px-10 !py-3 font-medium'
-        >
-          Next
-          <ChevronRight color='#FFFFFF' strokeWidth={1.5} />
-        </Button>
+      <div
+        className={
+          isReviewEdit
+            ? 'flex justify-end gap-3 pt-4'
+            : 'flex justify-between pt-4'
+        }
+      >
+        {isReviewEdit ? (
+          <>
+            <Button
+              variant='gray'
+              size='lg'
+              onClick={onBack}
+              className='w-fit px-10! py-3! font-medium'
+            >
+              Cancel
+            </Button>
+            <Button
+              variant='primary'
+              size='lg'
+              onClick={() => onNext(form)}
+              className='w-fit px-10! py-3! font-medium'
+              disabled={!isFormComplete}
+            >
+              Save Changes
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              variant='gray'
+              size='lg'
+              onClick={onBack}
+              className='w-fit px-10! py-3! font-medium'
+            >
+              <ChevronLeft className='text-black' strokeWidth={1.5} />
+              Back
+            </Button>
+            <Button
+              variant='primary'
+              size='lg'
+              onClick={() => onNext(form)}
+              className='w-fit px-10! py-3! font-medium'
+              disabled={!isFormComplete}
+            >
+              Next
+              <ChevronRight className='text-white' strokeWidth={1.5} />
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,21 +1,25 @@
-import { api } from '@/services/api/api';
+import type { IExtractionRequest, IExtractedData, IFile } from '@/services';
+import { api as baseApi } from '@/services/api/api';
 
-interface UploadResponse {
-  url: string;
-}
-
-export const mediaApi = api.injectEndpoints({
+export const extractionApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
-    uploadFile: build.mutation<UploadResponse, { file: File; type?: string }>({
-      query: ({ file: files, type }) => {
+    extractFromFiles: build.mutation<IExtractedData, IExtractionRequest>({
+      query: (body) => ({
+        url: '/ambulance-request/extraction',
+        method: 'POST',
+        body,
+      }),
+    }),
+    uploadFile: build.mutation<IFile[], unknown>({
+      query: ({ file, type }) => {
         const formData = new FormData();
-        formData.append('files', files);
+        formData.append('files', file);
         if (type) {
           formData.append('type', type);
         }
 
         return {
-          url: '/ambulance-request/upload',
+          url: '/ambulance-request/files',
           method: 'POST',
           body: formData,
         };
@@ -24,4 +28,5 @@ export const mediaApi = api.injectEndpoints({
   }),
 });
 
-export const { useUploadFileMutation } = mediaApi;
+export const { useExtractFromFilesMutation, useUploadFileMutation } =
+  extractionApi;

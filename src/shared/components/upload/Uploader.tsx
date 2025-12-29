@@ -1,26 +1,39 @@
 'use client';
 
 import { X, Loader2, Upload, Download } from 'lucide-react';
-import React, { type ChangeEvent, type DragEvent, useState } from 'react';
+import { type ChangeEvent, type DragEvent, useState } from 'react';
 import { toast } from 'react-toastify';
 
-import { useUploadMedia } from '@/services';
+import {
+  apiFileToMediaItem,
+  getFileName,
+  getFileSize,
+  getFileUrl,
+  validateFile,
+  useUploadMedia,
+  type IFile,
+} from '@/services/media';
+import { Modal } from '@/shared/components';
 import { useApiFormError } from '@/shared/hooks/useApiFormError';
-import { cn, toAbs } from '@/shared/lib/utils';
+import { cn } from '@/shared/lib/utils';
 
 export type MediaItem = {
   id: number;
   url?: string;
+  file_url?: string;
   name?: string;
-  size?: number;
   filename?: string;
+  size?: number;
   file_size?: number;
+  content_type?: string;
 };
 
 type Props = {
   multiple?: boolean;
   value: MediaItem[];
   onChangeAction: (_media: MediaItem[]) => void;
+  // eslint-disable-next-line no-unused-vars
+  onUploadComplete?: (result: IFile[] | null) => Promise<void> | void;
   uploadType?: string;
   className?: string;
   dropAreaClassName?: string;
@@ -31,6 +44,7 @@ export const Uploader = ({
   multiple = false,
   value,
   onChangeAction,
+  onUploadComplete,
   uploadType = 'logo',
   className,
   dropAreaClassName,
@@ -42,89 +56,57 @@ export const Uploader = ({
 
   const [isDragOver, setIsDragOver] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [previewItem, setPreviewItem] = useState<MediaItem | null>(null);
 
   const isLoading = isUploading || isProcessing;
 
-  const normalizeUrl = (u?: string) => (u ? toAbs(u) : '');
-
   const formatFileSize = (bytes?: number) => {
-    if (!bytes && bytes !== 0) {
+    if (bytes === undefined || bytes === null) {
       return '';
     }
     const mb = bytes / (1024 * 1024);
-    if (mb < 0.1) {
-      return '< 0.1 MB';
+    if (mb >= 0.1) {
+      return `${mb.toFixed(1)} MB`;
     }
-    return `${mb.toFixed(1)} MB`;
-  };
-
-  const getFileName = (item: MediaItem) => {
-    return (
-      item.name || item.filename || item.url?.split('/').pop() || 'Unknown file'
-    );
-  };
-
-  const getFileSize = (item: MediaItem) => {
-    return item.size ?? item.file_size;
-  };
-
-  const validateFile = (file: File): boolean => {
-    if (file.size > maxSizeMB * 1024 * 1024) {
-      toast.error(`File "${file.name}" exceeds ${maxSizeMB}MB.`);
-      return false;
+    const kb = bytes / 1024;
+    if (kb < 1) {
+      return '< 1 KB';
     }
-
-    const allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx'];
-    const name = file.name || '';
-    const extMatch = name.toLowerCase().match(/\.([a-z0-9]+)$/);
-    const ext = extMatch ? extMatch[1] : '';
-
-    if (!allowedExt.includes(ext)) {
-      toast.error(
-        `File "${file.name}" has unsupported format. Allowed: PDF, DOC, DOCX, XLS, XLSX.`,
-      );
-      return false;
-    }
-
-    return true;
+    return `${Math.round(kb)} KB`;
   };
 
   const handleFiles = async (files: FileList | null) => {
-    if (!files || files.length === 0) {
+    if (!files?.length) {
       return;
     }
 
-    const fileArray = Array.from(files);
-    const filesToProcess = multiple ? fileArray : [fileArray[0]];
-
+    const fileArray = multiple ? Array.from(files) : [files[0]];
     setIsProcessing(true);
 
-    const nextMedia: MediaItem[] = multiple ? [...value] : [];
+    const nextMedia = multiple ? [...value] : [];
 
-    for (const file of filesToProcess) {
-      if (!validateFile(file)) {
+    for (const file of fileArray) {
+      const validation = validateFile(file, maxSizeMB);
+
+      if (!validation.ok) {
+        toast.error(validation.error);
         continue;
       }
 
       try {
-        const { url } = await uploadFile(file, uploadType);
+        const res = await uploadFile(file, uploadType);
 
-        const absUrl = normalizeUrl(url);
-        const tempId = Date.now() + Math.random();
+        if (onUploadComplete) {
+          await onUploadComplete(res);
+        }
 
-        nextMedia.push({
-          id: tempId,
-          url: absUrl,
-          name: file.name,
-          size: file.size,
-        });
-      } catch (error) {
-        handleError(error);
+        res.forEach((file: IFile) => nextMedia.push(apiFileToMediaItem(file)));
+      } catch (err) {
+        handleError(err);
       }
     }
 
     onChangeAction(multiple ? nextMedia : nextMedia.slice(-1));
-
     setIsProcessing(false);
     setIsDragOver(false);
   };
@@ -152,16 +134,16 @@ export const Uploader = ({
     setIsDragOver(false);
   };
 
-  const removeImage = (id: number) => {
-    onChangeAction(value.filter((item) => item.id !== id));
+  const removeImage = (id: number | string) => {
+    onChangeAction(value.filter((item) => String(item.id) !== String(id)));
   };
 
   return (
     <div className={cn('flex flex-col gap-4', className)}>
       <label
         className={cn(
-          'relative flex min-h-[180px] w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed transition-all duration-200',
-          'border-[#047CB4] bg-transparent',
+          'relative flex min-h-45 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed transition-all duration-200',
+          'border-status-info bg-transparent',
           !isLoading && 'hover:border-blue-600 hover:bg-[#EFF6FF]',
           isDragOver &&
             'border-blue-600 bg-blue-50 ring-2 ring-blue-100 ring-offset-2',
@@ -183,7 +165,7 @@ export const Uploader = ({
 
         <div className='flex flex-col items-center gap-2 py-10 text-center'>
           {isLoading ? (
-            <div className='flex flex-col items-center gap-2 text-blue-600'>
+            <div className='flex flex-col items-center gap-2 py-13 text-blue-600'>
               <Loader2 className='animate-spin' size={40} />
               <span className='text-sm font-medium'>Uploading files...</span>
             </div>
@@ -195,16 +177,16 @@ export const Uploader = ({
                 strokeWidth={1.5}
                 className='mb-2'
               />
-              <p className='text-sm font-semibold text-[#4A5568]'>
-                <span className='text-[#047CB4] hover:underline'>
+              <p className='text-gray-dark text-sm font-semibold'>
+                <span className='text-status-info hover:underline'>
                   Click to upload
                 </span>{' '}
                 or drag and drop
               </p>
-              <p className='text-xs text-[#4A5568]'>
+              <p className='text-gray-dark text-xs'>
                 PDF, DOC, DOCX, XLS, XLSX (max {maxSizeMB}MB)
               </p>
-              <div className='mt-4 rounded-lg border border-[#047CB4] bg-white px-6 py-2.5 text-sm font-medium text-[#047CB4] shadow-sm transition-colors hover:bg-blue-50'>
+              <div className='text-status-info mt-4 rounded-lg border border-[#047CB4] bg-white px-6 py-2.5 text-sm font-medium shadow-sm transition-colors hover:bg-blue-50'>
                 Browse Files
               </div>
             </>
@@ -217,11 +199,13 @@ export const Uploader = ({
           {value.map((item) => {
             const fileName = getFileName(item);
             const fileSizeFormatted = formatFileSize(getFileSize(item));
+            const fileUrl = getFileUrl(item);
 
             return (
               <div
-                key={item.id}
-                className='flex cursor-pointer items-center justify-between rounded-[8px] bg-[rgba(4,124,180,0.05)] p-4 transition-colors hover:bg-blue-50/50'
+                key={String(item.id)}
+                onClick={() => setPreviewItem(item)}
+                className='flex cursor-pointer items-center justify-between rounded-xl bg-[rgba(4,124,180,0.05)] p-4 transition-colors hover:bg-blue-50/50'
               >
                 <div className='flex flex-col gap-0.5 overflow-hidden'>
                   <p
@@ -238,25 +222,30 @@ export const Uploader = ({
                 </div>
 
                 <div className='ml-4 flex shrink-0 items-center gap-2'>
-                  {item.url && (
+                  {fileUrl && (
                     <a
-                      href={toAbs(item.url)}
+                      href={fileUrl}
                       target='_blank'
                       rel='noopener noreferrer'
-                      className='group flex h-8 w-8 items-center justify-center rounded-full text-[#047CB4] transition-colors hover:bg-blue-100'
+                      onClick={(e) => e.stopPropagation()}
+                      download
+                      className='group text-status-info flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-blue-100'
                       title='Download'
                     >
-                      <Download size={18} strokeWidth={2} />
+                      <Download color='#047CB4' strokeWidth={1.5} />
                     </a>
                   )}
 
                   <button
                     type='button'
-                    onClick={() => removeImage(item.id)}
-                    className='group flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(item.id);
+                    }}
+                    className='group flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500'
                     title='Remove'
                   >
-                    <X size={18} strokeWidth={2} />
+                    <X color='#FE5C73' />
                   </button>
                 </div>
               </div>
@@ -264,6 +253,58 @@ export const Uploader = ({
           })}
         </div>
       )}
+
+      <Modal
+        isOpen={Boolean(previewItem)}
+        className='w-200'
+        onCloseAction={() => setPreviewItem(null)}
+      >
+        <div className='mt-4'>
+          <div className='mb-4 text-[24px] font-semibold text-black'>
+            {getFileName(previewItem)}
+          </div>
+          {(() => {
+            const url = getFileUrl(previewItem);
+            const ctype = previewItem?.content_type ?? '';
+            const isPdf =
+              ctype.includes('pdf') || url.toLowerCase().endsWith('.pdf');
+            if (isPdf && url) {
+              return (
+                <object
+                  data={url}
+                  type='application/pdf'
+                  width='100%'
+                  height='600px'
+                >
+                  <p className='text-sm text-[#64748B]'>
+                    Preview not available. You can download the file using the
+                    button above.
+                  </p>
+                </object>
+              );
+            }
+
+            return (
+              <div className='flex flex-col items-start gap-2'>
+                <p className='text-sm text-[#334155]'>
+                  Preview not available for this file type.
+                </p>
+                {url && (
+                  <a
+                    href={url}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    download
+                    className='text-status-info rounded-md border border-[#047CB4] bg-white px-3 py-1 text-sm font-medium'
+                  >
+                    Download
+                  </a>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      </Modal>
     </div>
   );
 };

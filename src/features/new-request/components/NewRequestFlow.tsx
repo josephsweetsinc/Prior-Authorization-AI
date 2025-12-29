@@ -1,28 +1,144 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
+import type { FormState } from '@/features/new-request';
+import {
+  setForm,
+  clear,
+  setExtractionResult,
+} from '@/features/new-request/store/slice';
+import { type IUploadAndExtractionResult } from '@/services';
+import {
+  extractedToForm,
+  formToExtracted,
+  selectNewRequest,
+} from '@/services/new-request';
+import { useCreateRequest } from '@/services/new-request/hooks/useCreateRequest';
+import { getErrorMessage } from '@/services/new-request/utils';
 import { TitleAndDesc, Window } from '@/shared/components';
 import { Stepper } from '@/shared/components/stepper/stepper';
 import { InfoStep } from '@/views/new-request/info-step';
 import { ReviewStep } from '@/views/new-request/review-step';
 import { UploadStep } from '@/views/new-request/upload-step';
 
+import { useNewRequestFlow } from '../hooks/useNewRequestFlow';
+
+const TOTAL_STEPS = 3;
+
 export function NewRequestFlow() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+  const stored = useSelector(selectNewRequest);
 
-  const handleNext = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep((prev) => prev + 1);
+  const dispatch = useDispatch();
+
+  const handleExtractionReady = (data: IUploadAndExtractionResult) =>
+    dispatch(setExtractionResult(data));
+
+  const {
+    step,
+    next,
+    prev,
+    isReviewEditing,
+    startReviewEdit,
+    finishReviewEdit,
+    extractedData,
+    extractionResult,
+    isExtractionComplete,
+  } = useNewRequestFlow({
+    totalSteps: TOTAL_STEPS,
+    initialExtractedData: stored.extractedData,
+    initialExtractionResult: stored.extractionResult,
+    onExtractionReady: handleExtractionReady,
+  });
+
+  const { createRequest, isLoading: isCreating } = useCreateRequest();
+  const router = useRouter();
+
+  const reviewForm: FormState | null =
+    stored?.form ?? extractedToForm(extractedData);
+
+  const handleCreate = async () => {
+    try {
+      await createRequest();
+
+      dispatch(clear());
+
+      toast(
+        <div className='space-y-1'>
+          <p className='text-black'>Request Successfully Created</p>
+          <p className='text-gray-dark'>
+            Your authorization request has been submitted and is now awaiting
+            review.
+          </p>
+        </div>,
+      );
+
+      router.push('/dashboard');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, 'Failed to create ambulance request'));
     }
   };
 
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep((prev) => prev - 1);
+  const handleInfoNext = (res?: FormState | null) => {
+    if (res) {
+      dispatch(setForm(res));
     }
+    next();
   };
+
+  const handleReviewEditNext = (res?: FormState | null) => {
+    if (res) {
+      dispatch(setForm(res));
+    }
+    finishReviewEdit();
+  };
+
+  function renderStep() {
+    if (step === 1) {
+      return <UploadStep onNext={next} />;
+    }
+
+    if (step === 2) {
+      return (
+        <InfoStep
+          onBack={prev}
+          onNext={handleInfoNext}
+          initialValues={extractedData}
+          isComplete={Boolean(extractionResult?.is_complete)}
+        />
+      );
+    }
+
+    if (step === 3) {
+      if (isReviewEditing) {
+        return (
+          <InfoStep
+            onBack={finishReviewEdit}
+            onNext={handleReviewEditNext}
+            initialValues={
+              stored?.form ? formToExtracted(stored.form) : extractedData
+            }
+            mode='review-edit'
+            isComplete={isExtractionComplete}
+          />
+        );
+      }
+
+      return (
+        <ReviewStep
+          onBack={prev}
+          onSubmit={handleCreate}
+          onEdit={startReviewEdit}
+          form={reviewForm ?? undefined}
+          isSubmitting={isCreating}
+        />
+      );
+    }
+
+    return null;
+  }
 
   return (
     <main>
@@ -32,21 +148,12 @@ export function NewRequestFlow() {
       />
 
       <Stepper
-        currentStep={currentStep}
-        totalSteps={totalSteps}
+        currentStep={step}
+        totalSteps={TOTAL_STEPS}
         className='mt-6 mb-4'
       />
-      <Window>
-        {currentStep === 1 && <UploadStep onNext={handleNext} />}
 
-        {currentStep === 2 && (
-          <InfoStep onBack={handleBack} onNext={handleNext} />
-        )}
-
-        {currentStep === 3 && (
-          <ReviewStep onBack={handleBack} onSubmit={() => alert('Submit!')} />
-        )}
-      </Window>
+      <Window>{renderStep()}</Window>
     </main>
   );
 }

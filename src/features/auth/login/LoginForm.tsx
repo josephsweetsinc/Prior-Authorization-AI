@@ -83,7 +83,7 @@ export function LoginForm() {
         <div className='-mt-10'>
           <Link
             href='/forgot-password'
-            className='text-sm text-[#047CB4] hover:underline'
+            className='text-status-info text-sm hover:underline'
           >
             Forgot your password?
           </Link>

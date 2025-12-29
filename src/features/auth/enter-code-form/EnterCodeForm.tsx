@@ -98,14 +98,14 @@ export function EnterCodeForm() {
           <div className='flex flex-col items-center justify-center'>
             <span>A code has been sent to your email</span>
             {seconds > 0 ? (
-              <span className='mt-1 font-bold text-[#232323]'>
+              <span className='mt-1 font-bold text-black'>
                 Resend in {formatTime(seconds)}
               </span>
             ) : (
               <button
                 type='button'
                 onClick={handleResend}
-                className='mt-1 cursor-pointer text-[#047CB4] underline'
+                className='text-status-info mt-1 cursor-pointer underline'
               >
                 Resend
               </button>
