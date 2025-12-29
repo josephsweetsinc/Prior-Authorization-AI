@@ -1,12 +1,10 @@
 import { api } from '@/services/api/api';
 
-interface UploadResponse {
-  url: string;
-}
+import { type IUploadResponse } from '../types/types';
 
 export const mediaApi = api.injectEndpoints({
   endpoints: (build) => ({
-    uploadFile: build.mutation<UploadResponse, { file: File; type?: string }>({
+    uploadFile: build.mutation<IUploadResponse, { file: File; type?: string }>({
       query: ({ file: files, type }) => {
         const formData = new FormData();
         formData.append('files', files);
@@ -15,7 +13,7 @@ export const mediaApi = api.injectEndpoints({
         }
 
         return {
-          url: '/ambulance-request/files',
+          url: '/ambulance-request/upload',
           method: 'POST',
           body: formData,
         };

@@ -1,6 +1,3 @@
 export { selectNewRequest } from './selectors';
 
-export {
-  useExtractFromFilesMutation,
-  useCreateAmbulanceRequestMutation,
-} from './new-request-api-service';
+export { useCreateAmbulanceRequestMutation } from './new-request-api-service';

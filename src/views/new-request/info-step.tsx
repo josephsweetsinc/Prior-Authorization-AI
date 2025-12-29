@@ -29,23 +29,23 @@ export const InfoStep = ({
       <div>
         {isReviewEdit ? (
           <>
-            <h2 className='text-[22px] font-bold text-[#232323]'>
+            <h2 className='text-[22px] font-bold text-black'>
               Review Form - {form.formNumber}
             </h2>
-            <p className='mt-2 text-lg font-medium text-[#232323]'>
+            <p className='mt-2 text-lg font-medium text-black'>
               Specify the transportation type, schedule and locations
             </p>
 
-            <p className='mt-8 text-lg font-bold text-[#193782]'>
+            <p className='text-brand-dark mt-8 text-lg font-bold'>
               Transportation Details
             </p>
           </>
         ) : (
           <>
-            <h2 className='text-[22px] font-bold text-[#232323]'>
+            <h2 className='text-[22px] font-bold text-black'>
               Transportation Information
             </h2>
-            <p className='mt-2 text-lg font-medium text-[#232323]'>
+            <p className='mt-2 text-lg font-medium text-black'>
               Specify the transportation type, schedule and locations
             </p>
           </>
@@ -77,7 +77,7 @@ export const InfoStep = ({
               variant='gray'
               size='lg'
               onClick={onBack}
-              className='w-fit !px-10 !py-3 font-medium'
+              className='w-fit px-10! py-3! font-medium'
             >
               Cancel
             </Button>
@@ -85,7 +85,7 @@ export const InfoStep = ({
               variant='primary'
               size='lg'
               onClick={() => onNext(form)}
-              className='w-fit !px-10 !py-3 font-medium'
+              className='w-fit px-10! py-3! font-medium'
               disabled={!isFormComplete}
             >
               Save Changes
@@ -97,20 +97,20 @@ export const InfoStep = ({
               variant='gray'
               size='lg'
               onClick={onBack}
-              className='w-fit !px-10 !py-3 font-medium'
+              className='w-fit px-10! py-3! font-medium'
             >
-              <ChevronLeft color='#232323' strokeWidth={1.5} />
+              <ChevronLeft className='text-black' strokeWidth={1.5} />
               Back
             </Button>
             <Button
               variant='primary'
               size='lg'
               onClick={() => onNext(form)}
-              className='w-fit !px-10 !py-3 font-medium'
+              className='w-fit px-10! py-3! font-medium'
               disabled={!isFormComplete}
             >
               Next
-              <ChevronRight color='#FFFFFF' strokeWidth={1.5} />
+              <ChevronRight className='text-white' strokeWidth={1.5} />
             </Button>
           </>
         )}

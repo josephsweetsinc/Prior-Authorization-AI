@@ -1,149 +1,73 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 
+import type { FormState } from '@/features/new-request';
 import {
-  setExtractionResult,
   setForm,
   clear,
+  setExtractionResult,
 } from '@/features/new-request/helpers/newRequestSlice';
-import type { FormState } from '@/features/new-request/info-form/types/types';
-import { selectNewRequest } from '@/services/new-request';
-import { useCreateRequest } from '@/services/new-request/hook/useCreateRequest';
+import {
+  extractedToForm,
+  formToExtracted,
+  selectNewRequest,
+} from '@/services/new-request';
+import { useCreateRequest } from '@/services/new-request/hooks/useCreateRequest';
+import { getErrorMessage } from '@/services/new-request/utils';
 import { TitleAndDesc, Window } from '@/shared/components';
 import { Stepper } from '@/shared/components/stepper/stepper';
-import type { MediaItem } from '@/shared/components/upload/Uploader';
 import { InfoStep } from '@/views/new-request/info-step';
 import { ReviewStep } from '@/views/new-request/review-step';
 import { UploadStep } from '@/views/new-request/upload-step';
 
+import { useNewRequestFlow } from '../hooks/useNewRequestFlow';
+
+const TOTAL_STEPS = 3;
+
 export function NewRequestFlow() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
   const stored = useSelector(selectNewRequest);
-  const [extractedData, setExtractedData] = useState<Record<
-    string,
-    unknown
-  > | null>(stored?.extractedData ?? null);
-  const [extractionResult, setExtractionResultState] = useState<Record<
-    string,
-    unknown
-  > | null>(stored?.extractionResult ?? null);
+
   const dispatch = useDispatch();
-  const [isReviewEditing, setIsReviewEditing] = useState(false);
+
+  const handleExtractionReady = (data: Record<string, unknown>) =>
+    dispatch(setExtractionResult(data));
+
+  const {
+    step,
+    next,
+    prev,
+    isReviewEditing,
+    startReviewEdit,
+    finishReviewEdit,
+    extractedData,
+    extractionResult,
+    isExtractionComplete,
+  } = useNewRequestFlow({
+    totalSteps: TOTAL_STEPS,
+    initialExtractedData: stored?.extractedData,
+    initialExtractionResult: stored?.extractionResult,
+    onExtractionReady: handleExtractionReady,
+  });
+
   const { createRequest, isLoading: isCreating } = useCreateRequest();
   const router = useRouter();
 
-  const handleNext = (
-    extraction?: Record<string, unknown> | null,
-    uploadedFiles?: MediaItem[] | null,
-  ) => {
-    if (extraction) {
-      const extracted =
-        (extraction as Record<string, unknown>)?.extracted_data ?? null;
-      setExtractedData(extracted as Record<string, unknown> | null);
-
-      const enriched = {
-        ...(extraction ?? ({} as Record<string, unknown>)),
-      } as Record<string, unknown>;
-
-      if (
-        uploadedFiles &&
-        Array.isArray(uploadedFiles) &&
-        uploadedFiles.length > 0
-      ) {
-        enriched.files = uploadedFiles.map((f) => ({
-          id: f.id,
-          filename: f.filename ?? f.name,
-          file_size: f.file_size ?? f.size,
-        }));
-      }
-
-      setExtractionResultState(enriched ?? null);
-
-      try {
-        const safe = JSON.parse(JSON.stringify(enriched ?? extraction ?? null));
-        dispatch(setExtractionResult(safe));
-      } catch {
-        dispatch(setExtractionResult(enriched ?? extraction ?? null));
-      }
-    }
-
-    if (currentStep < totalSteps) {
-      setCurrentStep((prev) => prev + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep((prev) => prev - 1);
-    }
-  };
-
-  function mapExtractedToFormState(
-    v?: Record<string, unknown> | null,
-  ): FormState | null {
-    if (!v) {
-      return null;
-    }
-
-    return {
-      transportationType: String(v.transportation_type ?? ''),
-      patientFirstName: String(v.patient_first_name ?? ''),
-      patientLastName: String(v.patient_last_name ?? ''),
-      patientDob: String(v.patient_date_of_birth ?? ''),
-      patientId: String(v.patient_id ?? ''),
-      dateOfTransport: String(v.date_of_transport ?? ''),
-      timeOfTransport: String(v.time_of_transport ?? ''),
-      pickupAddress: String(v.pickup_address ?? ''),
-      destinationAddress: String(v.destination_address ?? ''),
-      primaryDiagnosis: String(v.primary_diagnosis ?? ''),
-      medicalJustification: String(v.medical_justification ?? ''),
-      formNumber: String(v.form_number ?? ''),
-    } as FormState;
-  }
-
-  function mapFormStateToExtracted(
-    f?: FormState | null,
-  ): Record<string, unknown> | null {
-    if (!f) {
-      return null;
-    }
-
-    return {
-      transportation_type: f.transportationType,
-      patient_first_name: f.patientFirstName,
-      patient_last_name: f.patientLastName,
-      patient_date_of_birth: f.patientDob,
-      patient_id: f.patientId,
-      date_of_transport: f.dateOfTransport,
-      time_of_transport: f.timeOfTransport,
-      pickup_address: f.pickupAddress,
-      destination_address: f.destinationAddress,
-      primary_diagnosis: f.primaryDiagnosis,
-      medical_justification: f.medicalJustification,
-      form_number: f.formNumber,
-    };
-  }
-
   const reviewForm: FormState | null =
-    (stored?.form as FormState | null) ??
-    mapExtractedToFormState(extractedData);
+    (stored?.form as FormState | null) ?? extractedToForm(extractedData);
 
   const handleCreate = async () => {
     try {
       await createRequest();
-      try {
-        dispatch(clear());
-      } catch {}
+
+      dispatch(clear());
 
       toast(
         <div>
           <div className='text-[#171923]'>Request Successfully Created</div>
-          <div className='text-[#4A5568]'>
+          <div className='text-gray-dark'>
             Your authorization request has been submitted and is now awaiting
             review.
           </div>
@@ -161,32 +85,70 @@ export function NewRequestFlow() {
 
       router.push('/dashboard');
     } catch (err: unknown) {
-      let msg = 'Failed to create ambulance request';
-
-      if (err && typeof err === 'object') {
-        const maybeErr = err as {
-          data?: {
-            message?: unknown;
-          };
-          message?: unknown;
-        };
-
-        if (
-          maybeErr.data &&
-          typeof maybeErr.data === 'object' &&
-          typeof maybeErr.data.message === 'string'
-        ) {
-          msg = maybeErr.data.message as string;
-        } else if (typeof maybeErr.message === 'string') {
-          msg = maybeErr.message as string;
-        }
-      }
-
-      toast.error(msg);
-
-      console.error('create request error', err);
+      toast.error(getErrorMessage(err, 'Failed to create ambulance request'));
     }
   };
+
+  const handleInfoNext = (res?: Record<string, unknown> | null) => {
+    if (res) {
+      dispatch(setForm(res));
+    }
+    next();
+  };
+
+  const handleReviewEditNext = (res?: Record<string, unknown> | null) => {
+    if (res) {
+      dispatch(setForm(res));
+    }
+    finishReviewEdit();
+  };
+
+  function renderStep() {
+    if (step === 1) {
+      return <UploadStep onNext={next} />;
+    }
+
+    if (step === 2) {
+      return (
+        <InfoStep
+          onBack={prev}
+          onNext={handleInfoNext}
+          initialValues={extractedData}
+          isComplete={Boolean(extractionResult?.is_complete)}
+        />
+      );
+    }
+
+    if (step === 3) {
+      if (isReviewEditing) {
+        return (
+          <InfoStep
+            onBack={finishReviewEdit}
+            onNext={handleReviewEditNext}
+            initialValues={
+              stored?.form
+                ? formToExtracted(stored.form as FormState)
+                : extractedData
+            }
+            mode='review-edit'
+            isComplete={isExtractionComplete}
+          />
+        );
+      }
+
+      return (
+        <ReviewStep
+          onBack={prev}
+          onSubmit={handleCreate}
+          onEdit={startReviewEdit}
+          form={reviewForm ?? undefined}
+          isSubmitting={isCreating}
+        />
+      );
+    }
+
+    return null;
+  }
 
   return (
     <main>
@@ -196,57 +158,12 @@ export function NewRequestFlow() {
       />
 
       <Stepper
-        currentStep={currentStep}
-        totalSteps={totalSteps}
+        currentStep={step}
+        totalSteps={TOTAL_STEPS}
         className='mt-6 mb-4'
       />
 
-      <Window>
-        {currentStep === 1 ? (
-          <UploadStep onNext={handleNext} />
-        ) : currentStep === 2 ? (
-          <InfoStep
-            onBack={handleBack}
-            onNext={(res) => {
-              if (res) {
-                dispatch(setForm(res));
-              }
-
-              handleNext();
-            }}
-            initialValues={extractedData}
-            isComplete={Boolean(extractionResult?.is_complete)}
-          />
-        ) : currentStep === 3 ? (
-          isReviewEditing ? (
-            <InfoStep
-              onBack={() => setIsReviewEditing(false)}
-              onNext={(res) => {
-                if (res) {
-                  dispatch(setForm(res));
-                }
-
-                setIsReviewEditing(false);
-              }}
-              initialValues={
-                (stored?.form as FormState | null)
-                  ? mapFormStateToExtracted(stored?.form as FormState)
-                  : extractedData
-              }
-              mode='review-edit'
-              isComplete={Boolean(extractionResult?.is_complete)}
-            />
-          ) : (
-            <ReviewStep
-              onBack={handleBack}
-              onSubmit={handleCreate}
-              onEdit={() => setIsReviewEditing(true)}
-              form={reviewForm ?? undefined}
-              isSubmitting={isCreating}
-            />
-          )
-        ) : null}
-      </Window>
+      <Window>{renderStep()}</Window>
     </main>
   );
 }

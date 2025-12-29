@@ -57,9 +57,7 @@ const slice = createSlice({
       state.extractedData = null;
       state.extractionResult = null;
       state.form = null;
-      try {
-        sessionStorage.removeItem(STORAGE_KEY);
-      } catch {}
+      sessionStorage.removeItem(STORAGE_KEY);
     },
   },
 });
