@@ -9,14 +9,13 @@ import {
   setExtractionResult,
   setForm,
   clear,
-  type NewRequestState,
 } from '@/features/new-request/helpers/newRequestSlice';
 import type { FormState } from '@/features/new-request/info-form/types/types';
+import { selectNewRequest } from '@/services/new-request';
 import { useCreateRequest } from '@/services/new-request/hook/useCreateRequest';
 import { TitleAndDesc, Window } from '@/shared/components';
 import { Stepper } from '@/shared/components/stepper/stepper';
 import type { MediaItem } from '@/shared/components/upload/Uploader';
-import type { RootState } from '@/store';
 import { InfoStep } from '@/views/new-request/info-step';
 import { ReviewStep } from '@/views/new-request/review-step';
 import { UploadStep } from '@/views/new-request/upload-step';
@@ -24,9 +23,7 @@ import { UploadStep } from '@/views/new-request/upload-step';
 export function NewRequestFlow() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
-  const stored = useSelector(
-    (s: RootState) => s.newRequest as NewRequestState | undefined,
-  );
+  const stored = useSelector(selectNewRequest);
   const [extractedData, setExtractedData] = useState<Record<
     string,
     unknown

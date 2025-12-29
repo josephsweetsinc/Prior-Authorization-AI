@@ -1,9 +1,9 @@
 import { useSelector } from 'react-redux';
 
-import type { NewRequestState } from '@/features/new-request/helpers/newRequestSlice';
-import type { FormState } from '@/features/new-request/info-form/types/types';
-import { useCreateAmbulanceRequestMutation } from '@/services/new-request/api/new-request-api-service';
-import type { RootState } from '@/store';
+import { type NewRequestState, type FormState } from '@/features/new-request';
+
+import { useCreateAmbulanceRequestMutation } from '../api';
+import { selectNewRequest } from '../api/selectors';
 
 export type CreateRequestParams = {
   fileIds?: number[];
@@ -103,9 +103,7 @@ const extractFileIdsFromStored = (
 };
 
 export const useCreateRequest = () => {
-  const stored = useSelector(
-    (s: RootState) => s.newRequest as NewRequestState | undefined,
-  );
+  const stored = useSelector(selectNewRequest);
   const [createMutation, mutationResult] = useCreateAmbulanceRequestMutation();
   const { isLoading, error, data } = (mutationResult ?? {}) as {
     isLoading?: boolean;
