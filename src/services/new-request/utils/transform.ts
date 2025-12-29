@@ -1,5 +1,8 @@
-import { type NewRequestState, type FormState } from '@/features/new-request';
-import { type IExtractedData } from '@/services/media';
+import { type INewRequestState, type FormState } from '@/features/new-request';
+import {
+  type IExtractedData,
+  type IUploadAndExtractionResult,
+} from '@/services/media';
 import { type MediaItem } from '@/shared/components';
 
 import { FIELD_MAP } from '../constants';
@@ -10,7 +13,7 @@ const toNumber = (value: unknown): number | null => {
 };
 
 export const extractedToForm = (
-  extracted?: Record<string, unknown> | null,
+  extracted?: IExtractedData | null,
 ): FormState | null => {
   if (!extracted) {
     return null;
@@ -19,14 +22,14 @@ export const extractedToForm = (
   return Object.fromEntries(
     Object.entries(FIELD_MAP).map(([formKey, extractedKey]) => [
       formKey,
-      String(extracted[extractedKey] ?? ''),
+      String(extracted[extractedKey as keyof IExtractedData] ?? ''),
     ]),
   ) as FormState;
 };
 
 export const formToExtracted = (
   form?: FormState | null,
-): Record<string, unknown> | null => {
+): IExtractedData | null => {
   if (!form) {
     return null;
   }
@@ -40,46 +43,36 @@ export const formToExtracted = (
 };
 
 export const normalizeExtraction = (
-  extraction?: Record<string, unknown> | null,
+  extraction?: IExtractedData | null,
   uploadedFiles?: MediaItem[] | null,
 ) => {
-  if (!extraction) {
+  if (!extraction || !extraction.extracted_data) {
     return null;
   }
 
-  const extracted = (extraction as IExtractedData)?.extracted_data ?? null;
-
-  const enriched: Record<string, unknown> = { ...extraction };
-
-  if (uploadedFiles?.length) {
-    enriched.files = uploadedFiles.map((f) => ({
-      id: f.id,
-      filename: f.filename ?? f.name,
-      file_size: f.file_size ?? f.size,
-    }));
-  }
+  const extracted = extraction.extracted_data;
+  const enriched: IUploadAndExtractionResult = {
+    ...extracted,
+    files: uploadedFiles ?? [],
+  };
 
   return { extracted, enriched };
 };
 
 export const extractFileIdsFromStored = (
-  stored?: NewRequestState,
+  stored?: INewRequestState,
 ): number[] => {
   if (!stored) {
     return [];
   }
 
-  const files =
-    stored.extractionResult?.files ??
-    stored.extractionResult?.files_uploaded ??
-    stored.extractedData?.files ??
-    [];
+  const files = stored.extractionResult?.files;
 
   if (!Array.isArray(files)) {
     return [];
   }
 
   return files
-    .map((file) => toNumber(file?.id ?? file?.file_id ?? file?.fileId))
+    .map((file) => toNumber(file.id))
     .filter((id): id is number => id !== null);
 };

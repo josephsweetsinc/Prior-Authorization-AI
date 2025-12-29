@@ -1,33 +1,33 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-export type NewRequestState = {
-  extractedData: Record<string, unknown> | null;
-  extractionResult: Record<string, unknown> | null;
-  form: Record<string, unknown> | null;
-};
+import {
+  type IUploadAndExtractionResult,
+  type IExtractedData,
+} from '@/services';
 
-const STORAGE_KEY = 'newRequestState_v1';
+import { type FormState } from '../info-form';
+import { type INewRequestState } from '../types/types';
 
-const load = (): NewRequestState => {
+const STORAGE_KEY = 'iNewRequestState_v1';
+
+const load = (): INewRequestState => {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) {
       return { extractedData: null, extractionResult: null, form: null };
     }
 
-    return JSON.parse(raw) as NewRequestState;
+    return JSON.parse(raw);
   } catch {
     return { extractedData: null, extractionResult: null, form: null };
   }
 };
 
-const save = (state: NewRequestState) => {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {}
+const save = (state: INewRequestState) => {
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 };
 
-const initialState: NewRequestState = load();
+const initialState: INewRequestState = load();
 
 const slice = createSlice({
   name: 'newRequest',
@@ -35,7 +35,7 @@ const slice = createSlice({
   reducers: {
     setExtractionResult(
       state,
-      action: PayloadAction<Record<string, unknown> | null>,
+      action: PayloadAction<IUploadAndExtractionResult | null>,
     ) {
       state.extractionResult = action.payload;
       state.extractedData =
@@ -44,12 +44,12 @@ const slice = createSlice({
     },
     setExtractedData(
       state,
-      action: PayloadAction<Record<string, unknown> | null>,
+      action: PayloadAction<IExtractedData['extracted_data'] | null>,
     ) {
       state.extractedData = action.payload;
       save(state);
     },
-    setForm(state, action: PayloadAction<Record<string, unknown> | null>) {
+    setForm(state, action: PayloadAction<FormState | null>) {
       state.form = action.payload;
       save(state);
     },

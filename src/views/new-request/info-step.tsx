@@ -1,12 +1,18 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { InfoFormFields, useInfoForm } from '@/features/new-request';
+import {
+  type FormState,
+  InfoFormFields,
+  useInfoForm,
+} from '@/features/new-request';
+import { type IExtractedData } from '@/services';
 import { Button, SensitiveMessage } from '@/shared/components';
 
 interface InfoStepProps {
   onBack: () => void;
-  onNext: (_res?: Record<string, unknown> | null) => void;
-  initialValues?: Record<string, unknown> | null;
+  // eslint-disable-next-line no-unused-vars
+  onNext: (res?: FormState | null) => void;
+  initialValues?: IExtractedData['extracted_data'] | null;
   isComplete?: boolean;
   mode?: 'default' | 'review-edit';
 }

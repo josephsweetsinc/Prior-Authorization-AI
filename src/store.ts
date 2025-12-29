@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import { newRequestReducer } from '@/features/new-request/helpers/newRequestSlice';
+import { newRequestReducer } from '@/features/new-request/store/slice';
 import { api } from '@/services/api/api';
 
 export const store = configureStore({

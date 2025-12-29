@@ -1,3 +1,5 @@
+import { type MediaItem } from '@/shared/components';
+
 export interface IFile {
   id: number;
   filename: string;
@@ -14,3 +16,7 @@ export type IExtractedData = {
   extracted_data?: Record<string, unknown> | null;
   is_complete?: boolean;
 };
+
+export interface IUploadAndExtractionResult extends IExtractedData {
+  files: MediaItem[];
+}

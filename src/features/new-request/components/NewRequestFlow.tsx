@@ -9,7 +9,8 @@ import {
   setForm,
   clear,
   setExtractionResult,
-} from '@/features/new-request/helpers/newRequestSlice';
+} from '@/features/new-request/store/slice';
+import { type IUploadAndExtractionResult } from '@/services';
 import {
   extractedToForm,
   formToExtracted,
@@ -32,7 +33,7 @@ export function NewRequestFlow() {
 
   const dispatch = useDispatch();
 
-  const handleExtractionReady = (data: Record<string, unknown>) =>
+  const handleExtractionReady = (data: IUploadAndExtractionResult) =>
     dispatch(setExtractionResult(data));
 
   const {
@@ -47,8 +48,8 @@ export function NewRequestFlow() {
     isExtractionComplete,
   } = useNewRequestFlow({
     totalSteps: TOTAL_STEPS,
-    initialExtractedData: stored?.extractedData,
-    initialExtractionResult: stored?.extractionResult,
+    initialExtractedData: stored.extractedData,
+    initialExtractionResult: stored.extractionResult,
     onExtractionReady: handleExtractionReady,
   });
 
@@ -56,7 +57,7 @@ export function NewRequestFlow() {
   const router = useRouter();
 
   const reviewForm: FormState | null =
-    (stored?.form as FormState | null) ?? extractedToForm(extractedData);
+    stored?.form ?? extractedToForm(extractedData);
 
   const handleCreate = async () => {
     try {
@@ -65,22 +66,13 @@ export function NewRequestFlow() {
       dispatch(clear());
 
       toast(
-        <div>
-          <div className='text-[#171923]'>Request Successfully Created</div>
-          <div className='text-gray-dark'>
+        <div className='space-y-1'>
+          <p className='text-black'>Request Successfully Created</p>
+          <p className='text-gray-dark'>
             Your authorization request has been submitted and is now awaiting
             review.
-          </div>
+          </p>
         </div>,
-        {
-          style: {
-            background: 'rgba(255,255,255,0.9)',
-            color: '',
-            padding: '14px 16px',
-            border: '1px solid #EAEAEA',
-            borderRadius: '16px',
-          },
-        },
       );
 
       router.push('/dashboard');
@@ -89,14 +81,14 @@ export function NewRequestFlow() {
     }
   };
 
-  const handleInfoNext = (res?: Record<string, unknown> | null) => {
+  const handleInfoNext = (res?: FormState | null) => {
     if (res) {
       dispatch(setForm(res));
     }
     next();
   };
 
-  const handleReviewEditNext = (res?: Record<string, unknown> | null) => {
+  const handleReviewEditNext = (res?: FormState | null) => {
     if (res) {
       dispatch(setForm(res));
     }
@@ -126,9 +118,7 @@ export function NewRequestFlow() {
             onBack={finishReviewEdit}
             onNext={handleReviewEditNext}
             initialValues={
-              stored?.form
-                ? formToExtracted(stored.form as FormState)
-                : extractedData
+              stored?.form ? formToExtracted(stored.form) : extractedData
             }
             mode='review-edit'
             isComplete={isExtractionComplete}

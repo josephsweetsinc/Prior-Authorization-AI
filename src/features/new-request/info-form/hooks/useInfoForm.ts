@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { type FormState } from '@/features/new-request/info-form';
-import { extractedToForm } from '@/services';
+import { extractedToForm, type IExtractedData } from '@/services';
 import { FIELD_MAP } from '@/services/new-request/constants';
 
 const defaultValues: FormState = {
@@ -24,16 +24,17 @@ const defaultValues: FormState = {
 const requiredIfEmpty = (value: unknown, message: string) =>
   String(value ?? '').trim() === '' ? message : '';
 
-export function useInfoForm(initialValues?: Record<string, unknown> | null) {
+export function useInfoForm(
+  initialValues?: IExtractedData['extracted_data'] | null,
+) {
   const [form, setForm] = useState<FormState>(defaultValues);
 
   useEffect(() => {
     if (!initialValues) {
       return;
     }
-    const v = initialValues as Record<string, unknown>;
 
-    const newForm = extractedToForm(v);
+    const newForm = extractedToForm(initialValues);
 
     const id = setTimeout(() => setForm(newForm!), 0);
     return () => clearTimeout(id);

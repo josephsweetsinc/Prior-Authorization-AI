@@ -1,14 +1,18 @@
 import { useState, useCallback } from 'react';
 
+import {
+  type IUploadAndExtractionResult,
+  type IExtractedData,
+} from '@/services';
 import { normalizeExtraction } from '@/services/new-request/utils';
 import type { MediaItem } from '@/shared/components/upload/Uploader';
 
 interface Params {
   totalSteps: number;
-  initialExtractedData?: Record<string, unknown> | null;
-  initialExtractionResult?: Record<string, unknown> | null;
+  initialExtractedData?: IExtractedData['extracted_data'] | null;
+  initialExtractionResult?: IUploadAndExtractionResult | null;
   // eslint-disable-next-line no-unused-vars
-  onExtractionReady?: (data: Record<string, unknown>) => void;
+  onExtractionReady?: (data: IUploadAndExtractionResult) => void;
 }
 
 export const useNewRequestFlow = ({
@@ -19,20 +23,16 @@ export const useNewRequestFlow = ({
 }: Params) => {
   const [step, setStep] = useState(1);
   const [isReviewEditing, setIsReviewEditing] = useState(false);
-  const [extractedData, setExtractedData] = useState<Record<
-    string,
-    unknown
-  > | null>(initialExtractedData);
+  const [extractedData, setExtractedData] = useState(initialExtractedData);
 
-  const [extractionResult, setExtractionResult] = useState<Record<
-    string,
-    unknown
-  > | null>(initialExtractionResult);
+  const [extractionResult, setExtractionResult] = useState(
+    initialExtractionResult,
+  );
 
   const next = useCallback(
     (
       uploadedFiles?: MediaItem[] | null,
-      extraction?: Record<string, unknown> | null,
+      extraction?: IExtractedData | null,
     ) => {
       const normalized = normalizeExtraction(extraction, uploadedFiles);
 

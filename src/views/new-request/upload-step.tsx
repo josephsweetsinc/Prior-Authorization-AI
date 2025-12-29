@@ -2,7 +2,7 @@ import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
-import { type IFile, type IExtractedData } from '@/services';
+import { type IExtractedData, type IFile } from '@/services';
 import { useExtractFileData } from '@/services/new-request';
 import { Uploader, type MediaItem, Button } from '@/shared/components';
 
