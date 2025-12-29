@@ -14,7 +14,3 @@ export type IExtractedData = {
   extracted_data?: Record<string, unknown> | null;
   is_complete?: boolean;
 };
-
-export interface IUploadResponse extends IExtractedData {
-  files: IFile[];
-}

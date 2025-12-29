@@ -2,7 +2,8 @@ import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
-import { type IExtractedData } from '@/services';
+import { type IFile, type IExtractedData } from '@/services';
+import { useExtractFileData } from '@/services/new-request';
 import { Uploader, type MediaItem, Button } from '@/shared/components';
 
 interface UploadStepProps {
@@ -19,6 +20,8 @@ export const UploadStep = ({ onNext }: UploadStepProps) => {
   const [extractionResult, setExtractionResult] =
     useState<IExtractedData | null>(null);
 
+  const { extractFiles, isLoading } = useExtractFileData();
+
   const handleNext = () => {
     if (!files.length) {
       toast.error('Please upload at least one document before proceeding.');
@@ -28,8 +31,27 @@ export const UploadStep = ({ onNext }: UploadStepProps) => {
     onNext(files, extractionResult);
   };
 
-  const handleUploadComplete = (res: IExtractedData | null) =>
-    setExtractionResult(res);
+  const handleUploadComplete = async (files: IFile[] | null) => {
+    if (!files || files.length === 0) {
+      toast.error('Failed to extract data from uploaded files.');
+      return;
+    }
+
+    try {
+      const fileIds = files.map((f) => f.id).filter(Boolean) as number[];
+
+      if (!fileIds.length) {
+        return;
+      }
+
+      const result = await extractFiles(fileIds);
+
+      setExtractionResult(result);
+    } catch (err) {
+      toast.error('Failed to extract data from uploaded files.');
+      console.error(err);
+    }
+  };
 
   return (
     <div className='space-y-8'>
@@ -49,6 +71,7 @@ export const UploadStep = ({ onNext }: UploadStepProps) => {
           size='lg'
           onClick={handleNext}
           className='w-fit px-10! py-3! font-medium'
+          disabled={isLoading}
         >
           Next
           <ChevronRight className='text-white' strokeWidth={1.5} />

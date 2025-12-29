@@ -1,1 +1,4 @@
-export { useUploadFileMutation } from './upload-api-service';
+export {
+  useExtractFromFilesMutation,
+  useUploadFileMutation,
+} from './upload-api-service';

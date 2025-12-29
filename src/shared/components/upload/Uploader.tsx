@@ -6,12 +6,12 @@ import { toast } from 'react-toastify';
 
 import {
   apiFileToMediaItem,
-  type IExtractedData,
   getFileName,
   getFileSize,
   getFileUrl,
   validateFile,
   useUploadMedia,
+  type IFile,
 } from '@/services/media';
 import { Modal } from '@/shared/components';
 import { useApiFormError } from '@/shared/hooks/useApiFormError';
@@ -33,7 +33,7 @@ type Props = {
   value: MediaItem[];
   onChangeAction: (_media: MediaItem[]) => void;
   // eslint-disable-next-line no-unused-vars
-  onUploadComplete?: (result: IExtractedData | null) => void;
+  onUploadComplete?: (result: IFile[] | null) => Promise<void> | void;
   uploadType?: string;
   className?: string;
   dropAreaClassName?: string;
@@ -87,6 +87,7 @@ export const Uploader = ({
 
     for (const file of fileArray) {
       const validation = validateFile(file, maxSizeMB);
+
       if (!validation.ok) {
         toast.error(validation.error);
         continue;
@@ -95,16 +96,11 @@ export const Uploader = ({
       try {
         const res = await uploadFile(file, uploadType);
 
-        res.files.forEach((f) => {
-          nextMedia.push(apiFileToMediaItem(f));
-        });
-
         if (onUploadComplete) {
-          onUploadComplete({
-            extracted_data: res.extracted_data,
-            is_complete: res.is_complete,
-          });
+          await onUploadComplete(res);
         }
+
+        res.forEach((file: IFile) => nextMedia.push(apiFileToMediaItem(file)));
       } catch (err) {
         handleError(err);
       }
