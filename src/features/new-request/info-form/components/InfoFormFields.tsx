@@ -1,7 +1,9 @@
 import React from 'react';
 
 import { type FormState } from '@/features/new-request/info-form';
-import { Input, DateInput } from '@/shared/components';
+import { Input, DateInput, Select } from '@/shared/components';
+
+import { TRANSPORTATION_TYPE_OPTIONS } from '../../constants';
 
 type Props = {
   form: FormState;
@@ -12,14 +14,13 @@ type Props = {
 export const InfoFormFields = ({ form, setForm, errors }: Props) => {
   return (
     <div className='space-y-5'>
-      <Input
+      <Select
+        options={TRANSPORTATION_TYPE_OPTIONS}
         label='Transportation Type'
-        labelVariant='static'
         value={form.transportationType}
-        onChange={(e) =>
-          setForm((p) => ({ ...p, transportationType: e.target.value }))
+        onChange={(value) =>
+          setForm((p) => ({ ...p, transportationType: value }))
         }
-        error={errors.transportationType}
       />
 
       <div className='flex w-full justify-between gap-5'>
@@ -73,6 +74,7 @@ export const InfoFormFields = ({ form, setForm, errors }: Props) => {
           error={errors.dateOfTransport}
         />
         <Input
+          type='time'
           label='Time of Transport'
           labelVariant='static'
           value={form.timeOfTransport}

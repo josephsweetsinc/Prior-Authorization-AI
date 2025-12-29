@@ -1,8 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import React from 'react';
 
-import { InfoFormFields } from '@/features/new-request/info-form/components/InfoFormFields';
-import { useInfoForm } from '@/features/new-request/info-form/hook/useInfoForm';
+import { InfoFormFields, useInfoForm } from '@/features/new-request';
 import { Button, SensitiveMessage } from '@/shared/components';
 
 interface InfoStepProps {
