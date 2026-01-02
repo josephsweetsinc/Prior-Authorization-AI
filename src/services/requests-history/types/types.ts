@@ -11,6 +11,28 @@ export interface IRequest {
   updated_at: string;
 }
 
+export interface IStatus {
+  id: number;
+  request_id: number;
+  status: RequestStatus;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface IDocument {
+  id: number;
+  filename: string;
+  file_size: number;
+  content_type: string;
+  download_url: string;
+}
+
+export interface IRequestDetails extends IRequest {
+  updated_at: string;
+  status_history: IStatus[];
+  documents: IDocument[];
+}
+
 export interface IRequestHistoryResponse {
   items: IRequest[];
   next_cursor: number;

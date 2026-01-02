@@ -1,1 +1,4 @@
-export { useGetRequestsHistoryQuery } from './requests-history-api';
+export {
+  useGetRequestsHistoryQuery,
+  useGetRequestDetailsQuery,
+} from './requests-history-api';
