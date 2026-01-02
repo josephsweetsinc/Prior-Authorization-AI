@@ -9,8 +9,6 @@ type WindowProps = {
 
 export const Window = ({ children, className }: WindowProps): ReactElement => {
   return (
-    <div className={cn('rounded-[20px] bg-white p-10', className)}>
-      {children}
-    </div>
+    <div className={cn('rounded-4xl bg-white p-10', className)}>{children}</div>
   );
 };

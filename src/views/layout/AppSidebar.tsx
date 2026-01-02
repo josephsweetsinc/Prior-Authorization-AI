@@ -18,11 +18,7 @@ export const AppSidebar = () => {
 
       <SidebarContent>
         <SidebarGroup aria-label='Main Navigation'>
-          <SidebarItem
-            icon='LayoutDashboard'
-            label='Dashboard'
-            to='/dashboard'
-          />
+          <SidebarItem icon='LayoutDashboard' label='Dashboard' to='/' />
           <SidebarItem
             icon='FileChartColumnIncreasing'
             label='New Request'
