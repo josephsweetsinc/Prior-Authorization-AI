@@ -180,7 +180,7 @@ export default function DesignSystem() {
             {
               title: 'Request Submitted',
               date: 'Jan 15, 2025 at 10:30 AM',
-              status: 'success',
+              status: 'approved',
             },
             {
               title: 'Under Review',
@@ -191,7 +191,7 @@ export default function DesignSystem() {
               title: 'Insurance Reviewer',
               description:
                 'Additional documentation may be required for medical necessity.',
-              status: 'error',
+              status: 'denied',
             },
           ]}
         />
