@@ -1,1 +1,1 @@
-export { Uploader, type MediaItem } from './Uploader';
+export { Uploader, type MediaItem, formatFileSize } from './Uploader';

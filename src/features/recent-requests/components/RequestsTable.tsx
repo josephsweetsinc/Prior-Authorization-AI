@@ -1,5 +1,6 @@
 'use client';
 
+import { RequestDetails, useRequestDetails } from '@/features/requests-history';
 import { useGetCurrentUserQuery } from '@/services/auth';
 import { useGetRecentRequests } from '@/services/recent-requests';
 import {
@@ -8,15 +9,19 @@ import {
   EmptyStateMessage,
 } from '@/shared/components';
 
-import { columns } from '../constants';
+import { useGetColumns } from '../hooks';
 
 const RequestsTable = () => {
+  const { details, handleDetailsClick, handleDetailsClose } =
+    useRequestDetails();
   const { data: currentUser, isLoading: userLoading } =
     useGetCurrentUserQuery();
 
   const { requests, isLoading: requestsLoading } = useGetRecentRequests({
     role: currentUser?.role,
   });
+
+  const columns = useGetColumns({ onDetailsClick: handleDetailsClick });
 
   const isLoading = userLoading || requestsLoading;
 
@@ -28,6 +33,17 @@ const RequestsTable = () => {
     return <EmptyStateMessage message='No requests found' />;
   }
 
-  return <DataTable columns={columns} data={requests} />;
+  return (
+    <>
+      <DataTable columns={columns} data={requests} />
+      {details.requestId && (
+        <RequestDetails
+          requestId={details.requestId!}
+          open={details.open}
+          onClose={handleDetailsClose}
+        />
+      )}
+    </>
+  );
 };
 export default RequestsTable;

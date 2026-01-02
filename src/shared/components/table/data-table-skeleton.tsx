@@ -38,7 +38,7 @@ export function DataTableSkeleton({
             </TableRow>
           </TableHeader>
 
-          <TableBody>
+          <TableBody className='bg-white'>
             {Array.from({ length: rowCount }).map((_, rowIndex) => (
               <TableRow key={rowIndex}>
                 {Array.from({ length: columnCount }).map((_, colIndex) => (
