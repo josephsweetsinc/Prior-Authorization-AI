@@ -15,3 +15,18 @@ export const apiFileToMediaItem = (file: IFile): MediaItem => {
     url: toAbs(file.file_url),
   };
 };
+
+export const formatFileSize = (bytes?: number) => {
+  if (bytes === undefined || bytes === null) {
+    return '';
+  }
+  const mb = bytes / (1024 * 1024);
+  if (mb >= 0.1) {
+    return `${mb.toFixed(1)} MB`;
+  }
+  const kb = bytes / 1024;
+  if (kb < 1) {
+    return '< 1 KB';
+  }
+  return `${Math.round(kb)} KB`;
+};

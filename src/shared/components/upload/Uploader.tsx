@@ -12,6 +12,7 @@ import {
   validateFile,
   useUploadMedia,
   type IFile,
+  formatFileSize,
 } from '@/services/media';
 import { Modal } from '@/shared/components';
 import { useApiFormError } from '@/shared/hooks/useApiFormError';
@@ -40,21 +41,6 @@ type Props = {
   className?: string;
   dropAreaClassName?: string;
   maxSizeMB?: number;
-};
-
-export const formatFileSize = (bytes?: number) => {
-  if (bytes === undefined || bytes === null) {
-    return '';
-  }
-  const mb = bytes / (1024 * 1024);
-  if (mb >= 0.1) {
-    return `${mb.toFixed(1)} MB`;
-  }
-  const kb = bytes / 1024;
-  if (kb < 1) {
-    return '< 1 KB';
-  }
-  return `${Math.round(kb)} KB`;
 };
 
 export const Uploader = ({

@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { type HTMLProps } from 'react';
 
+import { formatFileSize } from '@/services/media';
 import { useGetRequestDetailsQuery } from '@/services/requests-history';
 import {
   Modal,
@@ -9,7 +10,6 @@ import {
   TitleAndDesc,
 } from '@/shared/components';
 import { AttachedDocument } from '@/shared/components/attached-document';
-import { formatFileSize } from '@/shared/components/upload';
 import { cn } from '@/shared/lib/utils';
 
 import { DataBlock } from './DataBlock';
