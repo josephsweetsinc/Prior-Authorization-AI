@@ -6,7 +6,7 @@ export const requestsHistoryAPI = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getRequestsHistory: builder.query<IRequestHistoryResponse, void>({
       query: () => '/ambulance-request/',
-      providesTags: ['Dashboard'],
+      providesTags: ['RequestsHistory'],
     }),
   }),
   overrideExisting: false,
