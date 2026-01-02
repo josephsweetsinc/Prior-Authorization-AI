@@ -1,0 +1,1 @@
+export { DiagnosisCell } from './DiagnosisCell';

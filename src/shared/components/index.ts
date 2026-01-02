@@ -59,3 +59,5 @@ export { Skeleton } from './skeleton';
 export { Uploader, type MediaItem } from './upload';
 export { RequestStatusChip, RequestsHeadCell } from './requests-table';
 export { EmptyStateMessage } from './empty-state';
+
+export { DiagnosisCell } from './diagnosis-cell';

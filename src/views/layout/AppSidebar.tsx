@@ -31,7 +31,7 @@ export const AppSidebar = () => {
           <SidebarItem
             icon='ClockFading'
             label='Requests History'
-            to='/history'
+            to='/requests-history'
             disabled
           />
           <SidebarItem icon='Settings' label='Settings' to='settings' />
