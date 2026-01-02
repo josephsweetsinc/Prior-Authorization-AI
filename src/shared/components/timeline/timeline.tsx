@@ -4,14 +4,13 @@ import { CircleX } from 'lucide-react';
 
 import { SuccessFilledIcon } from '@/shared/assets/icons';
 import { cn } from '@/shared/lib/utils';
-
-type Status = 'success' | 'pending' | 'error';
+export type RequestStatus = 'approved' | 'pending' | 'processing' | 'denied';
 
 interface TimelineItem {
   title: string;
   date?: string;
   description?: string;
-  status: Status;
+  status: RequestStatus;
 }
 
 interface StatusTimelineProps {
@@ -29,12 +28,13 @@ export function StatusTimeline({ items }: StatusTimelineProps) {
           <div
             className={cn(
               'flex h-7.5 w-7.5 items-center justify-center rounded-full',
-              item.status === 'success' && 'bg-[#24B2001A]',
+              item.status === 'approved' && 'bg-[#24B2001A]',
               item.status === 'pending' && 'bg-[#24B2001A]',
-              item.status === 'error' && 'bg-[#FC2A001A]',
+              item.status === 'processing' && 'bg-[#24B2001A]',
+              item.status === 'denied' && 'bg-[#FC2A001A]',
             )}
           >
-            {item.status === 'error' ? (
+            {item.status === 'denied' ? (
               <CircleX size={20} color='#FE5C73' strokeWidth={1.25} />
             ) : (
               <SuccessFilledIcon />

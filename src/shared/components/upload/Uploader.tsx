@@ -17,6 +17,8 @@ import { Modal } from '@/shared/components';
 import { useApiFormError } from '@/shared/hooks/useApiFormError';
 import { cn } from '@/shared/lib/utils';
 
+import { AttachedDocument } from '../attached-document';
+
 export type MediaItem = {
   id: number;
   url?: string;
@@ -40,6 +42,21 @@ type Props = {
   maxSizeMB?: number;
 };
 
+export const formatFileSize = (bytes?: number) => {
+  if (bytes === undefined || bytes === null) {
+    return '';
+  }
+  const mb = bytes / (1024 * 1024);
+  if (mb >= 0.1) {
+    return `${mb.toFixed(1)} MB`;
+  }
+  const kb = bytes / 1024;
+  if (kb < 1) {
+    return '< 1 KB';
+  }
+  return `${Math.round(kb)} KB`;
+};
+
 export const Uploader = ({
   multiple = false,
   value,
@@ -59,21 +76,6 @@ export const Uploader = ({
   const [previewItem, setPreviewItem] = useState<MediaItem | null>(null);
 
   const isLoading = isUploading || isProcessing;
-
-  const formatFileSize = (bytes?: number) => {
-    if (bytes === undefined || bytes === null) {
-      return '';
-    }
-    const mb = bytes / (1024 * 1024);
-    if (mb >= 0.1) {
-      return `${mb.toFixed(1)} MB`;
-    }
-    const kb = bytes / 1024;
-    if (kb < 1) {
-      return '< 1 KB';
-    }
-    return `${Math.round(kb)} KB`;
-  };
 
   const handleFiles = async (files: FileList | null) => {
     if (!files?.length) {
@@ -200,6 +202,19 @@ export const Uploader = ({
             const fileName = getFileName(item);
             const fileSizeFormatted = formatFileSize(getFileSize(item));
             const fileUrl = getFileUrl(item);
+
+            return (
+              <AttachedDocument
+                name={fileName}
+                size={fileSizeFormatted}
+                url={fileUrl}
+                onRemove={() => {
+                  removeImage(item.id);
+                }}
+                onClick={() => setPreviewItem(item)}
+                key={item.id}
+              />
+            );
 
             return (
               <div
