@@ -14,8 +14,8 @@ export const RecentRequests = () => {
         </h2>
 
         <Link
-          className='text-brand-dark pointer-events-none flex items-center gap-2 capitalize underline'
-          href='/'
+          className='text-brand-dark flex items-center gap-2 capitalize underline'
+          href='/requests-history'
         >
           <span>View all</span>
           <ArrowUpRight className='size-5' />
