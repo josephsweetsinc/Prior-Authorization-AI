@@ -19,7 +19,9 @@ export type Props = {
 export const SidebarItem = forwardRef<HTMLAnchorElement, Props>(
   ({ label, to, icon, className, ...props }, ref) => {
     const pathname = usePathname();
-    const isActive = pathname?.startsWith(to.toString());
+    const href = to.toString();
+    const isActive =
+      href === '/' ? pathname === '/' : pathname?.startsWith(href);
 
     const Icon = icon ? icons[icon] : null;
 
