@@ -2,23 +2,23 @@ import { type ColumnDef } from '@tanstack/react-table';
 import { Edit } from 'lucide-react';
 
 import { type UserRoles } from '@/services';
+import { type IUserEntry } from '@/services/user-management';
 import { TableHeadCell } from '@/shared/components';
 
 import { StatusChip } from '../components';
-import { type IUserEntry } from '../types/types';
 import { formatLastLogin } from '../utils';
 
 interface Params {
-  onDelete: VoidFunction;
+  // eslint-disable-next-line no-unused-vars
+  onDelete: (user: IUserEntry) => void;
 }
 
 export const useGetColumns = ({ onDelete }: Params) => {
   const columns: ColumnDef<IUserEntry>[] = [
     {
       id: 'patient',
+      accessorKey: 'full_name',
       header: () => <TableHeadCell>Patient</TableHeadCell>,
-      accessorFn: (row) => `${row.name} ${row.surname}`,
-      cell: (info) => info.getValue(),
     },
     {
       accessorKey: 'email',
@@ -45,8 +45,8 @@ export const useGetColumns = ({ onDelete }: Params) => {
     },
     {
       id: 'actions',
-      header: () => <TableHeadCell className=''>Actions</TableHeadCell>,
-      cell: () => (
+      header: () => <TableHeadCell>Actions</TableHeadCell>,
+      cell: ({ row }) => (
         <div className='flex items-center gap-3'>
           <button
             className='text-status-info flex items-center gap-1 underline'
@@ -57,7 +57,8 @@ export const useGetColumns = ({ onDelete }: Params) => {
           </button>
           <button
             className='text-status-destructive underline'
-            onClick={onDelete}
+            onClick={() => onDelete(row.original)}
+            disabled
           >
             Delete
           </button>

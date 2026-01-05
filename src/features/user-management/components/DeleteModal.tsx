@@ -1,3 +1,4 @@
+import { useDeleteUserMutation } from '@/services/user-management';
 import {
   Button,
   Modal,
@@ -5,7 +6,18 @@ import {
   TitleAndDesc,
 } from '@/shared/components';
 
-export const DeleteModal = (props: ModalProps) => {
+type Props = {
+  userId?: number;
+} & ModalProps;
+export const DeleteModal = ({ userId, ...props }: Props) => {
+  const [deleteUser, { isLoading }] = useDeleteUserMutation();
+
+  if (!userId) {
+    return;
+  }
+
+  const handleDeleteUser = () => deleteUser(userId);
+
   return (
     <Modal {...props}>
       <TitleAndDesc
@@ -27,7 +39,12 @@ export const DeleteModal = (props: ModalProps) => {
         >
           Cancel
         </Button>
-        <Button variant='destructive' disabled className='w-max'>
+        <Button
+          variant='destructive'
+          onClick={handleDeleteUser}
+          className='w-max'
+          disabled={isLoading}
+        >
           Delete user
         </Button>
       </div>

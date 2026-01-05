@@ -1,4 +1,4 @@
-import { type IUserEntry } from '../types';
+import { type IUserEntry } from '@/services/user-management';
 
 export const filterByQuery = (users: IUserEntry[], query?: string) => {
   if (!query) {

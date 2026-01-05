@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 
-import { usersMock } from '../constants';
+import { type IUserEntry, useGetUsersQuery } from '@/services/user-management';
+
 import { type IFilters } from '../types';
 import { filterPipeline } from '../utils/pipelines';
 
@@ -13,6 +14,7 @@ import { UserManagementFilters } from './UserManagementFilters';
 import { UsersTable } from './UsersTable';
 
 export const UserManagementContainer = () => {
+  const [selectedUser, setSelectedUser] = useState<IUserEntry | null>(null);
   const [activeModal, setActiveModal] = useState<
     'create' | 'update' | 'delete' | null
   >();
@@ -21,9 +23,9 @@ export const UserManagementContainer = () => {
     role: 'all',
   });
 
-  const data = usersMock;
+  const { data, isLoading } = useGetUsersQuery();
 
-  const filteredData = filterPipeline(data ?? [], filters);
+  const filteredData = filterPipeline(data ? data.items : [], filters);
 
   const handleFiltersChange = (key: string, value: string) => {
     setFilters((prev) => ({
@@ -32,11 +34,22 @@ export const UserManagementContainer = () => {
     }));
   };
 
-  const closeModal = () => setActiveModal(null);
+  const closeModal = () => {
+    setSelectedUser(null);
+    setActiveModal(null);
+  };
 
-  const openCreateModal = () => setActiveModal('create');
-  const openUpdateModal = () => setActiveModal('update');
-  const openDeleteModal = () => setActiveModal('delete');
+  const openCreateModal = () => {
+    setSelectedUser(null);
+    setActiveModal('create');
+  };
+  const openUpdateModal = () => {
+    setActiveModal('update');
+  };
+  const openDeleteModal = (user: IUserEntry) => {
+    setSelectedUser(user);
+    setActiveModal('delete');
+  };
 
   return (
     <>
@@ -46,6 +59,7 @@ export const UserManagementContainer = () => {
         onFiltersChange={handleFiltersChange}
       />
       <UsersTable
+        isLoading={isLoading}
         data={filteredData}
         onUpdateClick={openUpdateModal}
         onDeleteClick={openDeleteModal}
@@ -55,6 +69,7 @@ export const UserManagementContainer = () => {
         onCloseAction={closeModal}
       />
       <DeleteModal
+        userId={selectedUser?.id}
         isOpen={activeModal === 'delete'}
         onCloseAction={closeModal}
       />

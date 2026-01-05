@@ -1,4 +1,6 @@
-import { type IFilters, type IUserEntry } from '../types';
+import { type IUserEntry } from '@/services/user-management';
+
+import { type IFilters } from '../types';
 
 import { filterByQuery, filterByRole } from './filters';
 
