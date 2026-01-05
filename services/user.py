@@ -195,20 +195,16 @@ class UserService(BaseService):
         showing = len(users)
 
         # Convert to response schema
-        items = []
-        for user in users:
-            full_name = f'{user.name} {user.surname}'
-            # Get last_login if field exists, otherwise None
-            last_login = getattr(user, 'last_login', None)
-            items.append(
-                UserListItemSchema(
-                    full_name=full_name,
-                    email=user.email,
-                    role=user.role,
-                    is_active=user.is_active,
-                    last_login=last_login,
-                )
+        items = [
+            UserListItemSchema(
+                full_name=f'{user.name} {user.surname}',
+                email=user.email,
+                role=user.role,
+                is_active=user.is_active,
+                last_login=user.last_login,
             )
+            for user in users
+        ]
 
         return (
             items,
