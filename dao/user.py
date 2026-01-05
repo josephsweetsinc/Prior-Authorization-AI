@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
+from typing import Any
 
-from sqlalchemy import select, update
+from sqlalchemy import Select, func, or_, select, update
 
 from core.dao import BaseDAO
 from models import User
@@ -147,6 +148,26 @@ class UserDAO(BaseDAO):
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def update_last_login(self, user_id: int) -> User | None:
+        """Update last login timestamp for a user.
+
+        Args:
+            user_id: User ID.
+
+        Returns:
+            User | None: Updated user instance or None if not found.
+
+        """
+        stmt = (
+            update(User)
+            .where(User.id == user_id)
+            .values(last_login=datetime.now(UTC))
+            .returning(User)
+        )
+
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def delete_by_id(self, user_id: int) -> User | None:
         """Delete user by id.
 
@@ -166,3 +187,77 @@ class UserDAO(BaseDAO):
 
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
+
+    def _build_filter_stmt(
+        self,
+        *,
+        search: str | None = None,
+    ) -> Select[Any]:
+        """Build base filter statement for users.
+
+        Args:
+            search: Search term for user name, surname, or email.
+
+        Returns:
+            Select: SQLAlchemy select statement with filters applied.
+
+        """
+        stmt = select(User).where(User.is_active.is_(True))
+
+        if search:
+            search_pattern = f'%{search}%'
+            stmt = stmt.where(
+                or_(
+                    User.name.ilike(search_pattern),
+                    User.surname.ilike(search_pattern),
+                    User.email.ilike(search_pattern),
+                )
+            )
+
+        return stmt
+
+    async def count_all(
+        self,
+        *,
+        search: str | None = None,
+    ) -> int:
+        """Count all users with filters.
+
+        Args:
+            search: Search term for user name, surname, or email.
+
+        Returns:
+            int: Total count of users.
+
+        """
+        stmt = self._build_filter_stmt(search=search)
+        stmt = select(func.count()).select_from(stmt.subquery())
+        result = await self._session.execute(stmt)
+        return result.scalar_one() or 0
+
+    async def get_all(
+        self,
+        *,
+        offset: int = 0,
+        limit: int = 8,
+        search: str | None = None,
+    ) -> list[User]:
+        """Get all users with pagination and filters.
+
+        Args:
+            offset: Number of items to skip.
+            limit: Maximum number of items to return.
+            search: Search term for user name, surname, or email.
+
+        Returns:
+            list[User]: List of users.
+
+        """
+        stmt = self._build_filter_stmt(search=search)
+        stmt = (
+            stmt.order_by(User.created_at.desc(), User.id.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())

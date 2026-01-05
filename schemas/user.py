@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
@@ -111,3 +112,67 @@ class UserResponseShema(BaseModel):
     role: UserRole
     is_active: bool
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserListItemSchema(BaseModel):
+    """Schema for user list item."""
+
+    full_name: Annotated[
+        str,
+        Field(description='Full name of the user', examples=['John Doe']),
+    ]
+    email: Annotated[
+        EmailStr,
+        Field(description='User email address', examples=['john@example.com']),
+    ]
+    role: Annotated[
+        UserRole,
+        Field(description='User role', examples=[UserRole.PROVIDER]),
+    ]
+    is_active: Annotated[
+        bool,
+        Field(description='Whether the user is active', examples=[True]),
+    ]
+    last_login: Annotated[
+        datetime | None,
+        Field(
+            None,
+            description='Date and time of last login',
+            examples=[datetime(2025, 1, 1, 12, 0, 0)],
+        ),
+    ]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UsersListResponseSchema(BaseModel):
+    """Response schema for paginated list of users.
+
+    Attributes:
+        items: List of users.
+        page: Current page number.
+        total: Total number of users.
+        showing: Number of items shown on current page.
+        total_pages: Total number of pages.
+
+    """
+
+    items: list[UserListItemSchema] = Field(
+        description='List of users',
+    )
+    page: int = Field(
+        description='Current page number',
+        examples=[1],
+    )
+    total: int = Field(
+        description='Total number of users',
+        examples=[50],
+    )
+    showing: int = Field(
+        description='Number of items shown on current page',
+        examples=[8],
+    )
+    total_pages: int = Field(
+        description='Total number of pages',
+        examples=[7],
+    )

@@ -1,15 +1,17 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
-from core import get_service
+from core import exception_handler, get_service
 from dependencies import get_admin_user_from_token, get_current_user
 from models import User
 from schemas import (
     CreateUserByAdminRequestSchema,
     UpdateUserRequestSchema,
+    UserListItemSchema,
     UserResponseShema,
+    UsersListResponseSchema,
 )
 from services import UserService
 
@@ -186,3 +188,54 @@ async def delete_me(
 
     """
     return await service.delete_user_by_id(current_user=user, user_id=user.id)
+
+
+@user_router.get(
+    '/',
+    description='Get all users with pagination (admin only)',
+    response_model=UsersListResponseSchema,
+    dependencies=[Depends(get_admin_user_from_token)],
+    tags=['admin'],
+)
+@exception_handler
+async def get_all_users(
+    service: Annotated[UserService, Depends(get_service(UserService))],
+    page: int = Query(
+        1,
+        ge=1,
+        description='Page number (1-based)',
+        examples=[1],
+    ),
+    search: str | None = Query(
+        None,
+        description='Search by user name, surname, or email',
+        examples=['John'],
+    ),
+) -> UsersListResponseSchema:
+    """Get all users with pagination.
+
+    Only admin users can access this endpoint.
+
+    Args:
+        page: Page number (1-based).
+        search: Search term for user name, surname, or email.
+        service: User service.
+
+    Returns:
+        UsersListResponseSchema: Paginated list of users.
+
+    """
+    items, total, current_page, total_pages, showing = (
+        await service.get_all_users(
+            page=page,
+            limit=8,
+            search=search,
+        )
+    )
+    return UsersListResponseSchema(
+        items=items,
+        page=current_page,
+        total=total,
+        showing=showing,
+        total_pages=total_pages,
+    )
