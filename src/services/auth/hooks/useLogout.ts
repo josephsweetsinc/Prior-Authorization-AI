@@ -1,14 +1,12 @@
 'use client';
 
 import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 
 import { getRefreshToken, clearTokens } from '@/services/api/token';
 import { useLogoutMutation } from '@/services/auth/api/auth-api-service';
 
 export function useLogout() {
-  const router = useRouter();
   const [logoutMutation, { isLoading, error }] = useLogoutMutation();
 
   const logout = useCallback(async () => {
@@ -30,9 +28,11 @@ export function useLogout() {
         console.error('Error clearing cookies during logout', e);
       }
 
-      router.push('/login');
+      if (typeof window !== 'undefined') {
+        window.location.replace('/login');
+      }
     }
-  }, [logoutMutation, router]);
+  }, [logoutMutation]);
 
   return {
     logout,

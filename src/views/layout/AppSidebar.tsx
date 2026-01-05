@@ -1,3 +1,5 @@
+'use client';
+
 import LogoIcon from '@/shared/assets/icons/logo';
 import {
   Sidebar,
@@ -8,8 +10,14 @@ import {
   SidebarHeader,
   SidebarItem,
 } from '@/shared/components';
+import { useGetCurrentUserQuery } from '@/services';
 
 export const AppSidebar = () => {
+  const { data: currentUser, isLoading } = useGetCurrentUserQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+  const isAdmin = currentUser?.role === 'admin';
+
   return (
     <Sidebar className='row-span-2'>
       <SidebarHeader className='flex items-center'>
@@ -19,18 +27,32 @@ export const AppSidebar = () => {
       <SidebarContent>
         <SidebarGroup aria-label='Main Navigation'>
           <SidebarItem icon='LayoutDashboard' label='Dashboard' to='/' />
-          <SidebarItem
-            icon='FileChartColumnIncreasing'
-            label='New Request'
-            to='/new-request'
-          />
-          <SidebarItem
-            icon='ClockFading'
-            label='Requests History'
-            to='/requests-history'
-            disabled
-          />
-          <SidebarItem icon='Settings' label='Settings' to='/settings' />
+          {isLoading ? null : isAdmin ? (
+            <>
+              <SidebarItem icon='FileText' label='Requests' to='/requests' />
+              <SidebarItem
+                icon='Users'
+                label='User Management'
+                to='/user-management'
+              />
+              <SidebarItem icon='FileChartLine' label='Reports' to='/reports' />
+            </>
+          ) : (
+            <>
+              <SidebarItem
+                icon='FileChartColumnIncreasing'
+                label='New Request'
+                to='/new-request'
+              />
+              <SidebarItem
+                icon='ClockFading'
+                label='Requests History'
+                to='/requests-history'
+                disabled
+              />
+              <SidebarItem icon='Settings' label='Settings' to='/settings' />
+            </>
+          )}
         </SidebarGroup>
       </SidebarContent>
 
