@@ -11,3 +11,7 @@ export interface IFormData {
   fullName: string;
   email: string;
 }
+
+export interface ICreateFormData extends IFormData {
+  password: string;
+}

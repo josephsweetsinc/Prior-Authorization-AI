@@ -1,6 +1,10 @@
 import { api as baseApi } from '@/services/api/api';
 
-import { type IGetUsersResponse, type IUserEntry } from '../types';
+import {
+  type ICreateUserPayload,
+  type IGetUsersResponse,
+  type IUserEntry,
+} from '../types';
 
 const usersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -15,7 +19,7 @@ const usersApi = baseApi.injectEndpoints({
           : [{ type: 'Users', id: 'LIST' }],
     }),
 
-    createUser: builder.mutation<IUserEntry, Partial<IUserEntry>>({
+    createUser: builder.mutation<IUserEntry, ICreateUserPayload>({
       query: (body) => ({
         url: '/user/',
         method: 'POST',
@@ -53,4 +57,8 @@ const usersApi = baseApi.injectEndpoints({
   overrideExisting: false,
 });
 
-export const { useGetUsersQuery, useDeleteUserMutation } = usersApi;
+export const {
+  useGetUsersQuery,
+  useCreateUserMutation,
+  useDeleteUserMutation,
+} = usersApi;

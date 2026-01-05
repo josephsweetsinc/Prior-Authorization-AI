@@ -1,4 +1,4 @@
-import { type IUser } from '@/services/auth';
+import { type UserRoles, type IUser } from '@/services/auth';
 
 export interface IUserEntry extends Omit<IUser, 'name' | 'surname'> {
   full_name: string;
@@ -11,4 +11,12 @@ export interface IGetUsersResponse {
   total: number;
   showing: number;
   total_pages: number;
+}
+
+export interface ICreateUserPayload {
+  name: string;
+  surname: string;
+  password: string;
+  role: UserRoles;
+  email: string;
 }

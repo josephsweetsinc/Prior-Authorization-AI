@@ -14,7 +14,7 @@ type Props = {
   defaults: IFormData;
 } & Omit<HTMLProps<HTMLFormElement>, 'onSubmit' | 'method'>;
 
-export const UserForm = ({ onSubmit, className, ...props }: Props) => {
+export const UpdateUserForm = ({ onSubmit, className, ...props }: Props) => {
   const {
     handleSubmit,
     register,
