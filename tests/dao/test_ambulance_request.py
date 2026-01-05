@@ -192,37 +192,34 @@ class TestAmbulanceRequestDAO:
             request_ids.append(request.id)
             await db_session.commit()
 
-        # Get first page (limit=2, but DAO returns limit+1 for has_more check)
-        first_page_full = await dao.get_by_user_id(
-            user_id=user.id, cursor=None, limit=2
+        # Get first page (offset=0, limit=2)
+        first_page = await dao.get_by_user_id(
+            user_id=user.id, offset=0, limit=2
         )
-        # DAO returns limit+1 items to check if there are more
-        assert len(first_page_full) == 3
+        assert len(first_page) == 2
         # Verify descending order (newer first, then by ID desc)
         # Since requests are created sequentially, newer ones have higher IDs
-        assert first_page_full[0].id > first_page_full[1].id
-        # Take only first 2 for actual page
-        first_page = first_page_full[:2]
-        # Cursor should be the ID of the last item in the actual page
-        cursor = first_page[-1].id
+        assert first_page[0].id > first_page[1].id
 
-        # Get next page using cursor (id < cursor)
-        second_page_full = await dao.get_by_user_id(
-            user_id=user.id, cursor=cursor, limit=2
+        # Get next page (offset=2, limit=2)
+        second_page = await dao.get_by_user_id(
+            user_id=user.id, offset=2, limit=2
         )
-        # Should get remaining items (we have 5 total, first page has 2, so 3 remain)
-        # But we request limit=2, so should get 2 items (or 3 if limit+1)
-        assert len(second_page_full) >= 2
-        # Take only first 2 for actual page
-        second_page = second_page_full[:2]
-        # All IDs should be less than cursor
-        assert all(req.id < cursor for req in second_page)
+        # Should get next 2 items
+        assert len(second_page) == 2
         # Should not overlap with first page
         first_page_ids = {req.id for req in first_page}
         second_page_ids = {req.id for req in second_page}
         assert first_page_ids.isdisjoint(second_page_ids), (
-            f'Pages overlap: first_page={first_page_ids}, second_page={second_page_ids}, cursor={cursor}'
+            f'Pages overlap: first_page={first_page_ids}, second_page={second_page_ids}'
         )
+
+        # Get last page (offset=4, limit=2)
+        third_page = await dao.get_by_user_id(
+            user_id=user.id, offset=4, limit=2
+        )
+        # Should get remaining 1 item
+        assert len(third_page) == 1
 
     @pytest.mark.asyncio
     async def test_get_all(
@@ -304,31 +301,27 @@ class TestAmbulanceRequestDAO:
             request_ids.append(request.id)
             await db_session.commit()
 
-        # Get first page (limit=2, but DAO returns limit+1 for has_more check)
-        first_page_full = await dao.get_all(cursor=None, limit=2)
-        # DAO returns limit+1 items to check if there are more
-        assert len(first_page_full) == 3
+        # Get first page (offset=0, limit=2)
+        first_page = await dao.get_all(offset=0, limit=2)
+        assert len(first_page) == 2
         # Verify descending order (newer first, then by ID desc)
-        assert first_page_full[0].id > first_page_full[1].id
-        # Take only first 2 for actual page
-        first_page = first_page_full[:2]
-        # Cursor should be the ID of the last item in the actual page
-        cursor = first_page[-1].id
+        assert first_page[0].id > first_page[1].id
 
-        # Get next page using cursor (id < cursor)
-        second_page_full = await dao.get_all(cursor=cursor, limit=2)
-        # Should get remaining items (we have 5 total, first page has 2, so 3 remain)
-        assert len(second_page_full) >= 2
-        # Take only first 2 for actual page
-        second_page = second_page_full[:2]
-        # All IDs should be less than cursor
-        assert all(req.id < cursor for req in second_page)
+        # Get next page (offset=2, limit=2)
+        second_page = await dao.get_all(offset=2, limit=2)
+        # Should get next 2 items
+        assert len(second_page) == 2
         # Should not overlap with first page
         first_page_ids = {req.id for req in first_page}
         second_page_ids = {req.id for req in second_page}
         assert first_page_ids.isdisjoint(second_page_ids), (
-            f'Pages overlap: first_page={first_page_ids}, second_page={second_page_ids}, cursor={cursor}'
+            f'Pages overlap: first_page={first_page_ids}, second_page={second_page_ids}'
         )
+
+        # Get last page (offset=4, limit=2)
+        third_page = await dao.get_all(offset=4, limit=2)
+        # Should get remaining 1 item
+        assert len(third_page) == 1
 
 
 class TestRequestStatusHistoryDAO:

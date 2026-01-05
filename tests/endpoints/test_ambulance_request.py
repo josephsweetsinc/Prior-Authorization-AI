@@ -388,8 +388,10 @@ class TestAmbulanceRequestEndpoints:
                         updated_at=datetime(2025, 1, 2, 0, 0, 0),
                     ),
                 ],
-                None,
-                False,
+                2,  # total
+                1,  # page
+                1,  # total_pages
+                2,  # showing
             )
 
             response = client.get(
@@ -400,13 +402,17 @@ class TestAmbulanceRequestEndpoints:
             assert response.status_code == 200
             data = response.json()
             assert 'items' in data
-            assert 'next_cursor' in data
-            assert 'has_more' in data
+            assert 'page' in data
+            assert 'total' in data
+            assert 'showing' in data
+            assert 'total_pages' in data
             assert len(data['items']) == 2
             assert data['items'][0]['id'] == 1
             assert data['items'][1]['id'] == 2
-            assert data['next_cursor'] is None
-            assert data['has_more'] is False
+            assert data['total'] == 2
+            assert data['page'] == 1
+            assert data['total_pages'] == 1
+            assert data['showing'] == 2
 
     @pytest.mark.asyncio
     async def test_get_user_requests_empty(
@@ -429,7 +435,7 @@ class TestAmbulanceRequestEndpoints:
         with patch(
             'services.ambulance_request.AmbulanceRequestService.get_all_requests',
             new_callable=AsyncMock,
-            return_value=([], None, False),
+            return_value=([], 0, 1, 1, 0),  # items, total, page, total_pages, showing
         ):
             response = client.get(
                 '/Prod/api/v1/ambulance-request/',
@@ -440,8 +446,10 @@ class TestAmbulanceRequestEndpoints:
             data = response.json()
             assert 'items' in data
             assert len(data['items']) == 0
-            assert data['next_cursor'] is None
-            assert data['has_more'] is False
+            assert data['total'] == 0
+            assert data['page'] == 1
+            assert data['total_pages'] == 1
+            assert data['showing'] == 0
 
     @pytest.mark.asyncio
     async def test_get_user_requests_with_pagination(
@@ -482,22 +490,28 @@ class TestAmbulanceRequestEndpoints:
                         updated_at=datetime(2025, 1, 3, 0, 0, 0),
                     ),
                 ],
-                3,
-                True,
+                5,  # total
+                2,  # page
+                3,  # total_pages
+                1,  # showing
             )
 
             response = client.get(
-                '/Prod/api/v1/ambulance-request/?cursor=5&limit=2',
+                '/Prod/api/v1/ambulance-request/?page=2',
                 headers=auth_headers,
             )
 
             assert response.status_code == 200
             data = response.json()
             assert len(data['items']) == 1
-            assert data['next_cursor'] == 3
-            assert data['has_more'] is True
+            assert data['total'] == 5
+            assert data['page'] == 2
+            assert data['total_pages'] == 3
+            assert data['showing'] == 1
             # Verify service was called with correct parameters
-            mock_get.assert_called_once_with(user=user, cursor=5, limit=2)
+            mock_get.assert_called_once_with(
+                user=user, page=2, limit=8, search=None, status=None, days=None
+            )
 
     @pytest.mark.asyncio
     async def test_get_user_requests_admin_sees_all(
@@ -551,8 +565,10 @@ class TestAmbulanceRequestEndpoints:
                         updated_at=datetime(2025, 1, 2, 0, 0, 0),
                     ),
                 ],
-                None,
-                False,
+                2,  # total
+                1,  # page
+                1,  # total_pages
+                2,  # showing
             )
 
             response = client.get(
@@ -563,6 +579,10 @@ class TestAmbulanceRequestEndpoints:
             assert response.status_code == 200
             data = response.json()
             assert len(data['items']) == 2
+            assert data['total'] == 2
+            assert data['page'] == 1
+            assert data['total_pages'] == 1
+            assert data['showing'] == 2
             # Verify service was called with admin user
             mock_get.assert_called_once()
             call_args = mock_get.call_args

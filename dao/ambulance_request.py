@@ -1,6 +1,7 @@
-from datetime import date, time
+from datetime import UTC, date, datetime, time, timedelta
+from typing import Any
 
-from sqlalchemy import select, update
+from sqlalchemy import Select, func, or_, select, update
 from sqlalchemy.orm import selectinload
 
 from core.dao import BaseDAO
@@ -105,73 +106,185 @@ class AmbulanceRequestDAO(BaseDAO):
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_user_id(
+    def _build_filter_stmt(
+        self,
+        *,
+        user_id: int | None = None,
+        search: str | None = None,
+        status: RequestStatus | None = None,
+        days: int | None = None,
+    ) -> Select[Any]:
+        """Build base filter statement for requests.
+
+        Args:
+            user_id: User ID to filter by (None for all users).
+            search: Search term for patient name or ID.
+            status: Request status to filter by.
+            days: Number of days to filter by (from today).
+
+        Returns:
+            select: SQLAlchemy select statement with filters applied.
+
+        """
+        stmt = select(AmbulanceRequest).where(
+            AmbulanceRequest.is_active == True  # noqa: E712
+        )
+
+        if user_id is not None:
+            stmt = stmt.where(AmbulanceRequest.user_id == user_id)
+
+        if search:
+            search_pattern = f'%{search}%'
+            stmt = stmt.where(
+                or_(
+                    AmbulanceRequest.patient_first_name.ilike(search_pattern),
+                    AmbulanceRequest.patient_last_name.ilike(search_pattern),
+                    AmbulanceRequest.patient_id.ilike(search_pattern),
+                )
+            )
+
+        if status:
+            stmt = stmt.where(AmbulanceRequest.status == status)
+
+        if days is not None:
+            if days == 0:  # Today
+                today_start = datetime.now(UTC).replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                )
+                today_end = today_start + timedelta(days=1)
+                stmt = stmt.where(
+                    AmbulanceRequest.created_at >= today_start,
+                    AmbulanceRequest.created_at < today_end,
+                )
+            else:
+                date_from = datetime.now(UTC) - timedelta(days=days)
+                stmt = stmt.where(AmbulanceRequest.created_at >= date_from)
+
+        return stmt
+
+    async def count_by_user_id(
         self,
         user_id: int,
-        cursor: int | None = None,
-        limit: int = 20,
-    ) -> list[AmbulanceRequest]:
-        """Get all requests for a user.
+        *,
+        search: str | None = None,
+        status: RequestStatus | None = None,
+        days: int | None = None,
+    ) -> int:
+        """Count requests for a user with filters.
 
         Args:
             user_id: User ID.
-            include_files: Whether to include related files.
-            cursor: Cursor for pagination (request ID to start from).
+            search: Search term for patient name or ID.
+            status: Request status to filter by.
+            days: Number of days to filter by (from today).
+
+        Returns:
+            int: Total count of requests.
+
+        """
+        stmt = self._build_filter_stmt(
+            user_id=user_id, search=search, status=status, days=days
+        )
+        stmt = select(func.count()).select_from(stmt.subquery())
+        result = await self._session.execute(stmt)
+        return result.scalar_one() or 0
+
+    async def get_by_user_id(
+        self,
+        user_id: int,
+        *,
+        offset: int = 0,
+        limit: int = 8,
+        search: str | None = None,
+        status: RequestStatus | None = None,
+        days: int | None = None,
+    ) -> list[AmbulanceRequest]:
+        """Get all requests for a user with pagination and filters.
+
+        Args:
+            user_id: User ID.
+            offset: Number of items to skip.
             limit: Maximum number of items to return.
+            search: Search term for patient name or ID.
+            status: Request status to filter by.
+            days: Number of days to filter by (from today).
 
         Returns:
             list[AmbulanceRequest]: List of requests.
 
         """
+        stmt = self._build_filter_stmt(
+            user_id=user_id, search=search, status=status, days=days
+        )
         stmt = (
-            select(AmbulanceRequest)
-            .where(
-                AmbulanceRequest.user_id == user_id,
-                AmbulanceRequest.is_active == True,  # noqa: E712
-            )
-            .order_by(
+            stmt.order_by(
                 AmbulanceRequest.created_at.desc(), AmbulanceRequest.id.desc()
             )
+            .offset(offset)
+            .limit(limit)
         )
-
-        if cursor:
-            stmt = stmt.where(AmbulanceRequest.id < cursor)
-
-        stmt = stmt.limit(limit + 1)
         stmt = stmt.options(selectinload(AmbulanceRequest.status_history))
         stmt = stmt.options(selectinload(AmbulanceRequest.files))
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_all(
+    async def count_all(
         self,
-        cursor: int | None = None,
-        limit: int = 20,
-    ) -> list[AmbulanceRequest]:
-        """Get all requests (for admin users).
+        *,
+        search: str | None = None,
+        status: RequestStatus | None = None,
+        days: int | None = None,
+    ) -> int:
+        """Count all requests with filters.
 
         Args:
-            include_files: Whether to include related files.
-            cursor: Cursor for pagination (request ID to start from).
+            search: Search term for patient name or ID.
+            status: Request status to filter by.
+            days: Number of days to filter by (from today).
+
+        Returns:
+            int: Total count of requests.
+
+        """
+        stmt = self._build_filter_stmt(
+            user_id=None, search=search, status=status, days=days
+        )
+        stmt = select(func.count()).select_from(stmt.subquery())
+        result = await self._session.execute(stmt)
+        return result.scalar_one() or 0
+
+    async def get_all(
+        self,
+        *,
+        offset: int = 0,
+        limit: int = 8,
+        search: str | None = None,
+        status: RequestStatus | None = None,
+        days: int | None = None,
+    ) -> list[AmbulanceRequest]:
+        """Get all requests (for admin users) with pagination and filters.
+
+        Args:
+            offset: Number of items to skip.
             limit: Maximum number of items to return.
+            search: Search term for patient name or ID.
+            status: Request status to filter by.
+            days: Number of days to filter by (from today).
 
         Returns:
             list[AmbulanceRequest]: List of all requests.
 
         """
+        stmt = self._build_filter_stmt(
+            user_id=None, search=search, status=status, days=days
+        )
         stmt = (
-            select(AmbulanceRequest)
-            .where(
-                AmbulanceRequest.is_active == True,  # noqa: E712
-            )
-            .order_by(
+            stmt.order_by(
                 AmbulanceRequest.created_at.desc(), AmbulanceRequest.id.desc()
             )
+            .offset(offset)
+            .limit(limit)
         )
-
-        if cursor:
-            stmt = stmt.where(AmbulanceRequest.id < cursor)
-        stmt = stmt.limit(limit + 1)
         stmt = stmt.options(selectinload(AmbulanceRequest.status_history))
         stmt = stmt.options(selectinload(AmbulanceRequest.files))
         result = await self._session.execute(stmt)
