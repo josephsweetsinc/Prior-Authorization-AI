@@ -38,6 +38,7 @@ interface SelectProps extends VariantProps<typeof selectTriggerVariants> {
   label?: string;
   labelClassName?: string;
   id?: string;
+  error?: React.ReactNode;
 }
 
 export function Select({
@@ -52,6 +53,7 @@ export function Select({
   label,
   labelClassName,
   id,
+  error,
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -154,10 +156,11 @@ export function Select({
         id={triggerId}
         type='button'
         onClick={toggleOpen}
-        className={cn(
-          selectTriggerVariants({ variant, size }),
-          isOpen && 'border-status-info',
-        )}
+        className={cn(selectTriggerVariants({ variant, size }), {
+          'ring-destructive/20 dark:ring-destructive/40 border-destructive':
+            !!error,
+          'border-status-info': isOpen,
+        })}
         aria-haspopup='listbox'
         aria-expanded={isOpen}
       >
@@ -211,6 +214,12 @@ export function Select({
             </div>
           ))}
         </div>
+      )}
+
+      {error && (
+        <p className='text-destructive mt-1 text-sm' role='alert'>
+          {error}
+        </p>
       )}
     </div>
   );

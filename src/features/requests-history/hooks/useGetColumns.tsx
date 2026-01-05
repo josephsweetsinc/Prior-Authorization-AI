@@ -4,11 +4,7 @@ import { ArrowUpRight } from 'lucide-react';
 
 import { type RequestStatus } from '@/services/dashboard';
 import { type IRequest } from '@/services/requests-history';
-import {
-  DiagnosisCell,
-  RequestsHeadCell,
-  RequestStatusChip,
-} from '@/shared/components';
+import { DiagnosisCell, TableHeadCell, StatusChip } from '@/shared/components';
 
 interface Params {
   // eslint-disable-next-line no-unused-vars
@@ -22,30 +18,28 @@ export const useGetColumns = ({
     {
       id: 'patient_full_name',
       accessorFn: (row) => row.patient_first_name + ' ' + row.patient_last_name,
-      header: () => <RequestsHeadCell>Patient</RequestsHeadCell>,
+      header: () => <TableHeadCell>Patient</TableHeadCell>,
     },
     {
       accessorKey: 'id',
-      header: () => <RequestsHeadCell>MRN</RequestsHeadCell>,
+      header: () => <TableHeadCell>MRN</TableHeadCell>,
       cell: ({ getValue }) => (
         <span className='font-bold text-black'>{getValue<string>()}</span>
       ),
     },
     {
       accessorKey: 'primary_diagnosis',
-      header: () => <RequestsHeadCell>Diagnosis</RequestsHeadCell>,
+      header: () => <TableHeadCell>Diagnosis</TableHeadCell>,
       cell: ({ getValue }) => <DiagnosisCell diagnosis={getValue<string>()} />,
     },
     {
       accessorKey: 'status',
-      header: () => <RequestsHeadCell>Status</RequestsHeadCell>,
-      cell: ({ getValue }) => (
-        <RequestStatusChip status={getValue<RequestStatus>()} />
-      ),
+      header: () => <TableHeadCell>Status</TableHeadCell>,
+      cell: ({ getValue }) => <StatusChip status={getValue<RequestStatus>()} />,
     },
     {
       accessorKey: 'created_at',
-      header: () => <RequestsHeadCell>Date</RequestsHeadCell>,
+      header: () => <TableHeadCell>Date</TableHeadCell>,
       cell: ({ getValue }) => {
         const formattedDate = format(
           new Date(getValue<string>()),
@@ -58,7 +52,7 @@ export const useGetColumns = ({
     {
       id: 'actions',
       accessorKey: 'id',
-      header: () => <RequestsHeadCell>Actions</RequestsHeadCell>,
+      header: () => <TableHeadCell>Actions</TableHeadCell>,
       cell: ({ getValue }) => (
         <button
           className='text-accent-foreground flex items-center gap-2'

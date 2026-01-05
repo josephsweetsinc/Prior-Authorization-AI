@@ -36,7 +36,7 @@ export type SignUpRequest = {
   place_of_work: string;
 };
 
-export type SignUpResponse = {
+export type IUser = {
   id: number;
   name: string;
   surname: string;

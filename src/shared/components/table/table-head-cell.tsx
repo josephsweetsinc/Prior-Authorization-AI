@@ -2,7 +2,7 @@ import { type HTMLProps } from 'react';
 
 import { cn } from '@/shared/lib/utils';
 
-export const RequestsHeadCell = ({
+export const TableHeadCell = ({
   children,
   className,
   ...props

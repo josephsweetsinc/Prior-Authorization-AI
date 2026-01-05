@@ -11,7 +11,7 @@ export const STATUS_CONFIG: Record<
   denied: { label: 'Denied', variant: 'destructive' },
 } as const;
 
-export const RequestStatusChip = ({ status }: { status: RequestStatus }) => {
+export const StatusChip = ({ status }: { status: RequestStatus }) => {
   const config = STATUS_CONFIG[status];
 
   if (!config) {

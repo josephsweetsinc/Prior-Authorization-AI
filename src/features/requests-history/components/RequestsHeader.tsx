@@ -1,12 +1,10 @@
 import { type HTMLProps } from 'react';
 
-import { Select } from '@/shared/components';
+import { SearchFilter, Select } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
 import { DATE_OPTIONS, STATUS_OPTIONS } from '../constants';
 import { type IFilters } from '../types';
-
-import { RequestsHeaderSearch } from './RequestHistorySearch';
 
 type Props = {
   filters: IFilters;
@@ -34,7 +32,7 @@ export const RequestsHeader = ({
 
   return (
     <div className={cn('flex items-center gap-2.5', className)} {...props}>
-      <RequestsHeaderSearch
+      <SearchFilter
         value={filters.searchQuery}
         onChange={handleSearchQueryChange}
       />
