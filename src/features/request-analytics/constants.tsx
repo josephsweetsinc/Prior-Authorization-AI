@@ -5,33 +5,21 @@ import {
   type ProviderRequestProgress,
 } from '@/services/dashboard';
 import { type DenialReason } from '@/services/dashboard/types/types';
-import {
-  Progress,
-  RequestsHeadCell,
-  RequestStatusChip,
-} from '@/shared/components';
+import { Progress, TableHeadCell, StatusChip } from '@/shared/components';
 
 export const requestsInProgressColumns: ColumnDef<ProviderRequestProgress>[] = [
   {
     accessorKey: 'full_name',
-    header: () => (
-      <RequestsHeadCell className='text-sm'> Name</RequestsHeadCell>
-    ),
+    header: () => <TableHeadCell className='text-sm'> Name</TableHeadCell>,
   },
   {
     accessorKey: 'status',
-    header: () => (
-      <RequestsHeadCell className='text-sm'>Status</RequestsHeadCell>
-    ),
-    cell: ({ getValue }) => (
-      <RequestStatusChip status={getValue<RequestStatus>()} />
-    ),
+    header: () => <TableHeadCell className='text-sm'>Status</TableHeadCell>,
+    cell: ({ getValue }) => <StatusChip status={getValue<RequestStatus>()} />,
   },
   {
     accessorKey: 'progress',
-    header: () => (
-      <RequestsHeadCell className='text-sm'>Progress</RequestsHeadCell>
-    ),
+    header: () => <TableHeadCell className='text-sm'>Progress</TableHeadCell>,
 
     cell: ({ getValue }) => <Progress value={getValue<number>()} max={3} />,
   },
@@ -40,18 +28,14 @@ export const requestsInProgressColumns: ColumnDef<ProviderRequestProgress>[] = [
 export const denialReasonsColumns: ColumnDef<DenialReason>[] = [
   {
     accessorKey: 'reason',
-    header: () => (
-      <RequestsHeadCell className='text-sm'>Reason</RequestsHeadCell>
-    ),
+    header: () => <TableHeadCell className='text-sm'>Reason</TableHeadCell>,
     cell: ({ getValue }) => (
       <p className='text-brand-dark font-bold'>{getValue<string>()}</p>
     ),
   },
   {
     accessorKey: 'count',
-    header: () => (
-      <RequestsHeadCell className='text-sm'>Count</RequestsHeadCell>
-    ),
+    header: () => <TableHeadCell className='text-sm'>Count</TableHeadCell>,
     cell: ({ getValue }) => (
       <p className='text-brand-dark font-bold'>{getValue<string>()}</p>
     ),

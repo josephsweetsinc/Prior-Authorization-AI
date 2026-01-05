@@ -1,0 +1,13 @@
+import { type IUser } from '@/services';
+
+export interface IUserEntry extends IUser {
+  last_login: string;
+}
+
+export interface IRoleOptions {
+  role: 'provider' | 'admin' | 'all';
+}
+
+export interface IFilters extends IRoleOptions {
+  searchQuery: string;
+}

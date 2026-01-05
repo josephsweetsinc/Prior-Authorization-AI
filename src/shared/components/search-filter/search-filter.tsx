@@ -1,16 +1,18 @@
 'use client';
-import { type ChangeEvent, type HTMLProps, useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useState } from 'react';
 
 import { Input } from '@/shared/components';
+
+import { type InputProps } from '../inputs/input';
 
 type Props = {
   value?: string;
   // eslint-disable-next-line no-unused-vars
   onChange: (value: string) => void;
   debounce?: number;
-} & Omit<HTMLProps<HTMLInputElement>, 'onChange' | 'value' | 'type'>;
+} & Omit<InputProps, 'onChange' | 'value'>;
 
-export const RequestsHeaderSearch = ({
+export const SearchFilter = ({
   value = '',
   onChange,
   debounce = 300,

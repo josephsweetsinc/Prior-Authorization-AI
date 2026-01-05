@@ -5,7 +5,7 @@ import { formatFileSize } from '@/services/media';
 import { useGetRequestDetailsQuery } from '@/services/requests-history';
 import {
   Modal,
-  RequestStatusChip,
+  StatusChip,
   Separator,
   TitleAndDesc,
 } from '@/shared/components';
@@ -62,7 +62,7 @@ export const RequestDetails = ({
         />
         <section className='my-5 flex flex-wrap items-end justify-between gap-8'>
           <DataBlock label='MRN' value={data.id.toString()} />
-          <RequestStatusChip status={data.status} />
+          <StatusChip status={data.status} />
         </section>
         <Separator className='bg-gray-200' />
 

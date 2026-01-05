@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 
+import { UserManagementContainer } from '@/features/user-management';
 import { Button, TitleAndDesc } from '@/shared/components';
 
 const UserManagement = () => {
@@ -11,11 +12,19 @@ const UserManagement = () => {
           subtitle='Manage system users and their permissions'
         />
 
-        <Button variant='primary' className='w-max px-16! py-2.5!' disabled>
+        <Button
+          variant='primary'
+          className='aspect-square w-max lg:aspect-auto lg:px-16! lg:py-2.5!'
+          disabled
+        >
           <Plus className='size-4' />
-          <span className='text-base font-medium tracking-wide'>Add User</span>
+          <span className='sr-only text-base font-medium tracking-wide lg:not-sr-only'>
+            Add User
+          </span>
         </Button>
       </div>
+
+      <UserManagementContainer />
     </main>
   );
 };

@@ -5,7 +5,7 @@ import type {
   PasswordResetRequestBody,
   PasswordResetResponse,
   SignUpRequest,
-  SignUpResponse,
+  IUser,
 } from '@/services/auth/types';
 
 export const authApi = baseApi.injectEndpoints({
@@ -59,11 +59,11 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
 
-    getCurrentUser: build.query<SignUpResponse, void>({
+    getCurrentUser: build.query<IUser, void>({
       query: () => '/user/me',
     }),
 
-    signup: build.mutation<SignUpResponse, SignUpRequest>({
+    signup: build.mutation<IUser, SignUpRequest>({
       query: (body) => ({
         url: '/auth/signup',
         method: 'POST',

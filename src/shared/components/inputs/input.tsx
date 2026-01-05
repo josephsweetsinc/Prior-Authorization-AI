@@ -5,7 +5,7 @@ import * as React from 'react';
 
 import { cn } from '@/shared/lib/utils';
 
-interface InputProps extends React.ComponentProps<'input'> {
+export interface InputProps extends React.ComponentProps<'input'> {
   label?: string;
   error?: React.ReactNode;
   labelVariant?: 'floating' | 'static';

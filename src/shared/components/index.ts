@@ -11,7 +11,7 @@ export {
   type SensitiveMessageProps,
 } from './sensitiveMessage';
 export { Chip, type ChipProps } from './chip';
-export { DataTable, DataTableSkeleton } from './table';
+export { DataTable, DataTableSkeleton, TableHeadCell } from './table';
 export { Checkbox } from './checkbox';
 export { StatusTimeline } from './timeline';
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
@@ -57,10 +57,11 @@ export {
 export { Stepper } from './stepper';
 export { Skeleton } from './skeleton';
 export { Uploader, type MediaItem } from './upload';
-export { RequestStatusChip, RequestsHeadCell } from './requests-table';
+export { StatusChip } from './status-chip';
 export { EmptyStateMessage } from './empty-state';
 export {
   AttachedDocument,
   AttachedDocumentSkeleton,
 } from './attached-document';
 export { DiagnosisCell } from './diagnosis-cell';
+export { SearchFilter } from './search-filter';

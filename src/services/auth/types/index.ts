@@ -5,6 +5,6 @@ export {
   type PasswordResetRequestBody,
   type PasswordResetResponse,
   type SignUpRequest,
-  type SignUpResponse,
+  type IUser,
   type UserRoles,
 } from './types';
