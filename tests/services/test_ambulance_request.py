@@ -567,15 +567,17 @@ class TestAmbulanceRequestService:
         await db_session.commit()
 
         # Provider sees only their own requests
-        items, next_cursor, has_more = await service.get_all_requests(
-            user=user1, cursor=None, limit=20
+        items, total, page, total_pages, showing = await service.get_all_requests(
+            user=user1, page=1, limit=8
         )
 
         assert len(items) == 3
         assert all(req.patient_first_name in first_names for req in items)
         assert all(req.user_id == user1.id for req in items)
-        assert next_cursor is None
-        assert has_more is False
+        assert total == 3
+        assert page == 1
+        assert total_pages == 1
+        assert showing == 3
 
     @pytest.mark.asyncio
     async def test_get_all_requests_admin(
@@ -619,15 +621,17 @@ class TestAmbulanceRequestService:
             await db_session.commit()
 
         # Admin sees all requests
-        items, next_cursor, has_more = await service.get_all_requests(
-            user=admin, cursor=None, limit=20
+        items, total, page, total_pages, showing = await service.get_all_requests(
+            user=admin, page=1, limit=8
         )
 
         assert len(items) == 2
         user_ids = {req.user_id for req in items}
         assert user_ids == {user1.id, user2.id}
-        assert next_cursor is None
-        assert has_more is False
+        assert total == 2
+        assert page == 1
+        assert total_pages == 1
+        assert showing == 2
 
     @pytest.mark.asyncio
     async def test_get_all_requests_with_pagination(
@@ -674,31 +678,35 @@ class TestAmbulanceRequestService:
             await db_session.commit()
 
         # Get first page
-        items, next_cursor, has_more = await service.get_all_requests(
-            user=user, cursor=None, limit=2
+        items, total, page, total_pages, showing = await service.get_all_requests(
+            user=user, page=1, limit=2
         )
 
         assert len(items) == 2
-        assert next_cursor is not None
-        assert has_more is True
+        assert total == 5
+        assert page == 1
+        assert total_pages == 3
+        assert showing == 2
         first_page_ids = {req.id for req in items}
 
-        # Get next page using cursor
-        items2, next_cursor2, has_more2 = await service.get_all_requests(
-            user=user, cursor=next_cursor, limit=2
+        # Get next page
+        items2, total2, page2, total_pages2, showing2 = (
+            await service.get_all_requests(user=user, page=2, limit=2)
         )
 
         # We created 5 requests, first page has 2, so 3 remain
         # Second page should have 2 items (limit=2)
         assert len(items2) == 2
+        assert total2 == 5
+        assert page2 == 2
+        assert total_pages2 == 3
+        assert showing2 == 2
         second_page_ids = {req.id for req in items2}
 
         # Should not overlap
         assert first_page_ids.isdisjoint(second_page_ids), (
-            f'Pages overlap: first_page={first_page_ids}, second_page={second_page_ids}, cursor={next_cursor}'
+            f'Pages overlap: first_page={first_page_ids}, second_page={second_page_ids}'
         )
-        # All second page IDs should be less than cursor
-        assert all(req.id < next_cursor for req in items2)
 
     @pytest.mark.asyncio
     async def test_update_request_status(
