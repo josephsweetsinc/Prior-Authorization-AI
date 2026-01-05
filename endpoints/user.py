@@ -9,7 +9,6 @@ from models import User
 from schemas import (
     CreateUserByAdminRequestSchema,
     UpdateUserRequestSchema,
-    UserListItemSchema,
     UserResponseShema,
     UsersListResponseSchema,
 )
@@ -225,12 +224,16 @@ async def get_all_users(
         UsersListResponseSchema: Paginated list of users.
 
     """
-    items, total, current_page, total_pages, showing = (
-        await service.get_all_users(
-            page=page,
-            limit=8,
-            search=search,
-        )
+    (
+        items,
+        total,
+        current_page,
+        total_pages,
+        showing,
+    ) = await service.get_all_users(
+        page=page,
+        limit=8,
+        search=search,
     )
     return UsersListResponseSchema(
         items=items,

@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import BaseService
@@ -13,7 +11,6 @@ from schemas import (
     UpdateUserRequestSchema,
     UserListItemSchema,
     UserResponseShema,
-    UsersListResponseSchema,
 )
 from services.jwt.hasher import Hasher
 

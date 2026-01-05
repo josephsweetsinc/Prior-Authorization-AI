@@ -138,7 +138,7 @@ class UserListItemSchema(BaseModel):
         Field(
             None,
             description='Date and time of last login',
-            examples=[datetime(2025, 1, 1, 12, 0, 0)],
+            examples=[datetime(2025, 1, 1, 12, 0, 0)],  # noqa: DTZ001
         ),
     ]
 
