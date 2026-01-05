@@ -197,6 +197,7 @@ class UserService(BaseService):
         # Convert to response schema
         items = [
             UserListItemSchema(
+                id=user.id,
                 full_name=f'{user.name} {user.surname}',
                 email=user.email,
                 role=user.role,
