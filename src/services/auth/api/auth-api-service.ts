@@ -27,6 +27,7 @@ export const authApi = baseApi.injectEndpoints({
           },
         };
       },
+      invalidatesTags: ['User'],
     }),
 
     passwordResetRequest: build.mutation<
@@ -61,6 +62,7 @@ export const authApi = baseApi.injectEndpoints({
 
     getCurrentUser: build.query<IUser, void>({
       query: () => '/user/me',
+      providesTags: ['User'],
     }),
 
     signup: build.mutation<IUser, SignUpRequest>({
@@ -79,6 +81,7 @@ export const authApi = baseApi.injectEndpoints({
           refresh_token,
         },
       }),
+      invalidatesTags: ['User'],
     }),
   }),
   overrideExisting: false,
