@@ -74,6 +74,10 @@ class AuthService(BaseService):
         if not user.is_active:
             raise UserIsNotActiveException
         self._verify_user_password(user.password, password)
+        # Update last login timestamp
+        await self._user_dao.update_last_login(user.id)
+        await self._session.commit()
+        await self._session.refresh(user)
         return user
 
     async def create_token(

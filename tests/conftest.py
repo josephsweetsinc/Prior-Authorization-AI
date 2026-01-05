@@ -30,6 +30,7 @@ from models.ambulance_request import (
     TransportationType,
 )
 from models.user import UserRole
+from services import UserService
 from services.email import EmailService
 from services.jwt.hasher import Hasher
 from services.password import PasswordService
@@ -440,3 +441,17 @@ def request_status_history_factory(
         return status_history
 
     return _create_status_history
+
+
+@pytest.fixture
+def service(db_session: AsyncSession) -> UserService:
+    """Create UserService instance.
+
+    Args:
+        db_session: Database session.
+
+    Returns:
+        UserService: UserService instance.
+
+    """
+    return UserService(db_session=db_session)

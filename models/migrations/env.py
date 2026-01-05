@@ -23,8 +23,15 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
+# Import all models so they are registered in Base.metadata
+from models import (  # noqa: F401
+    AmbulanceRequest,
+    BlacklistToken,
+    PasswordResetCode,
+    RequestFile,
+    RequestStatusHistory,
+    User,
+)
 target_metadata = Base.metadata
 
 

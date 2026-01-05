@@ -29,7 +29,9 @@ from .user import (
     CreateUserByAdminRequestSchema,
     CreateUserRequestSchema,
     UpdateUserRequestSchema,
+    UserListItemSchema,
     UserResponseShema,
+    UsersListResponseSchema,
 )
 
 __all__ = [
@@ -55,5 +57,7 @@ __all__ = [
     'RequestWithStatusHistorySchema',
     'TokenSchemas',
     'UpdateUserRequestSchema',
+    'UserListItemSchema',
     'UserResponseShema',
+    'UsersListResponseSchema',
 ]

@@ -9,6 +9,7 @@ from schemas import (
     CreateUserByAdminRequestSchema,
     CreateUserRequestSchema,
     UpdateUserRequestSchema,
+    UserListItemSchema,
     UserResponseShema,
 )
 from services.jwt.hasher import Hasher
@@ -152,3 +153,67 @@ class UserService(BaseService):
             raise UserHasNoPermissionPermission
         await self._session.commit()
         return UserResponseShema.model_validate(user)
+
+    async def get_all_users(
+        self,
+        *,
+        page: int = 1,
+        limit: int = 8,
+        search: str | None = None,
+    ) -> tuple[
+        list[UserListItemSchema],
+        int,
+        int,
+        int,
+        int,
+    ]:
+        """Get all users with pagination.
+
+        Args:
+            page: Page number (1-based).
+            limit: Number of items per page.
+            search: Search term for user name, surname, or email.
+
+        Returns:
+            tuple containing:
+                - List of users.
+                - Total count of users.
+                - Current page number.
+                - Total number of pages.
+                - Number of items shown.
+
+        """
+        offset = (page - 1) * limit
+        total = await self._user_dao.count_all(search=search)
+        users = await self._user_dao.get_all(
+            offset=offset,
+            limit=limit,
+            search=search,
+        )
+
+        total_pages = (total + limit - 1) // limit if total > 0 else 1
+        showing = len(users)
+
+        # Convert to response schema
+        items = []
+        for user in users:
+            full_name = f'{user.name} {user.surname}'
+            # Get last_login if field exists, otherwise None
+            last_login = getattr(user, 'last_login', None)
+            items.append(
+                UserListItemSchema(
+                    full_name=full_name,
+                    email=user.email,
+                    role=user.role,
+                    is_active=user.is_active,
+                    last_login=last_login,
+                )
+            )
+
+        return (
+            items,
+            total,
+            page,
+            total_pages,
+            showing,
+        )
