@@ -6,7 +6,7 @@ from fastapi.params import Security
 
 from core import exception_handler, get_service, timing_handler
 from dependencies import get_current_user, get_provider_user_from_token
-from models import User
+from models import RequestStatus, User
 from schemas.ambulance_request import (
     AmbulanceRequestResponseSchema,
     AmbulanceRequestsListResponseSchema,
@@ -220,8 +220,6 @@ async def get_user_requests(
         AmbulanceRequestsListResponseSchema: Paginated list of requests.
 
     """
-    from models.ambulance_request import RequestStatus
-
     status_enum: RequestStatus | None = None
     if status:
         try:
@@ -229,15 +227,19 @@ async def get_user_requests(
         except ValueError:
             status_enum = None
 
-    items, total, current_page, total_pages, showing = (
-        await service.get_all_requests(
-            user=user,
-            page=page,
-            limit=8,
-            search=search,
-            status=status_enum,
-            days=days,
-        )
+    (
+        items,
+        total,
+        current_page,
+        total_pages,
+        showing,
+    ) = await service.get_all_requests(
+        user=user,
+        page=page,
+        limit=8,
+        search=search,
+        status=status_enum,
+        days=days,
     )
     return AmbulanceRequestsListResponseSchema(
         items=items,

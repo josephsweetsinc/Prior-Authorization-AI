@@ -1,6 +1,7 @@
-from datetime import UTC, date, datetime, timedelta, time
+from datetime import UTC, date, datetime, time, timedelta
+from typing import Any
 
-from sqlalchemy import func, or_, select, update
+from sqlalchemy import Select, func, or_, select, update
 from sqlalchemy.orm import selectinload
 
 from core.dao import BaseDAO
@@ -112,7 +113,7 @@ class AmbulanceRequestDAO(BaseDAO):
         search: str | None = None,
         status: RequestStatus | None = None,
         days: int | None = None,
-    ) -> select:
+    ) -> Select[Any]:
         """Build base filter statement for requests.
 
         Args:
