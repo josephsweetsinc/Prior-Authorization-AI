@@ -18,7 +18,7 @@ export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 export { BarChart, DonutChart, type DonutDatum } from './charts';
 export { TitleAndDesc } from './title';
 export { Window } from './window';
-export { Modal } from './modal/Modal';
+export { Modal, type ModalProps } from './modal/Modal';
 export {
   SidebarFooter,
   SidebarCTA,

@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom';
 import { Window } from '@/shared/components/window';
 import { cn } from '@/shared/lib/utils';
 
-type ModalProps = {
+export type ModalProps = {
   isOpen: boolean;
   onCloseAction: () => void;
   children?: ReactNode;

@@ -9,10 +9,12 @@ import { type IUserEntry } from '../types';
 
 type Props = {
   data: IUserEntry[];
+  onUpdateClick: VoidFunction;
+  onDeleteClick: VoidFunction;
 } & Omit<HTMLProps<HTMLElement>, 'data'>;
 
-export const UsersTable = ({ data, ...props }: Props) => {
-  const columns = useGetColumns();
+export const UsersTable = ({ data, onDeleteClick, ...props }: Props) => {
+  const columns = useGetColumns({ onDelete: onDeleteClick });
 
   return <DataTable columns={columns} data={data} pagination {...props} />;
 };
