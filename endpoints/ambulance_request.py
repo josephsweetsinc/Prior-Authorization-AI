@@ -171,7 +171,7 @@ async def get_request(
 
 @ambulance_request_router.get(
     '/',
-    description='Get all ambulance requests with cursor pagination',
+    description='Get all ambulance requests with pagination',
     response_model=AmbulanceRequestsListResponseSchema,
 )
 @exception_handler
@@ -180,28 +180,39 @@ async def get_user_requests(
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
-    cursor: int | None = Query(
-        None,
-        description='Cursor for pagination (request ID to start from)',
-        examples=[10],
-    ),
-    limit: int = Query(
-        20,
+    page: int = Query(
+        1,
         ge=1,
-        le=100,
-        description='Maximum number of items to return',
-        examples=[20],
+        description='Page number (1-based)',
+        examples=[1],
+    ),
+    search: str | None = Query(
+        None,
+        description='Search by patient first name, last name, or patient ID',
+        examples=['John'],
+    ),
+    status: str | None = Query(
+        None,
+        description='Filter by request status',
+        examples=['pending'],
+    ),
+    days: int | None = Query(
+        None,
+        description='Filter by number of days (0=today, 7, 30, 90, 365)',
+        examples=[7],
     ),
 ) -> AmbulanceRequestsListResponseSchema:
-    """Get all ambulance requests with cursor pagination.
+    """Get all ambulance requests with pagination.
 
     Admin users see all requests in the system.
     Provider users see only their own requests.
     Status history is always included.
 
     Args:
-        cursor: Cursor for pagination (request ID to start from).
-        limit: Maximum number of items to return.
+        page: Page number (1-based).
+        search: Search term for patient name or ID.
+        status: Request status to filter by.
+        days: Number of days to filter by (0=today, 7, 30, 90, 365).
         user: Current authenticated user.
         service: Ambulance request service.
 
@@ -209,13 +220,29 @@ async def get_user_requests(
         AmbulanceRequestsListResponseSchema: Paginated list of requests.
 
     """
-    items, next_cursor, has_more = await service.get_all_requests(
-        user=user,
-        cursor=cursor,
-        limit=limit,
+    from models.ambulance_request import RequestStatus
+
+    status_enum: RequestStatus | None = None
+    if status:
+        try:
+            status_enum = RequestStatus(status.lower())
+        except ValueError:
+            status_enum = None
+
+    items, total, current_page, total_pages, showing = (
+        await service.get_all_requests(
+            user=user,
+            page=page,
+            limit=8,
+            search=search,
+            status=status_enum,
+            days=days,
+        )
     )
     return AmbulanceRequestsListResponseSchema(
         items=items,
-        next_cursor=next_cursor,
-        has_more=has_more,
+        page=current_page,
+        total=total,
+        showing=showing,
+        total_pages=total_pages,
     )

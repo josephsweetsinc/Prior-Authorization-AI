@@ -403,9 +403,19 @@ class AmbulanceRequestService(BaseService):
     async def get_all_requests(
         self,
         user: User,
-        cursor: int | None = None,
-        limit: int = 20,
-    ) -> tuple[list[AmbulanceRequestResponseSchema], int | None, bool]:
+        *,
+        page: int = 1,
+        limit: int = 8,
+        search: str | None = None,
+        status: RequestStatus | None = None,
+        days: int | None = None,
+    ) -> tuple[
+        list[AmbulanceRequestResponseSchema],
+        int,
+        int,
+        int,
+        int,
+    ]:
         """Get all requests for a user with pagination.
 
         Admin users see all requests in the system.
@@ -414,45 +424,66 @@ class AmbulanceRequestService(BaseService):
 
         Args:
             user: User object with role information.
-            cursor: Cursor for pagination (request ID to start from).
-            limit: Maximum number of items to return.
+            page: Page number (1-based).
+            limit: Number of items per page.
+            search: Search term for patient name or ID.
+            status: Request status to filter by.
+            days: Number of days to filter by (from today).
 
         Returns:
             tuple containing:
                 - List of requests.
-                - Next cursor (None if no more pages).
-                - Whether there are more items available.
+                - Total count of requests.
+                - Current page number.
+                - Total number of pages.
 
         """
+        offset = (page - 1) * limit
         requests: list[AmbulanceRequest] = []
+        total: int = 0
+
         match user.role:
             case UserRole.ADMIN:
                 # Admin can see all requests
+                total = await self._request_dao.count_all(
+                    search=search, status=status, days=days
+                )
                 requests = await self._request_dao.get_all(
-                    cursor=cursor,
+                    offset=offset,
                     limit=limit,
+                    search=search,
+                    status=status,
+                    days=days,
                 )
             case _:
                 # Provider can see only their own requests
+                total = await self._request_dao.count_by_user_id(
+                    user_id=user.id,
+                    search=search,
+                    status=status,
+                    days=days,
+                )
                 requests = await self._request_dao.get_by_user_id(
                     user_id=user.id,
-                    cursor=cursor,
+                    offset=offset,
                     limit=limit,
+                    search=search,
+                    status=status,
+                    days=days,
                 )
-        has_more = len(requests) > limit
-        if has_more:
-            requests = requests[:limit]
-            next_cursor = requests[-1].id if requests else None
-        else:
-            next_cursor = None
+
+        total_pages = (total + limit - 1) // limit if total > 0 else 1
+        showing = len(requests)
 
         return (
             [
                 AmbulanceRequestResponseSchema.model_validate(req)
                 for req in requests
             ],
-            next_cursor,
-            has_more,
+            total,
+            page,
+            total_pages,
+            showing,
         )
 
     async def get_request_status_history(

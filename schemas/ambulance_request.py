@@ -15,22 +15,31 @@ class AmbulanceRequestsListResponseSchema(BaseModel):
 
     Attributes:
         items: List of ambulance requests.
-        next_cursor: Cursor for the next page (None if no more pages).
-        has_more: Whether there are more items available.
+        page: Current page number.
+        total: Total number of requests.
+        showing: Number of items shown on current page.
+        total_pages: Total number of pages.
 
     """
 
     items: list['AmbulanceRequestResponseSchema'] = Field(
         description='List of ambulance requests',
     )
-    next_cursor: int | None = Field(
-        None,
-        description='Cursor for the next page (None if no more pages)',
-        examples=[30],
+    page: int = Field(
+        description='Current page number',
+        examples=[1],
     )
-    has_more: bool = Field(
-        description='Whether there are more items available',
-        examples=[True],
+    total: int = Field(
+        description='Total number of requests',
+        examples=[325],
+    )
+    showing: int = Field(
+        description='Number of items shown on current page',
+        examples=[8],
+    )
+    total_pages: int = Field(
+        description='Total number of pages',
+        examples=[41],
     )
 
 
