@@ -178,3 +178,269 @@ class TestUserAdminEndpoints:
             # Dependency get_admin_user_from_token should block this request
             assert response.status_code in (401, 403, 404)
             mock_update.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_get_all_users_success(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        db_session,
+        user_factory,
+    ):
+        """Test getting all users endpoint with pagination."""
+        admin = await user_factory(
+            email='admin@example.com',
+            role=UserRole.ADMIN,
+        )
+        await db_session.commit()
+
+        # Override dependency
+        async def get_admin_override():
+            return admin
+
+        app.dependency_overrides[get_admin_user_from_token] = get_admin_override
+
+        with patch(
+            'services.user.UserService.get_all_users',
+            new_callable=AsyncMock,
+        ) as mock_get:
+            from datetime import datetime
+
+            from schemas.user import UserListItemSchema
+
+            mock_get.return_value = (
+                [
+                    UserListItemSchema(
+                        full_name='John Doe',
+                        email='john@example.com',
+                        role=UserRole.PROVIDER,
+                        is_active=True,
+                        last_login=datetime(2025, 1, 1, 12, 0, 0),
+                    ),
+                    UserListItemSchema(
+                        full_name='Jane Smith',
+                        email='jane@example.com',
+                        role=UserRole.PROVIDER,
+                        is_active=True,
+                        last_login=datetime(2025, 1, 2, 12, 0, 0),
+                    ),
+                ],
+                2,  # total
+                1,  # page
+                1,  # total_pages
+                2,  # showing
+            )
+
+            response = client.get(
+                '/Prod/api/v1/user/',
+                headers=auth_headers,
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert 'items' in data
+            assert 'page' in data
+            assert 'total' in data
+            assert 'showing' in data
+            assert 'total_pages' in data
+            assert len(data['items']) == 2
+            assert data['items'][0]['email'] == 'john@example.com'
+            assert data['items'][1]['email'] == 'jane@example.com'
+            assert data['total'] == 2
+            assert data['page'] == 1
+            assert data['total_pages'] == 1
+            assert data['showing'] == 2
+
+    @pytest.mark.asyncio
+    async def test_get_all_users_empty(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        db_session,
+        user_factory,
+    ):
+        """Test getting users when there are none."""
+        admin = await user_factory(
+            email='admin@example.com',
+            role=UserRole.ADMIN,
+        )
+        await db_session.commit()
+
+        # Override dependency
+        async def get_admin_override():
+            return admin
+
+        app.dependency_overrides[get_admin_user_from_token] = get_admin_override
+
+        with patch(
+            'services.user.UserService.get_all_users',
+            new_callable=AsyncMock,
+            return_value=([], 0, 1, 1, 0),  # items, total, page, total_pages, showing
+        ):
+            response = client.get(
+                '/Prod/api/v1/user/',
+                headers=auth_headers,
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert 'items' in data
+            assert len(data['items']) == 0
+            assert data['total'] == 0
+            assert data['page'] == 1
+            assert data['total_pages'] == 1
+            assert data['showing'] == 0
+
+    @pytest.mark.asyncio
+    async def test_get_all_users_with_pagination(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        db_session,
+        user_factory,
+    ):
+        """Test getting users with pagination parameters."""
+        admin = await user_factory(
+            email='admin@example.com',
+            role=UserRole.ADMIN,
+        )
+        await db_session.commit()
+
+        # Override dependency
+        async def get_admin_override():
+            return admin
+
+        app.dependency_overrides[get_admin_user_from_token] = get_admin_override
+
+        with patch(
+            'services.user.UserService.get_all_users',
+            new_callable=AsyncMock,
+        ) as mock_get:
+            from datetime import datetime
+
+            from schemas.user import UserListItemSchema
+
+            mock_get.return_value = (
+                [
+                    UserListItemSchema(
+                        full_name='Bob Johnson',
+                        email='bob@example.com',
+                        role=UserRole.PROVIDER,
+                        is_active=True,
+                        last_login=datetime(2025, 1, 3, 12, 0, 0),
+                    ),
+                ],
+                5,  # total
+                2,  # page
+                3,  # total_pages
+                1,  # showing
+            )
+
+            response = client.get(
+                '/Prod/api/v1/user/?page=2',
+                headers=auth_headers,
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert len(data['items']) == 1
+            assert data['total'] == 5
+            assert data['page'] == 2
+            assert data['total_pages'] == 3
+            assert data['showing'] == 1
+            # Verify service was called with correct parameters
+            mock_get.assert_called_once_with(
+                page=2, limit=8, search=None
+            )
+
+    @pytest.mark.asyncio
+    async def test_get_all_users_with_search(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        db_session,
+        user_factory,
+    ):
+        """Test getting users with search parameter."""
+        admin = await user_factory(
+            email='admin@example.com',
+            role=UserRole.ADMIN,
+        )
+        await db_session.commit()
+
+        # Override dependency
+        async def get_admin_override():
+            return admin
+
+        app.dependency_overrides[get_admin_user_from_token] = get_admin_override
+
+        with patch(
+            'services.user.UserService.get_all_users',
+            new_callable=AsyncMock,
+        ) as mock_get:
+            from datetime import datetime
+
+            from schemas.user import UserListItemSchema
+
+            mock_get.return_value = (
+                [
+                    UserListItemSchema(
+                        full_name='John Doe',
+                        email='john@example.com',
+                        role=UserRole.PROVIDER,
+                        is_active=True,
+                        last_login=datetime(2025, 1, 1, 12, 0, 0),
+                    ),
+                ],
+                1,  # total
+                1,  # page
+                1,  # total_pages
+                1,  # showing
+            )
+
+            response = client.get(
+                '/Prod/api/v1/user/?search=John',
+                headers=auth_headers,
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert len(data['items']) == 1
+            assert data['items'][0]['full_name'] == 'John Doe'
+            # Verify service was called with search parameter
+            mock_get.assert_called_once_with(
+                page=1, limit=8, search='John'
+            )
+
+    @pytest.mark.asyncio
+    async def test_get_all_users_non_admin_forbidden(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        db_session,
+        user_factory,
+    ):
+        """Test that non-admin users cannot access get all users endpoint."""
+        provider = await user_factory(
+            email='provider@example.com',
+            role=UserRole.PROVIDER,
+        )
+        await db_session.commit()
+
+        # Override dependency with provider (not admin)
+        async def get_user_override():
+            return provider
+
+        app.dependency_overrides[get_current_user] = get_user_override
+
+        # Don't override get_admin_user_from_token - should fail
+        # Since dependencies=[Depends(get_admin_user_from_token)] is used,
+        # FastAPI will return 403 if dependency fails, or 404 if endpoint not found
+        response = client.get(
+            '/Prod/api/v1/user/',
+            headers=auth_headers,
+        )
+
+        # Should be forbidden since get_admin_user_from_token is required
+        # FastAPI may return 404 if dependency is not satisfied
+        assert response.status_code in (401, 403, 404)
