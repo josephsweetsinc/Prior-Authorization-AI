@@ -1,5 +1,6 @@
 'use client';
 
+import { useGetCurrentUserQuery } from '@/services';
 import LogoIcon from '@/shared/assets/icons/logo';
 import {
   Sidebar,
@@ -10,7 +11,6 @@ import {
   SidebarHeader,
   SidebarItem,
 } from '@/shared/components';
-import { useGetCurrentUserQuery } from '@/services';
 
 export const AppSidebar = () => {
   const { data: currentUser, isLoading } = useGetCurrentUserQuery(undefined, {
