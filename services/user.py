@@ -81,7 +81,7 @@ class UserService(BaseService):
                 place_of_work=getattr(user_data, 'place_of_work', None),
             )
         except IntegrityError:
-            raise EmailAlreadyRegisteredException
+            raise EmailAlreadyRegisteredException from None
         await self._session.commit()
         return UserResponseShema.model_validate(created_user)
 
