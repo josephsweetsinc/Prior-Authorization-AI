@@ -1,8 +1,13 @@
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import BaseService
 from dao import UserDAO
-from exceptions import UserHasNoPermissionPermission, UserNotFoundByIdException
+from exceptions import (
+    EmailAlreadyRegisteredException,
+    UserHasNoPermissionPermission,
+    UserNotFoundByIdException,
+)
 from models import User
 from models.user import UserRole
 from schemas import (
@@ -64,16 +69,19 @@ class UserService(BaseService):
         role: UserRole = (
             user_role if user_role is not None else UserRole.PROVIDER
         )
-        created_user: User = await self._user_dao.create(
-            name=user_data.name,
-            surname=user_data.surname,
-            email=user_data.email,
-            password=hashed_pass,
-            role=role,
-            phone_number=getattr(user_data, 'phone_number', None),
-            position=getattr(user_data, 'position', None),
-            place_of_work=getattr(user_data, 'place_of_work', None),
-        )
+        try:
+            created_user: User = await self._user_dao.create(
+                name=user_data.name,
+                surname=user_data.surname,
+                email=user_data.email,
+                password=hashed_pass,
+                role=role,
+                phone_number=getattr(user_data, 'phone_number', None),
+                position=getattr(user_data, 'position', None),
+                place_of_work=getattr(user_data, 'place_of_work', None),
+            )
+        except IntegrityError:
+            raise EmailAlreadyRegisteredException
         await self._session.commit()
         return UserResponseShema.model_validate(created_user)
 

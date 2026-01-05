@@ -24,6 +24,7 @@ from .password_reset import (
 )
 from .user import (
     BadPasswordSchemaException,
+    EmailAlreadyRegisteredException,
     UserHasNoPermissionPermission,
     UserIsNotActiveException,
     UserNotFoundByIdException,
@@ -40,6 +41,7 @@ __all__ = [
     'AmbulanceRequestNotFoundException',
     'AmbulanceRequestPermissionException',
     'BadPasswordSchemaException',
+    'EmailAlreadyRegisteredException',
     'IncorrectFileSizeException',
     'InvalidResetCodeException',
     'NoFiltersException',

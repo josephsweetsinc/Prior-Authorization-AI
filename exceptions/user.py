@@ -20,6 +20,20 @@ class BadPasswordSchemaException(UserException):
         )
 
 
+class EmailAlreadyRegisteredException(UserException):
+    """Raised when email already registered."""
+
+    def __init__(self) -> None:
+        """Initialize EmailAlreadyRegisteredException with a default message."""
+        super().__init__(
+            status_code=409,
+            detail=(
+                'You are trying to create user with email'
+                ' that already has been taken'
+            ),
+        )
+
+
 class UserNotFoundByIdException(UserException):
     """Raised when user with provided id is not found."""
 
