@@ -1,49 +1,68 @@
 import { LoaderCircle } from 'lucide-react';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { toast } from 'react-toastify';
 
 import { parseApiError } from '@/services/api/types';
-import { useCreateUserMutation } from '@/services/user-management';
+import {
+  type IUserEntry,
+  useUpdateUserMutation,
+} from '@/services/user-management';
 import { Button, Modal, TitleAndDesc } from '@/shared/components';
 import { type ModalProps } from '@/shared/components/modal/Modal';
 
-import { USER_FORM_DEFAULTS } from '../constants';
-import { type ICreateFormData } from '../types';
+import { type IFormData } from '../types';
 
-import { CreateUserForm } from './CreateUserForm';
+import { UpdateUserForm } from './UpdateUserForm';
 
-export const CreateModal = (props: ModalProps) => {
+type Props = {
+  user: IUserEntry | null;
+} & ModalProps;
+export const UpdateModal = ({ user, ...props }: Props) => {
   const formRef = useRef<HTMLFormElement | null>(null);
 
-  const [createUser, { isLoading }] = useCreateUserMutation();
+  const [updateUser, { isLoading }] = useUpdateUserMutation();
 
-  const handleCreateUser = (data: ICreateFormData) => {
+  const handleUpdateUser = (data: IFormData) => {
     const { fullName, ...newUserData } = data;
     const [name, surname] = fullName.split(' ');
 
-    createUser({ name, surname, ...newUserData })
+    updateUser({ id: user!.id, data: { name, surname, ...newUserData } })
       .unwrap()
-      .then(() => toast.success(`User "${name}" was added successfully.`))
+      .then(() => toast.success(`User "${name}" was updated successfully.`))
       .catch((e) => {
         const parsedError = parseApiError(e);
+
         toast.error(parsedError.message);
       });
   };
 
+  const formDefaults = useMemo(
+    () => ({
+      fullName: user ? user.full_name : '',
+      role: user ? user.role : 'provider',
+      email: user ? user.email : '',
+    }),
+    [user],
+  );
+
   const triggerSubmit = () => formRef?.current?.requestSubmit();
+
+  if (!user) {
+    return;
+  }
 
   return (
     <Modal {...props}>
       <TitleAndDesc
-        title='Add new user'
-        subtitle='Create a new user account and assign appropriate permissions.'
+        title='Edit User'
+        subtitle='Update user information and permissions.'
         titleClassName='text-lg md:text-xl lg:text-2xl xl:text-3xl'
         subtitleClassName='text-sm md:text-base lg:text-lg'
       />
-      <CreateUserForm
-        onSubmit={handleCreateUser}
+      <UpdateUserForm
+        onSubmit={handleUpdateUser}
         onCancel={props.onCloseAction}
-        defaults={USER_FORM_DEFAULTS}
+        defaults={formDefaults}
         className='my-6'
         ref={formRef}
       />
@@ -63,11 +82,11 @@ export const CreateModal = (props: ModalProps) => {
         >
           {isLoading ? (
             <>
-              <span>Creating...</span>
+              <span>Updating...</span>
               <LoaderCircle className='size-5 animate-spin' />
             </>
           ) : (
-            'Create user'
+            'Update user'
           )}
         </Button>
       </div>

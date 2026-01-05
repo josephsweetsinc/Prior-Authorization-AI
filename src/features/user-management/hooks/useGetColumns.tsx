@@ -11,9 +11,11 @@ import { formatLastLogin } from '../utils';
 interface Params {
   // eslint-disable-next-line no-unused-vars
   onDelete: (user: IUserEntry) => void;
+  // eslint-disable-next-line no-unused-vars
+  onUpdate: (user: IUserEntry) => void;
 }
 
-export const useGetColumns = ({ onDelete }: Params) => {
+export const useGetColumns = ({ onUpdate, onDelete }: Params) => {
   const columns: ColumnDef<IUserEntry>[] = [
     {
       id: 'patient',
@@ -50,7 +52,7 @@ export const useGetColumns = ({ onDelete }: Params) => {
         <div className='flex items-center gap-3'>
           <button
             className='text-status-info flex items-center gap-1 underline'
-            disabled
+            onClick={() => onUpdate(row.original)}
           >
             <Edit />
             <span>Edit</span>
@@ -58,7 +60,6 @@ export const useGetColumns = ({ onDelete }: Params) => {
           <button
             className='text-status-destructive underline'
             onClick={() => onDelete(row.original)}
-            disabled
           >
             Delete
           </button>

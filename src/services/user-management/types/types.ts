@@ -20,3 +20,9 @@ export interface ICreateUserPayload {
   role: UserRoles;
   email: string;
 }
+
+export interface IUpdateUserPayload {
+  name: string;
+  surname: string;
+  email: string;
+}

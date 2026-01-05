@@ -15,3 +15,10 @@ export interface IFormData {
 export interface ICreateFormData extends IFormData {
   password: string;
 }
+
+export interface ApiError {
+  data?: {
+    detail?: string;
+  };
+  status?: number;
+}

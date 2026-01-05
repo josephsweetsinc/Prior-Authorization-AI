@@ -1,3 +1,7 @@
+import { LoaderCircle } from 'lucide-react';
+import { toast } from 'react-toastify';
+
+import { parseApiError } from '@/services/api/types';
 import { useDeleteUserMutation } from '@/services/user-management';
 import {
   Button,
@@ -16,7 +20,18 @@ export const DeleteModal = ({ userId, ...props }: Props) => {
     return;
   }
 
-  const handleDeleteUser = () => deleteUser(userId);
+  const handleDeleteUser = () =>
+    deleteUser(userId)
+      .unwrap()
+      .then(() => {
+        toast.success('User was successfully deleted.');
+        props.onCloseAction();
+      })
+      .catch((e) => {
+        const parsedError = parseApiError(e);
+
+        toast.error(parsedError.message);
+      });
 
   return (
     <Modal {...props}>
@@ -45,7 +60,14 @@ export const DeleteModal = ({ userId, ...props }: Props) => {
           className='w-max'
           disabled={isLoading}
         >
-          Delete user
+          {isLoading ? (
+            <>
+              <span>Deleting...</span>
+              <LoaderCircle className='size-5 animate-spin' />
+            </>
+          ) : (
+            'Delete user'
+          )}
         </Button>
       </div>
     </Modal>

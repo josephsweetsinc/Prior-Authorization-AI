@@ -10,6 +10,7 @@ import { filterPipeline } from '../utils/pipelines';
 import { CreateModal } from './CreateModal';
 import { DeleteModal } from './DeleteModal';
 import { UserManagementHeader } from './Header';
+import { UpdateModal } from './UpdateModal';
 import { UserManagementFilters } from './UserManagementFilters';
 import { UsersTable } from './UsersTable';
 
@@ -43,7 +44,8 @@ export const UserManagementContainer = () => {
     setSelectedUser(null);
     setActiveModal('create');
   };
-  const openUpdateModal = () => {
+  const openUpdateModal = (user: IUserEntry) => {
+    setSelectedUser(user);
     setActiveModal('update');
   };
   const openDeleteModal = (user: IUserEntry) => {
@@ -66,6 +68,11 @@ export const UserManagementContainer = () => {
       />
       <CreateModal
         isOpen={activeModal === 'create'}
+        onCloseAction={closeModal}
+      />
+      <UpdateModal
+        user={selectedUser}
+        isOpen={activeModal === 'update'}
         onCloseAction={closeModal}
       />
       <DeleteModal

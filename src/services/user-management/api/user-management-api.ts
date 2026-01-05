@@ -1,6 +1,7 @@
 import { api as baseApi } from '@/services/api/api';
 
 import {
+  type IUpdateUserPayload,
   type ICreateUserPayload,
   type IGetUsersResponse,
   type IUserEntry,
@@ -30,10 +31,10 @@ const usersApi = baseApi.injectEndpoints({
 
     updateUser: builder.mutation<
       IUserEntry,
-      { id: number; data: Partial<IUserEntry> }
+      { id: number; data: IUpdateUserPayload }
     >({
       query: ({ id, data }) => ({
-        url: `/user/${id}/`,
+        url: `/user/${id}`,
         method: 'PATCH',
         body: data,
       }),
@@ -45,7 +46,7 @@ const usersApi = baseApi.injectEndpoints({
 
     deleteUser: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/user/${id}/`,
+        url: `/user/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: (_result, _error, id) => [
@@ -61,4 +62,5 @@ export const {
   useGetUsersQuery,
   useCreateUserMutation,
   useDeleteUserMutation,
+  useUpdateUserMutation,
 } = usersApi;

@@ -1,4 +1,4 @@
-import { type HTMLProps } from 'react';
+import { useEffect, type HTMLProps } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { Input, Select } from '@/shared/components';
@@ -14,13 +14,23 @@ type Props = {
   defaults: IFormData;
 } & Omit<HTMLProps<HTMLFormElement>, 'onSubmit' | 'method'>;
 
-export const UpdateUserForm = ({ onSubmit, className, ...props }: Props) => {
+export const UpdateUserForm = ({
+  onSubmit,
+  defaults,
+  className,
+  ...props
+}: Props) => {
   const {
     handleSubmit,
     register,
     control,
     formState: { errors },
-  } = useForm<IFormData>();
+    reset,
+  } = useForm<IFormData>({ defaultValues: defaults });
+
+  useEffect(() => {
+    reset(defaults);
+  }, [defaults, reset]);
 
   return (
     <form
