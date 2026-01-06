@@ -12,6 +12,7 @@ from core import (
     SurnameMixinSchema,
 )
 from models.user import UserRole
+from schemas import OrganizationResponseSchema
 
 
 class _BaseUserRequestSchema(
@@ -95,7 +96,7 @@ class UpdateUserRequestSchema(BaseModel):
     ]
 
     @model_validator(mode='after')
-    def validate_at_least_one_field(self) -> 'UpdateUserRequestSchema':
+    def validate_at_least_one_field(self) -> UpdateUserRequestSchema:
         """Validate that at least one field is provided for update."""
         if self.name is None and self.surname is None and self.email is None:
             raise ValueError(  # noqa: TRY003
@@ -114,7 +115,7 @@ class UserResponseShema(BaseModel):
     role: UserRole
     is_active: bool
     organization: Annotated[
-        'OrganizationResponseSchema | None',
+        OrganizationResponseSchema | None,
         Field(
             default=None,
             description='Organization information attached to the user',
