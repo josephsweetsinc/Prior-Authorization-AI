@@ -16,6 +16,10 @@ export interface IRequest {
   status: RequestStatus;
   created_at: string;
   updated_at: string;
+  patient_id: string;
+  pickup_address: string;
+  destination_address: string;
+  transportation_type: TransportationType;
 }
 
 export interface IStatus {
@@ -38,10 +42,6 @@ export interface IRequestDetails extends IRequest {
   updated_at: string;
   status_history: IStatus[];
   documents: IDocument[];
-  patient_id: string;
-  pickup_address: string;
-  destination_address: string;
-  transportation_type: TransportationType;
 }
 
 export interface IRequestHistoryResponse {
