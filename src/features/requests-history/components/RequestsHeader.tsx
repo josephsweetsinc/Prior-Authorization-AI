@@ -1,5 +1,6 @@
 import { type HTMLProps } from 'react';
 
+import { type RequestStatus } from '@/services/dashboard';
 import { SearchFilter, Select } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
@@ -8,8 +9,11 @@ import { type IFilters } from '../types';
 
 type Props = {
   filters: IFilters;
-  // eslint-disable-next-line no-unused-vars
-  onFiltersChange: (key: string, value: string) => void;
+
+  onFiltersChange: <Key extends keyof IFilters>(
+    _key: Key,
+    _value: IFilters[Key],
+  ) => void;
 } & HTMLProps<HTMLDivElement>;
 
 export const RequestsHeader = ({
@@ -27,7 +31,7 @@ export const RequestsHeader = ({
   };
 
   const handleStatusFilterChange = (value: string) => {
-    onFiltersChange('status', value);
+    onFiltersChange('status', value as RequestStatus | 'all');
   };
 
   return (

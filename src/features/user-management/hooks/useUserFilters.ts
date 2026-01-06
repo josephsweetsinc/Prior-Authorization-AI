@@ -5,7 +5,7 @@ import { type IFilters } from '../types';
 export const useUserFilters = () => {
   const [filters, setFilters] = useState<IFilters>({
     searchQuery: '',
-    role: 'provider',
+    role: 'all',
   });
 
   const handleFiltersChange = (key: string, value: string) => {

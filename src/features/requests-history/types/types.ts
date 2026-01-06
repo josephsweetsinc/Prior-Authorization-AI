@@ -1,5 +1,7 @@
+import { type RequestStatus } from '@/services/dashboard';
+
 export interface IFilters {
   searchQuery: string;
-  status: string;
+  status: 'all' | RequestStatus;
   date: string;
 }
