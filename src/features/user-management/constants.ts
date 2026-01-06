@@ -16,11 +16,3 @@ export const ROLE_OPTIONS = [
     value: 'admin',
   },
 ];
-
-export const ROLE_FILTER_OPTIONS = [
-  {
-    label: 'All roles',
-    value: 'all',
-  },
-  ...ROLE_OPTIONS,
-];

@@ -5,12 +5,21 @@ import {
   type ICreateUserPayload,
   type IGetUsersResponse,
   type IUserEntry,
+  type IGetUserParams,
 } from '../types';
 
 const usersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getUsers: builder.query<IGetUsersResponse, void>({
-      query: () => '/user/',
+    getUsers: builder.query<IGetUsersResponse, IGetUserParams>({
+      query: ({ page = 1, search, role }) => ({
+        url: '/user/',
+        params: {
+          page,
+          search,
+          role,
+        },
+      }),
+
       providesTags: (result) =>
         result
           ? [
