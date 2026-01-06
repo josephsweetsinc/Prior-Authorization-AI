@@ -168,6 +168,7 @@ class UserService(BaseService):
         page: int = 1,
         limit: int = 8,
         search: str | None = None,
+        roles: list[UserRole] | None = None,
     ) -> tuple[
         list[UserListItemSchema],
         int,
@@ -181,6 +182,7 @@ class UserService(BaseService):
             page: Page number (1-based).
             limit: Number of items per page.
             search: Search term for user name, surname, or email.
+            roles: List of user roles to filter by.
 
         Returns:
             tuple containing:
@@ -192,11 +194,12 @@ class UserService(BaseService):
 
         """
         offset = (page - 1) * limit
-        total = await self._user_dao.count_all(search=search)
+        total = await self._user_dao.count_all(search=search, roles=roles)
         users = await self._user_dao.get_all(
             offset=offset,
             limit=limit,
             search=search,
+            roles=roles,
         )
 
         total_pages = (total + limit - 1) // limit if total > 0 else 1
