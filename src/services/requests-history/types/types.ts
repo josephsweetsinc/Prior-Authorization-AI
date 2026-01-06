@@ -1,5 +1,12 @@
 import { type RequestStatus } from '@/services/dashboard';
 
+export type TransportationType =
+  | 'ambulance'
+  | 'wheelchair'
+  | 'stretcher'
+  | 'bls'
+  | 'als'
+  | 'cct';
 export interface IRequest {
   id: number;
   user_id: number;
@@ -9,6 +16,10 @@ export interface IRequest {
   status: RequestStatus;
   created_at: string;
   updated_at: string;
+  patient_id: string;
+  pickup_address: string;
+  destination_address: string;
+  transportation_type: TransportationType;
 }
 
 export interface IStatus {
@@ -35,6 +46,15 @@ export interface IRequestDetails extends IRequest {
 
 export interface IRequestHistoryResponse {
   items: IRequest[];
-  next_cursor: number;
-  has_more: boolean;
+  page: number;
+  total: number;
+  showing: number;
+  total_pages: number;
+}
+
+export interface IRequestHistoryParams {
+  page: number;
+  search: string;
+  status?: RequestStatus;
+  days?: number;
 }

@@ -5,12 +5,14 @@ import { type HTMLProps } from 'react';
 import { SearchFilter, Select } from '@/shared/components';
 
 import { ROLE_OPTIONS } from '../constants';
-import { type IFilters } from '../types';
+import { type RoleOptions, type IFilters } from '../types';
 
 type Props = {
   filters: IFilters;
-  // eslint-disable-next-line no-unused-vars
-  onFiltersChange: (key: string, value: string) => void;
+  onFiltersChange: <Key extends keyof IFilters>(
+    _key: Key,
+    _value: IFilters[Key],
+  ) => void;
 } & HTMLProps<HTMLDivElement>;
 
 export const UserManagementFilters = ({ filters, onFiltersChange }: Props) => {
@@ -19,7 +21,7 @@ export const UserManagementFilters = ({ filters, onFiltersChange }: Props) => {
   };
 
   const handleRoleFilterChange = (value: string) => {
-    onFiltersChange('role', value);
+    onFiltersChange('role', value as RoleOptions);
   };
   return (
     <section className='grid grid-cols-1 items-center gap-5 lg:grid-cols-[1fr_0.25fr]'>

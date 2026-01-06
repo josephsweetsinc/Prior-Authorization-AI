@@ -1,9 +1,8 @@
-export interface IRoleOptions {
-  role: 'provider' | 'admin' | 'all';
-}
+export type RoleOptions = 'provider' | 'admin' | 'all';
 
-export interface IFilters extends IRoleOptions {
+export interface IFilters {
   searchQuery: string;
+  role: RoleOptions;
 }
 
 export interface IFormData {
