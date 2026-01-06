@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Annotated
 
@@ -111,6 +113,14 @@ class UserResponseShema(BaseModel):
     email: str
     role: UserRole
     is_active: bool
+    organization: Annotated[
+        'OrganizationResponseSchema | None',
+        Field(
+            default=None,
+            description='Organization information attached to the user',
+        ),
+    ] = None
+
     model_config = ConfigDict(from_attributes=True)
 
 
