@@ -3,18 +3,16 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { cn } from '@/shared/lib/utils';
 
-interface DataTablePaginationProps<TData> {
+interface Props<TData> {
   table: Table<TData>;
+  total: number;
 }
 
-export function DataTablePagination<TData>({
-  table,
-}: DataTablePaginationProps<TData>) {
+export function DataTablePagination<TData>({ table, total }: Props<TData>) {
   const { pageIndex, pageSize } = table.getState().pagination;
 
-  const totalRows = table.getFilteredRowModel().rows.length;
-  const start = pageIndex * pageSize + 1;
-  const end = Math.min(start + pageSize - 1, totalRows);
+  const start = total === 0 ? 0 : pageIndex * pageSize + 1;
+  const end = Math.min(start + pageSize - 1, total);
   const pageCount = table.getPageCount();
 
   const visiblePages = getVisiblePages(pageIndex + 1, pageCount);
@@ -22,7 +20,7 @@ export function DataTablePagination<TData>({
   return (
     <div className='flex w-full items-center justify-between px-2 py-3'>
       <div className='text-muted-foreground flex-1 text-sm'>
-        Showing {end - start + 1} out of {totalRows}
+        Showing {end - start + 1} out of {total}
       </div>
 
       <div className='flex flex-1 items-center justify-center gap-1'>

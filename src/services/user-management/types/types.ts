@@ -26,3 +26,9 @@ export interface IUpdateUserPayload {
   surname: string;
   email: string;
 }
+
+export interface IGetUserParams {
+  page: number;
+  search?: string;
+  role?: string;
+}

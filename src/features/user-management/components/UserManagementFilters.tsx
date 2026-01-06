@@ -4,7 +4,7 @@ import { type HTMLProps } from 'react';
 
 import { SearchFilter, Select } from '@/shared/components';
 
-import { ROLE_FILTER_OPTIONS } from '../constants';
+import { ROLE_OPTIONS } from '../constants';
 import { type IFilters } from '../types';
 
 type Props = {
@@ -32,7 +32,7 @@ export const UserManagementFilters = ({ filters, onFiltersChange }: Props) => {
 
       <Select
         value={filters.role}
-        options={ROLE_FILTER_OPTIONS}
+        options={ROLE_OPTIONS}
         placeholder='Filter by role'
         onChange={handleRoleFilterChange}
       />

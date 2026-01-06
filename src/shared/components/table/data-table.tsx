@@ -6,6 +6,7 @@ import {
   getCoreRowModel,
   useReactTable as createReactTable,
   getPaginationRowModel,
+  type PaginationState,
 } from '@tanstack/react-table';
 
 import { DataTablePagination } from './pagination';
@@ -22,20 +23,50 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pagination?: boolean;
+  manualPagination?: boolean;
+  pageCount?: number;
+  paginationState?: PaginationState;
+  total?: number;
+  // eslint-disable-next-line no-unused-vars
+  onPaginationChange?: (state: PaginationState) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   pagination = false,
+  manualPagination,
+  pageCount,
+  paginationState,
+  onPaginationChange,
+  total,
 }: DataTableProps<TData, TValue>) {
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = createReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    ...(pagination && {
-      getPaginationRowModel: getPaginationRowModel(),
+    ...(pagination &&
+      !manualPagination && {
+        getPaginationRowModel: getPaginationRowModel(),
+      }),
+
+    ...(manualPagination && {
+      manualPagination: true,
+      pageCount,
+      state: {
+        pagination: paginationState,
+      },
+      onPaginationChange: (updater) => {
+        if (!paginationState || !onPaginationChange) {
+          return;
+        }
+
+        const nextState =
+          typeof updater === 'function' ? updater(paginationState) : updater;
+
+        onPaginationChange(nextState);
+      },
     }),
   });
 
@@ -91,7 +122,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      {pagination && <DataTablePagination table={table} />}
+      {pagination && <DataTablePagination table={table} total={total ?? 0} />}
     </div>
   );
 }
