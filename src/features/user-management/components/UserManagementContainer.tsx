@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useGetUsersQuery } from '@/services/user-management';
 
 import { useUserFilters, useUserModals } from '../hooks';
+import { type IFilters } from '../types';
 
 import { CreateModal } from './CreateModal';
 import { DeleteModal } from './DeleteModal';
@@ -27,12 +28,23 @@ export const UserManagementContainer = () => {
     search: filters.searchQuery,
   });
 
+  const updateFilters = <Key extends keyof IFilters>(
+    key: Key,
+    value: IFilters[Key],
+  ) => {
+    handleFiltersChange(key, value);
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: 0,
+    }));
+  };
+
   return (
     <>
       <UserManagementHeader onCreateClick={handlers.openCreate} />
       <UserManagementFilters
         filters={filters}
-        onFiltersChange={handleFiltersChange}
+        onFiltersChange={updateFilters}
       />
       <UsersTable
         isLoading={isLoading}

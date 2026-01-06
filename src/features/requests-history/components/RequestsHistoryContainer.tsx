@@ -32,9 +32,20 @@ export const RequestsHistoryContainer = ({
 
   const { data, isLoading } = useGetRequestsHistoryQuery(params);
 
+  const updateFilters = <Key extends keyof IFilters>(
+    key: Key,
+    value: IFilters[Key],
+  ) => {
+    handleFiltersChange(key, value);
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: 0,
+    }));
+  };
+
   return (
     <section className={cn('space-y-5', className)} {...props}>
-      <RequestsHeader filters={filters} onFiltersChange={handleFiltersChange} />
+      <RequestsHeader filters={filters} onFiltersChange={updateFilters} />
       <RequestsTable
         data={data}
         isLoading={isLoading}
