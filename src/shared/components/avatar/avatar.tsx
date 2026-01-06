@@ -28,6 +28,7 @@ export interface UserProps
   role?: string;
   src?: string | null;
   alt?: string;
+  avatarClassName?: string;
 }
 
 function getInitials(name: string): string {
@@ -41,6 +42,7 @@ function getInitials(name: string): string {
 
 export function Avatar({
   className,
+  avatarClassName,
   size,
   name,
   role,
@@ -55,7 +57,10 @@ export function Avatar({
     <div className={cn(avatarVariants({ size }), className)} {...props}>
       <div
         data-slot='avatar'
-        className='bg-muted text-muted-foreground relative flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold select-none'
+        className={cn(
+          'bg-muted text-muted-foreground relative flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold select-none',
+          avatarClassName,
+        )}
       >
         {src && !imageError ? (
           <Image
