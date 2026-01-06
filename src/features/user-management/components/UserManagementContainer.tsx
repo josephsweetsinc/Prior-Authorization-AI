@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 
-import { type IUserEntry, useGetUsersQuery } from '@/services/user-management';
+import { useGetUsersQuery } from '@/services/user-management';
 
-import { type IFilters } from '../types';
-import { filterPipeline } from '../utils/pipelines';
+import { useUserFilters, useUserModals } from '../hooks';
 
 import { CreateModal } from './CreateModal';
 import { DeleteModal } from './DeleteModal';
@@ -15,70 +14,50 @@ import { UserManagementFilters } from './UserManagementFilters';
 import { UsersTable } from './UsersTable';
 
 export const UserManagementContainer = () => {
-  const [selectedUser, setSelectedUser] = useState<IUserEntry | null>(null);
-  const [activeModal, setActiveModal] = useState<
-    'create' | 'update' | 'delete' | null
-  >();
-  const [filters, setFilters] = useState<IFilters>({
-    searchQuery: '',
-    role: 'all',
+  const { filters, handleFiltersChange } = useUserFilters();
+  const { selectedUser, activeModal, handlers } = useUserModals();
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 8,
   });
 
-  const { data, isLoading } = useGetUsersQuery();
-
-  const filteredData = filterPipeline(data ? data.items : [], filters);
-
-  const handleFiltersChange = (key: string, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
-  const closeModal = () => {
-    setSelectedUser(null);
-    setActiveModal(null);
-  };
-
-  const openCreateModal = () => {
-    setSelectedUser(null);
-    setActiveModal('create');
-  };
-  const openUpdateModal = (user: IUserEntry) => {
-    setSelectedUser(user);
-    setActiveModal('update');
-  };
-  const openDeleteModal = (user: IUserEntry) => {
-    setSelectedUser(user);
-    setActiveModal('delete');
-  };
+  const { data, isLoading } = useGetUsersQuery({
+    page: pagination.pageIndex + 1,
+    role: filters.role,
+    search: filters.searchQuery,
+  });
 
   return (
     <>
-      <UserManagementHeader onCreateClick={openCreateModal} />
+      <UserManagementHeader onCreateClick={handlers.openCreate} />
       <UserManagementFilters
         filters={filters}
         onFiltersChange={handleFiltersChange}
       />
       <UsersTable
         isLoading={isLoading}
-        data={filteredData}
-        onUpdateClick={openUpdateModal}
-        onDeleteClick={openDeleteModal}
+        data={data}
+        onUpdateClick={handlers.openUpdate}
+        onDeleteClick={handlers.openDelete}
+        onPaginationChange={setPagination}
+        paginationState={pagination}
       />
       <CreateModal
         isOpen={activeModal === 'create'}
-        onCloseAction={closeModal}
+        onCloseAction={handlers.close}
+        className='w-1/2 min-w-[288px]'
       />
       <UpdateModal
         user={selectedUser}
         isOpen={activeModal === 'update'}
-        onCloseAction={closeModal}
+        onCloseAction={handlers.close}
+        className='w-1/2 min-w-[288px]'
       />
       <DeleteModal
         userId={selectedUser?.id}
         isOpen={activeModal === 'delete'}
-        onCloseAction={closeModal}
+        onCloseAction={handlers.close}
+        className='w-1/2 min-w-[288px]'
       />
     </>
   );
