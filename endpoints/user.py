@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 
 from core import exception_handler, get_service
 from dependencies import get_admin_user_from_token, get_current_user
@@ -15,6 +15,7 @@ from schemas import (
     UsersListResponseSchema,
 )
 from services import OrganizationService, UserService
+from services.aws.actions import S3Actions
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +142,20 @@ async def get_me(
         user.id
     )
 
+    # Generate presigned URL for avatar if exists
+    avatar_url = None
+    if user.avatar_key:
+        s3_actions = S3Actions()
+        try:
+            avatar_url = s3_actions.get_presigned_url(
+                key=user.avatar_key,
+                expires_in=s3_actions.S3_EXPIRATION_TIME,
+                require_object=True,
+            )
+        except Exception:
+            # If avatar doesn't exist in S3, set to None
+            avatar_url = None
+
     # Build response
     response_data = {
         'id': user.id,
@@ -149,6 +164,7 @@ async def get_me(
         'email': user.email,
         'role': user.role,
         'is_active': user.is_active,
+        'avatar_url': avatar_url,
         'organization': (
             OrganizationResponseSchema.model_validate(organization)
             if organization
@@ -189,6 +205,36 @@ async def update_me(
         user_id=user.id,
         user_data=user_data,
     )
+
+
+@user_router.post(
+    path='/me/avatar',
+    summary='Upload user avatar',
+    description=(
+        "Upload avatar image for the current authenticated user. "
+        'Supports JPEG and PNG formats, maximum size 5MB.'
+    ),
+    response_model=UserResponseShema,
+    tags=['me'],
+)
+@exception_handler
+async def upload_avatar(
+    file: Annotated[UploadFile, File()],
+    user: Annotated[User, Depends(get_current_user)],
+    service: Annotated[UserService, Depends(get_service(UserService))],
+) -> UserResponseShema:
+    """Upload avatar image for the current authenticated user.
+
+    Args:
+        file: Avatar image file (JPEG or PNG, max 5MB).
+        user: Current authenticated user from token.
+        service: User service.
+
+    Returns:
+        UserResponseShema: Schema representing the updated user with avatar.
+
+    """
+    return await service.upload_avatar(user_id=user.id, file=file)
 
 
 @user_router.delete(

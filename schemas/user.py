@@ -114,6 +114,13 @@ class UserResponseShema(BaseModel):
     email: str
     role: UserRole
     is_active: bool
+    avatar_url: Annotated[
+        str | None,
+        Field(
+            default=None,
+            description='Presigned URL for user avatar image',
+        ),
+    ] = None
     organization: Annotated[
         OrganizationResponseSchema | None,
         Field(

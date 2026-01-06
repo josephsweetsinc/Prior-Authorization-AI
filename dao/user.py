@@ -168,6 +168,31 @@ class UserDAO(BaseDAO):
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def update_avatar_key(
+        self,
+        user_id: int,
+        avatar_key: str | None,
+    ) -> User | None:
+        """Update user avatar key by id.
+
+        Args:
+            user_id: User ID.
+            avatar_key: S3 key for avatar image (None to remove avatar).
+
+        Returns:
+            User | None: Updated user instance or None if not found.
+
+        """
+        stmt = (
+            update(User)
+            .where(User.id == user_id)
+            .values(avatar_key=avatar_key)
+            .returning(User)
+        )
+
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def delete_by_id(self, user_id: int) -> User | None:
         """Delete user by id.
 

@@ -43,7 +43,7 @@ class UpdateOrganizationRequestSchema(BaseModel):
             and self.medic_name is None
         ):
             raise ValueError(  # noqa: TRY003
-                'At least one field (provider_type, professional_id, or medic_name) must be provided'  # noqa: E501
+                'At least one field (provider_type, professional_id, or medic_name) must be provided'
             )
         return self
 
