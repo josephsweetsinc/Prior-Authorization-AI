@@ -3,10 +3,12 @@ from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
+    Boolean,
     Date,
     Enum,
     ForeignKey,
     Integer,
+    Numeric,
     String,
     Text,
     Time,
@@ -39,6 +41,13 @@ class RequestStatus(StrEnum):
     DENIED = 'denied'
 
 
+class AmbulatoryStatus(StrEnum):
+    """Enumeration of ambulatory statuses."""
+
+    AMBULATORY = 'ambulatory'
+    NON_AMBULATORY = 'non-ambulatory'
+
+
 class AmbulanceRequest(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
     """Ambulance request model.
 
@@ -58,6 +67,11 @@ class AmbulanceRequest(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
     - status: Current status of the request.
     - form_number: CMS form number (e.g., CMS-10344).
     - reviewer_id: ID of the reviewer (provider) who set the request status.
+    - ambulatory_status: Ambulatory status of the patient (enum).
+    - oxygen_required: Whether oxygen is required for the patient.
+    - ai_accuracy: AI confidence in filled data (percentage with 1 decimal).
+    - ordering_physician: Name of the ordering physician.
+    - physician_phone: Phone number of the ordering physician.
     """
 
     __tablename__ = 'ambulance_requests'
@@ -140,6 +154,32 @@ class AmbulanceRequest(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
         nullable=True,
         comment='ID of the reviewer (provider) who set the request status',
     )
+    ambulatory_status: Mapped['AmbulatoryStatus | None'] = mapped_column(
+        Enum(AmbulatoryStatus),
+        nullable=True,
+        comment='Ambulatory status of the patient',
+    )
+    oxygen_required: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        server_default='false',
+        comment='Whether oxygen is required for the patient',
+    )
+    ai_accuracy: Mapped[float | None] = mapped_column(
+        Numeric(4, 1),
+        nullable=True,
+        comment='AI confidence in filled data (percentage with 1 decimal place, e.g., 37.3)',  # noqa: E501
+    )
+    ordering_physician: Mapped[str | None] = mapped_column(
+        String(200),
+        nullable=True,
+        comment='Name of the ordering physician',
+    )
+    physician_phone: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        comment='Phone number of the ordering physician',
+    )
 
     # Relationships
     reviewer: Mapped['User | None'] = relationship(
@@ -157,7 +197,6 @@ class AmbulanceRequest(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
         cascade='all, delete-orphan',
     )
 
-    # TODO: Save ai accunancy, consiedering add new fields due to design update
     @property
     def patient_full_name(self) -> str:
         """Return patient full name."""

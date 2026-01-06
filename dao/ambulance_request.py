@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload
 from core.dao import BaseDAO
 from models.ambulance_request import (
     AmbulanceRequest,
+    AmbulatoryStatus,
     RequestStatus,
     RequestStatusHistory,
 )
@@ -33,6 +34,11 @@ class AmbulanceRequestDAO(BaseDAO):
         medical_justification: str | None = None,
         form_number: str | None = None,
         status: RequestStatus = RequestStatus.PROCESSING,
+        ambulatory_status: AmbulatoryStatus | None = None,
+        oxygen_required: bool = False,
+        ai_accuracy: float | None = None,
+        ordering_physician: str | None = None,
+        physician_phone: str | None = None,
     ) -> AmbulanceRequest:
         """Create a new ambulance request.
 
@@ -51,6 +57,11 @@ class AmbulanceRequestDAO(BaseDAO):
             medical_justification: Medical justification (optional).
             form_number: CMS form number (optional).
             status: Request status (default: PROCESSING).
+            ambulatory_status: Patient ambulatory status (optional).
+            oxygen_required: Whether oxygen is required (default: False).
+            ai_accuracy: AI confidence in filled data (optional).
+            ordering_physician: Name of ordering physician (optional).
+            physician_phone: Phone number of ordering physician (optional).
 
         Returns:
             AmbulanceRequest: Created request instance.
@@ -71,6 +82,11 @@ class AmbulanceRequestDAO(BaseDAO):
             medical_justification=medical_justification,
             form_number=form_number,
             status=status,
+            ambulatory_status=ambulatory_status,
+            oxygen_required=oxygen_required,
+            ai_accuracy=ai_accuracy,
+            ordering_physician=ordering_physician,
+            physician_phone=physician_phone,
         )
         self._session.add(request)
         await self._session.flush()
