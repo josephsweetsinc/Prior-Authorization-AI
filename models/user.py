@@ -1,10 +1,14 @@
 from datetime import datetime
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.models import BaseIdMixin, BaseTimeStampMixin, SoftDelete
+
+if TYPE_CHECKING:
+    from models import Organization
 
 
 class UserRole(StrEnum):
@@ -68,6 +72,13 @@ class User(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
         DateTime(timezone=True),
         nullable=True,
         comment='Date and time of last login',
+    )
+
+    # Relationships
+    organization: Mapped['Organization | None'] = relationship(
+        'Organization',
+        back_populates='user',
+        uselist=False,
     )
 
     def __repr__(self) -> str:

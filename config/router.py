@@ -8,6 +8,7 @@ from endpoints import (
     auth_router,
     dashboard_router,
     main_router,
+    organization_router,
     user_router,
 )
 
@@ -37,5 +38,10 @@ def initialize_routers() -> APIRouter:
         dashboard_router,
         prefix='/dashboard_metrics',
         tags=['dashboard_metrics'],
+    )
+    main_api_router.include_router(
+        organization_router,
+        prefix='/organization',
+        tags=['organization'],
     )
     return main_api_router

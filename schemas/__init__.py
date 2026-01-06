@@ -25,6 +25,10 @@ from .auth import (
 )
 from .dasboard import DashboardResponseSchema
 from .main import HealthCheckResponseSchema
+from .organization import (
+    OrganizationResponseSchema,
+    UpdateOrganizationRequestSchema,
+)
 from .user import (
     CreateUserByAdminRequestSchema,
     CreateUserRequestSchema,
@@ -47,6 +51,7 @@ __all__ = [
     'FileUploadResponseSchema',
     'FileUploadWithExtractionResponseSchema',
     'HealthCheckResponseSchema',
+    'OrganizationResponseSchema',
     'PasswordChangeRequestSchema',
     'PasswordResetConfirmSchema',
     'PasswordResetRequestSchema',
@@ -56,8 +61,12 @@ __all__ = [
     'RequestStatusHistoryResponseSchema',
     'RequestWithStatusHistorySchema',
     'TokenSchemas',
+    'UpdateOrganizationRequestSchema',
     'UpdateUserRequestSchema',
     'UserListItemSchema',
     'UserResponseShema',
     'UsersListResponseSchema',
 ]
+
+# Rebuild models to resolve forward references
+UserResponseShema.model_rebuild()

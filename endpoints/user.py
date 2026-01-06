@@ -9,11 +9,12 @@ from models import User
 from models.user import UserRole
 from schemas import (
     CreateUserByAdminRequestSchema,
+    OrganizationResponseSchema,
     UpdateUserRequestSchema,
     UserResponseShema,
     UsersListResponseSchema,
 )
-from services import UserService
+from services import OrganizationService, UserService
 
 logger = logging.getLogger(__name__)
 
@@ -114,23 +115,48 @@ async def update_user(
     path='/me',
     summary='Get current user profile',
     description=(
-        "Retrieve the current authenticated user's profile information."
+        "Retrieve the current authenticated user's profile information "
+        'including organization data if available.'
     ),
     tags=['me'],
 )
 async def get_me(
     user: Annotated[User, Depends(get_current_user)],
+    organization_service: Annotated[
+        OrganizationService, Depends(get_service(OrganizationService))
+    ],
 ) -> UserResponseShema:
     """Get information about current user.
 
     Args:
         user (User): Current authenticated user from token.
+        organization_service: Organization service.
 
     Returns:
-        UserResponseShema: Schema representing the user.
+        UserResponseShema: Schema representing the user with organization data.
 
     """
-    return UserResponseShema.model_validate(user)
+    # Load organization if exists
+    organization = await organization_service.get_organization_by_user_id(
+        user.id
+    )
+
+    # Build response
+    response_data = {
+        'id': user.id,
+        'name': user.name,
+        'surname': user.surname,
+        'email': user.email,
+        'role': user.role,
+        'is_active': user.is_active,
+        'organization': (
+            OrganizationResponseSchema.model_validate(organization)
+            if organization
+            else None
+        ),
+    }
+
+    return UserResponseShema.model_validate(response_data)
 
 
 @user_router.patch(

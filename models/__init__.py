@@ -5,6 +5,7 @@ from .ambulance_request import (
     TransportationType,
 )
 from .blacklist_token import BlacklistToken
+from .organization import Organization
 from .password_reset_code import PasswordResetCode
 from .request_file import RequestFile
 from .user import User, UserRole
@@ -12,6 +13,7 @@ from .user import User, UserRole
 __all__ = [
     'AmbulanceRequest',
     'BlacklistToken',
+    'Organization',
     'PasswordResetCode',
     'RequestFile',
     'RequestStatus',
