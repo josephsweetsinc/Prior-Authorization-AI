@@ -2,7 +2,7 @@
 
 from datetime import date, time
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 from models.ambulance_request import AmbulatoryStatus, TransportationType
 
@@ -108,7 +108,7 @@ class ExtractedTransportationData(BaseModel):
     oxygen_required: bool = Field(
         default=False,
         examples=[False],
-        description='Whether oxygen is required for the patient during transport',
+        description='Whether oxygen is required for the patient during transport',  # noqa: E501
     )
     ordering_physician: str | None = Field(
         default=None,

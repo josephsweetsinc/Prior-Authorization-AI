@@ -69,7 +69,7 @@ class AmbulanceRequest(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
     - reviewer_id: ID of the reviewer (provider) who set the request status.
     - ambulatory_status: Ambulatory status of the patient (enum).
     - oxygen_required: Whether oxygen is required for the patient.
-    - ai_accuracy: AI confidence in filled data (percentage with 1 decimal place).
+    - ai_accuracy: AI confidence in filled data (percentage with 1 decimal).
     - ordering_physician: Name of the ordering physician.
     - physician_phone: Phone number of the ordering physician.
     """
@@ -168,7 +168,7 @@ class AmbulanceRequest(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
     ai_accuracy: Mapped[float | None] = mapped_column(
         Numeric(4, 1),
         nullable=True,
-        comment='AI confidence in filled data (percentage with 1 decimal place, e.g., 37.3)',
+        comment='AI confidence in filled data (percentage with 1 decimal place, e.g., 37.3)',  # noqa: E501
     )
     ordering_physician: Mapped[str | None] = mapped_column(
         String(200),

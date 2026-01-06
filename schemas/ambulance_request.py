@@ -228,14 +228,14 @@ class CreateAmbulanceRequestSchema(BaseModel):
         description='Patient ambulatory status',
     )
     oxygen_required: bool = Field(
-        False,
+        False,  # noqa: FBT003
         examples=[False],
         description='Whether oxygen is required for the patient',
     )
     ai_accuracy: float | None = Field(
         None,
         examples=[37.3],
-        description='AI confidence in filled data (percentage with 1 decimal place, e.g., 37.3)',
+        description='AI confidence in filled data (percentage with 1 decimal place, e.g., 37.3)',  # noqa: E501
         ge=0.0,
         le=100.0,
     )

@@ -20,7 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema.
-    
+
     Adds new fields to ambulance_requests table:
     - ambulatory_status: Ambulatory status enum (ambulatory, non-ambulatory)
     - oxygen_required: Boolean flag for oxygen requirement
@@ -35,7 +35,7 @@ def upgrade() -> None:
         "EXCEPTION WHEN duplicate_object THEN null; "
         "END $$;"
     )
-    
+
     # Add new columns
     op.add_column(
         'ambulance_requests',
@@ -93,6 +93,6 @@ def downgrade() -> None:
     op.drop_column('ambulance_requests', 'ai_accuracy')
     op.drop_column('ambulance_requests', 'oxygen_required')
     op.drop_column('ambulance_requests', 'ambulatory_status')
-    
+
     # Drop enum type
     op.execute('DROP TYPE IF EXISTS ambulatorystatus')
