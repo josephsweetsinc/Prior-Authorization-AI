@@ -53,7 +53,7 @@ class OrganizationService(BaseService):
 
         Args:
             user_id: User ID.
-            organization_data: UpdateOrganizationRequestSchema with fields.
+            organization_data: UpdateOrganizationRequestSchema fields to update.
 
         Returns:
             OrganizationResponseSchema: Updated organization information.

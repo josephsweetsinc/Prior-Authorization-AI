@@ -73,6 +73,11 @@ class User(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
         nullable=True,
         comment='Date and time of last login',
     )
+    avatar_key: Mapped[str | None] = mapped_column(
+        String(512),
+        nullable=True,
+        comment='S3 key for user avatar image',
+    )
 
     # Relationships
     organization: Mapped['Organization | None'] = relationship(
