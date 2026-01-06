@@ -74,8 +74,8 @@ export const RequestDetails = ({
           />
           <DataBlock
             label='Transportation Type'
-            value='Ambulance - BLS'
-            className='shrink grow basis-[288px]'
+            value={data.transportation_type}
+            className='shrink grow basis-[288px] capitalize'
           />
           <DataBlock
             label='Date Submitted'
@@ -84,17 +84,17 @@ export const RequestDetails = ({
           />
           <DataBlock
             label='Patient ID'
-            value={data.user_id.toString()}
+            value={data.patient_id.toString()}
             className='shrink grow basis-[288px]'
           />
           <DataBlock
             label='Pickup Address'
-            value='123 Main St, Springfield, IL 62701'
+            value={data.pickup_address}
             className='shrink grow basis-[288px]'
           />
           <DataBlock
             label='Destination Address'
-            value='Memorial Dialysis Center, 456 Medical Dr, Springfield, IL 62702'
+            value={data.destination_address}
             className='shrink grow basis-[288px]'
           />
         </section>

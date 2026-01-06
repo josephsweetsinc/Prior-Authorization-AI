@@ -1,12 +1,36 @@
 import { api as baseApi } from '@/services/api/api';
 
-import type { IRequestDetails, IRequestHistoryResponse } from '../types';
+import type {
+  IRequestDetails,
+  IRequestHistoryParams,
+  IRequestHistoryResponse,
+} from '../types';
 
 export const requestsHistoryAPI = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getRequestsHistory: builder.query<IRequestHistoryResponse, void>({
-      query: () => '/ambulance-request/',
-      providesTags: ['RequestsHistory'],
+    getRequestsHistory: builder.query<
+      IRequestHistoryResponse,
+      IRequestHistoryParams
+    >({
+      query: ({ page = 1, search, status, days }) => ({
+        url: '/ambulance-request/',
+        params: {
+          page,
+          search,
+          status,
+          days,
+        },
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.items.map(({ id }) => ({
+                type: 'RequestsHistory' as const,
+                id,
+              })),
+              { type: 'RequestsHistory', id: 'LIST' },
+            ]
+          : [{ type: 'RequestsHistory', id: 'LIST' }],
     }),
     getRequestDetails: builder.query<IRequestDetails, number>({
       query: (id) => `/ambulance-request/${id}`,

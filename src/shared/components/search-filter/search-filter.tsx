@@ -15,7 +15,7 @@ type Props = {
 export const SearchFilter = ({
   value = '',
   onChange,
-  debounce = 300,
+  debounce = 150,
   className,
   ...props
 }: Props) => {
