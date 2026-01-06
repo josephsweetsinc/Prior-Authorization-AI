@@ -4,23 +4,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { z } from 'zod';
 
-import { parseApiError } from '@/services/api/types';
 import { useGetCurrentUserQuery } from '@/services/auth/api/auth-api-service';
 import { useUpdateUserOrganizationMutation } from '@/services/settings/api';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
 
-const updateOrganizationSchema = z.object({
-  provider_type: z.string().nonempty({ message: 'Provider type is required' }),
-  professional_id: z
-    .string()
-    .nonempty({ message: 'Professional ID is required' }),
-  medic_name: z.string().nonempty({ message: 'Medic name is required' }),
-});
-
-type UpdateOrganizationSchema = z.infer<typeof updateOrganizationSchema>;
+import {
+  type UpdateOrganizationSchema,
+  updateOrganizationSchema,
+} from '../validation';
 
 export const OrganizationSettingsForm = () => {
   const { data: currentUser } = useGetCurrentUserQuery();
@@ -58,8 +51,7 @@ export const OrganizationSettingsForm = () => {
       await updateUserOrganization(data).unwrap();
       toast.success('Organization updated successfully');
     } catch (error) {
-      const parsed = parseApiError(error);
-      toast.error(parsed?.message ?? 'Failed to update organization');
+      toast.error((error as string) ?? 'Failed to update organization');
     } finally {
       setIsUpdating(false);
     }

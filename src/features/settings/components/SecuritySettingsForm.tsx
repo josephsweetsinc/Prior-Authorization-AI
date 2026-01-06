@@ -3,31 +3,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { z } from 'zod';
 
-import { parseApiError } from '@/services/api/types';
 import { useUpdatePasswordMutation } from '@/services/auth/api/auth-api-service';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
-import { passwordSchema } from '@/shared/lib/validations/schemas';
 
-const updatePasswordSchema = z
-  .object({
-    old_password: passwordSchema,
-    new_password: passwordSchema,
-    confirmPassword: passwordSchema,
-  })
-  .superRefine((val, ctx) => {
-    if (val.new_password !== val.confirmPassword) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['confirmPassword'],
-        message: 'Passwords do not match',
-      });
-    }
-  });
-
-type UpdatePasswordSchema = z.infer<typeof updatePasswordSchema>;
+import { type UpdatePasswordSchema, updatePasswordSchema } from '../validation';
 
 export function SecuritySettingsForm() {
   const {
@@ -47,8 +28,7 @@ export function SecuritySettingsForm() {
       await updatePassword(data).unwrap();
       toast.success('Password updated successfully');
     } catch (error) {
-      const parsed = parseApiError(error);
-      toast.error(parsed?.message ?? 'Failed to update password');
+      toast.error((error as string) ?? 'Failed to update password');
     } finally {
       setIsUpdating(false);
     }
