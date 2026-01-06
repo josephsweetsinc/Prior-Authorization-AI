@@ -4,6 +4,7 @@ from typing import Annotated
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from models.ambulance_request import (
+    AmbulatoryStatus,
     RequestStatus,
     TransportationType,
 )
@@ -221,6 +222,35 @@ class CreateAmbulanceRequestSchema(BaseModel):
         ],
     )
     form_number: str | None = None
+    ambulatory_status: AmbulatoryStatus | None = Field(
+        None,
+        examples=[AmbulatoryStatus.NON_AMBULATORY],
+        description='Patient ambulatory status',
+    )
+    oxygen_required: bool = Field(
+        False,
+        examples=[False],
+        description='Whether oxygen is required for the patient',
+    )
+    ai_accuracy: float | None = Field(
+        None,
+        examples=[37.3],
+        description='AI confidence in filled data (percentage with 1 decimal place, e.g., 37.3)',
+        ge=0.0,
+        le=100.0,
+    )
+    ordering_physician: str | None = Field(
+        None,
+        examples=['Dr. John Smith'],
+        description='Name of the ordering physician',
+        max_length=200,
+    )
+    physician_phone: str | None = Field(
+        None,
+        examples=['555-123-4567'],
+        description='Phone number of the ordering physician',
+        max_length=50,
+    )
 
 
 class AmbulanceRequestResponseSchema(BaseModel):

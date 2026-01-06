@@ -301,6 +301,11 @@ class AmbulanceRequestService(BaseService):
             medical_justification=request_data.medical_justification,
             form_number=request_data.form_number,
             status=RequestStatus.PROCESSING,
+            ambulatory_status=request_data.ambulatory_status,
+            oxygen_required=request_data.oxygen_required,
+            ai_accuracy=request_data.ai_accuracy,
+            ordering_physician=request_data.ordering_physician,
+            physician_phone=request_data.physician_phone,
         )
         await self._session.flush()
 
