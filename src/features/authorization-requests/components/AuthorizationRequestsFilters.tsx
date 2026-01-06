@@ -7,14 +7,13 @@ import {
 import { SearchFilter, Select } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
-import { type AuthorizationRequestsFilters } from '../types';
+import { type AuthorizationRequestsFilters as AuthorizationRequestsFiltersType } from '../types';
 
 type Props = {
-  filters: AuthorizationRequestsFilters;
-  // eslint-disable-next-line no-unused-vars
-  onFiltersChange: <Key extends keyof AuthorizationRequestsFilters>(
-    key: Key,
-    value: AuthorizationRequestsFilters[Key],
+  filters: AuthorizationRequestsFiltersType;
+  onFiltersChange: <Key extends keyof AuthorizationRequestsFiltersType>(
+    _key: Key,
+    _value: AuthorizationRequestsFiltersType[Key],
   ) => void;
 } & HTMLProps<HTMLDivElement>;
 
@@ -42,7 +41,10 @@ export const AuthorizationRequestsFilters = ({
         options={DATE_OPTIONS}
         value={filters.date}
         onChange={(value) =>
-          onFiltersChange('date', value as AuthorizationRequestsFilters['date'])
+          onFiltersChange(
+            'date',
+            value as AuthorizationRequestsFiltersType['date'],
+          )
         }
         className='lg:w-44'
       />
@@ -52,7 +54,7 @@ export const AuthorizationRequestsFilters = ({
         onChange={(value) =>
           onFiltersChange(
             'status',
-            value as AuthorizationRequestsFilters['status'],
+            value as AuthorizationRequestsFiltersType['status'],
           )
         }
         className='lg:w-44'

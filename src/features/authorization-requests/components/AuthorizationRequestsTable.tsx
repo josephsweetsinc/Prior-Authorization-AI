@@ -11,8 +11,7 @@ type Props = {
   isLoading: boolean;
   data?: AuthorizationRequestsResponse;
   paginationState: PaginationState;
-  // eslint-disable-next-line no-unused-vars
-  onPaginationChange: (state: PaginationState) => void;
+  onPaginationChange: (_state: PaginationState) => void;
 };
 
 export const AuthorizationRequestsTable = ({
