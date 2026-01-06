@@ -4,6 +4,7 @@
 KB = 1024  # Kilobyte size constant(1024 byes)
 MB = 1024 * KB  # Megabyte size constant(1024 KB)
 MAX_FILE_SIZE = 10 * MB  # Max file size from API (10MB for medical documents)
+MAX_AVATAR_SIZE = 5 * MB  # 5MB
 ALLOWED_EXTENSIONS = {'.pdf', '.doc', '.docx', '.xls', '.xlsx'}
 MIME_TYPES: dict[str, str] = {
     '.pdf': 'application/pdf',

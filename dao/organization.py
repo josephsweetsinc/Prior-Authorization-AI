@@ -72,7 +72,7 @@ class OrganizationDAO(BaseDAO):
             medic_name: New medic name (optional).
 
         Returns:
-            Organization | None: Updated organization instance or None if not found.
+            Organization | None: Updated organization instance or None.
 
         """
         update_values = {}

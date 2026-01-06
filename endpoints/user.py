@@ -211,7 +211,7 @@ async def update_me(
     path='/me/avatar',
     summary='Upload user avatar',
     description=(
-        "Upload avatar image for the current authenticated user. "
+        'Upload avatar image for the current authenticated user. '
         'Supports JPEG and PNG formats, maximum size 5MB.'
     ),
     response_model=UserResponseShema,

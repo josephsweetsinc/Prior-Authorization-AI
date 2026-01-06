@@ -23,7 +23,7 @@ class OrganizationService(BaseService):
 
         Args:
             db_session (AsyncSession): Database session.
-            organization_dao (OrganizationDAO | None): Optional OrganizationDAO instance.
+            organization_dao (OrganizationDAO | None): OrganizationDAO instance.
 
         """
         super().__init__(db_session)
@@ -53,7 +53,7 @@ class OrganizationService(BaseService):
 
         Args:
             user_id: User ID.
-            organization_data: UpdateOrganizationRequestSchema with fields to update.
+            organization_data: UpdateOrganizationRequestSchema fields to update.
 
         Returns:
             OrganizationResponseSchema: Updated organization information.

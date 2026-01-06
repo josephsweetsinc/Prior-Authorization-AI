@@ -114,10 +114,10 @@ class S3Actions(AWSActions, FileActionMixin):
             file_extension=file_extension,
         )
         file_obj.seek(0)
-        self._upload_to_s3(key, file_obj, file_type, metadata=metadata)
+        self.upload_to_s3(key, file_obj, file_type, metadata=metadata)
         return key, file_type
 
-    def _upload_to_s3(
+    def upload_to_s3(
         self,
         key: str,
         file_obj: BinaryIO,

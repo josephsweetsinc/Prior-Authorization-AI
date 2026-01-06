@@ -1,3 +1,4 @@
+import logging
 from io import BytesIO
 
 from fastapi import UploadFile
@@ -5,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import BaseService
+from core.constants import MAX_AVATAR_SIZE
 from dao import UserDAO
 from exceptions import (
     EmailAlreadyRegisteredException,
@@ -22,8 +24,10 @@ from schemas import (
     UserListItemSchema,
     UserResponseShema,
 )
-from services.aws.actions import S3Actions
+from services.aws.actions import S3Actions, generate_storage_key
 from services.jwt.hasher import Hasher
+
+logger = logging.getLogger(__name__)
 
 
 class UserService(BaseService):
@@ -260,16 +264,13 @@ class UserService(BaseService):
         content_type = file.content_type
 
         if not content_type or content_type not in allowed_mime_types:
-            raise UnknownFiletypeException(
-                allowed_types=['JPEG', 'PNG']
-            )
+            raise UnknownFiletypeException(allowed_types=['JPEG', 'PNG'])
 
         # Read file content
         content = await file.read()
         file_size = len(content)
 
         # Validate file size (5MB max)
-        MAX_AVATAR_SIZE = 5 * 1024 * 1024  # 5MB
         if file_size > MAX_AVATAR_SIZE:
             raise IncorrectFileSizeException(max_size_mb=5)
 
@@ -284,7 +285,6 @@ class UserService(BaseService):
         file_obj = BytesIO(content)
 
         # Generate S3 key for avatar
-        from services.aws.actions import generate_storage_key
 
         file_extension = '.jpg' if content_type == 'image/jpeg' else '.png'
         s3_key = generate_storage_key(
@@ -294,7 +294,7 @@ class UserService(BaseService):
 
         # Upload to S3 directly (we already validated the file)
         file_obj.seek(0)
-        self._s3_actions._upload_to_s3(
+        self._s3_actions.upload_to_s3(
             key=s3_key,
             file_obj=file_obj,
             content_type=content_type,
@@ -318,7 +318,7 @@ class UserService(BaseService):
                 )
             except Exception:
                 # Log error but don't fail the request
-                pass
+                logger.exception('Failed to delete old avatar')
 
         await self._session.commit()
 
