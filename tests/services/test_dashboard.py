@@ -20,7 +20,7 @@ class TestDashboardService:
         ambulance_request_factory,
         request_status_history_factory,
     ):
-        """Test getting dashboard_metrics for provider user."""
+        """Test getting dashboard_metrics for user with provider role."""
         provider = await user_factory(
             email='provider@test.com',
             role=UserRole.PROVIDER,
