@@ -192,11 +192,13 @@ class UserDAO(BaseDAO):
         self,
         *,
         search: str | None = None,
+        roles: list[UserRole] | None = None,
     ) -> Select[Any]:
         """Build base filter statement for users.
 
         Args:
             search: Search term for user name, surname, or email.
+            roles: List of user roles to filter by.
 
         Returns:
             Select: SQLAlchemy select statement with filters applied.
@@ -214,23 +216,28 @@ class UserDAO(BaseDAO):
                 )
             )
 
+        if roles:
+            stmt = stmt.where(User.role.in_(roles))
+
         return stmt
 
     async def count_all(
         self,
         *,
         search: str | None = None,
+        roles: list[UserRole] | None = None,
     ) -> int:
         """Count all users with filters.
 
         Args:
             search: Search term for user name, surname, or email.
+            roles: List of user roles to filter by.
 
         Returns:
             int: Total count of users.
 
         """
-        stmt = self._build_filter_stmt(search=search)
+        stmt = self._build_filter_stmt(search=search, roles=roles)
         stmt = select(func.count()).select_from(stmt.subquery())
         result = await self._session.execute(stmt)
         return result.scalar_one() or 0
@@ -241,6 +248,7 @@ class UserDAO(BaseDAO):
         offset: int = 0,
         limit: int = 8,
         search: str | None = None,
+        roles: list[UserRole] | None = None,
     ) -> list[User]:
         """Get all users with pagination and filters.
 
@@ -248,12 +256,13 @@ class UserDAO(BaseDAO):
             offset: Number of items to skip.
             limit: Maximum number of items to return.
             search: Search term for user name, surname, or email.
+            roles: List of user roles to filter by.
 
         Returns:
             list[User]: List of users.
 
         """
-        stmt = self._build_filter_stmt(search=search)
+        stmt = self._build_filter_stmt(search=search, roles=roles)
         stmt = (
             stmt.order_by(User.created_at.desc(), User.id.desc())
             .offset(offset)

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from core import exception_handler, get_service
 from dependencies import get_admin_user_from_token, get_current_user
 from models import User
+from models.user import UserRole
 from schemas import (
     CreateUserByAdminRequestSchema,
     UpdateUserRequestSchema,
@@ -210,6 +211,11 @@ async def get_all_users(
         description='Search by user name, surname, or email',
         examples=['John'],
     ),
+    role: list[UserRole] | None = Query(  # noqa: B008
+        None,
+        description='Filter by user roles. Can specify multiple roles.',
+        examples=[['admin'], ['provider'], ['admin', 'provider']],
+    ),
 ) -> UsersListResponseSchema:
     """Get all users with pagination.
 
@@ -218,6 +224,7 @@ async def get_all_users(
     Args:
         page: Page number (1-based).
         search: Search term for user name, surname, or email.
+        role: List of user roles to filter by.
         service: User service.
 
     Returns:
@@ -234,6 +241,7 @@ async def get_all_users(
         page=page,
         limit=8,
         search=search,
+        roles=role,
     )
     return UsersListResponseSchema(
         items=items,

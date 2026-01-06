@@ -353,7 +353,7 @@ class TestUserAdminEndpoints:
             assert data['showing'] == 1
             # Verify service was called with correct parameters
             mock_get.assert_called_once_with(
-                page=2, limit=8, search=None
+                page=2, limit=8, search=None, roles=None
             )
 
     @pytest.mark.asyncio
@@ -413,7 +413,7 @@ class TestUserAdminEndpoints:
             assert data['items'][0]['full_name'] == 'John Doe'
             # Verify service was called with search parameter
             mock_get.assert_called_once_with(
-                page=1, limit=8, search='John'
+                page=1, limit=8, search='John', roles=None
             )
 
     @pytest.mark.asyncio
