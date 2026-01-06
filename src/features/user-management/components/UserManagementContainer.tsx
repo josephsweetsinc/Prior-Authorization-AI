@@ -24,7 +24,7 @@ export const UserManagementContainer = () => {
 
   const { data, isLoading } = useGetUsersQuery({
     page: pagination.pageIndex + 1,
-    role: filters.role,
+    role: filters.role === 'all' ? undefined : filters.role,
     search: filters.searchQuery,
   });
 

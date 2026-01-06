@@ -8,6 +8,10 @@ export const USER_FORM_DEFAULTS: IFormData = {
 
 export const ROLE_OPTIONS = [
   {
+    label: 'All roles',
+    value: 'all',
+  },
+  {
     label: 'Provider',
     value: 'provider',
   },
