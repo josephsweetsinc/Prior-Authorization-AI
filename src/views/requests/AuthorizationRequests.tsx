@@ -13,10 +13,10 @@ import { type RequestStatus } from '@/services/dashboard';
 import {
   DataTable,
   Input,
-  RequestStatusChip,
+  StatusChip,
   Select,
   TitleAndDesc,
-  RequestsHeadCell,
+  TableHeadCell,
 } from '@/shared/components';
 
 type RequestRow = {
@@ -140,7 +140,7 @@ const AuthorizationRequests = () => {
     () => [
       {
         accessorKey: 'id',
-        header: () => <RequestsHeadCell>Request ID</RequestsHeadCell>,
+        header: () => <TableHeadCell>Request ID</TableHeadCell>,
         cell: ({ getValue }) => (
           <span className='text-foreground font-bold'>
             {getValue<string>()}
@@ -149,22 +149,22 @@ const AuthorizationRequests = () => {
       },
       {
         accessorKey: 'patient',
-        header: () => <RequestsHeadCell>Patient</RequestsHeadCell>,
+        header: () => <TableHeadCell>Patient</TableHeadCell>,
       },
       {
         accessorKey: 'transportType',
-        header: () => <RequestsHeadCell>Transport Type</RequestsHeadCell>,
+        header: () => <TableHeadCell>Transport Type</TableHeadCell>,
       },
       {
         accessorKey: 'status',
-        header: () => <RequestsHeadCell>Status</RequestsHeadCell>,
+        header: () => <TableHeadCell>Status</TableHeadCell>,
         cell: ({ getValue }) => (
-          <RequestStatusChip status={getValue<RequestStatus>()} />
+          <StatusChip status={getValue<RequestStatus>()} />
         ),
       },
       {
         accessorKey: 'createdAt',
-        header: () => <RequestsHeadCell>Date</RequestsHeadCell>,
+        header: () => <TableHeadCell>Date</TableHeadCell>,
         cell: ({ getValue }) => {
           const date = getValue<Date>();
           const formatted = date.toLocaleDateString('en-US');
@@ -173,7 +173,7 @@ const AuthorizationRequests = () => {
       },
       {
         id: 'actions',
-        header: () => <RequestsHeadCell>Action</RequestsHeadCell>,
+        header: () => <TableHeadCell>Action</TableHeadCell>,
         cell: ({ row }) => (
           <Link
             href={`/requests/${row.original.id}`}
