@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 from dependencies.auth import get_current_user
 from main import app
-from models.ambulance_request import RequestStatus
+from models.ambulance_request import RequestStatus, TransportationType
 from models.user import UserRole
 
 
@@ -249,6 +249,10 @@ class TestAmbulanceRequestEndpoints:
                 patient_last_name='Doe',
                 primary_diagnosis='Chronic heart failure',
                 status=RequestStatus.PROCESSING,
+                pickup_address="123 Main St, Springfield, IL 62701",
+                destination_address="Memorial Dialysis Center, 456 Medical Dr",
+                transportation_type=TransportationType.AMBULANCE,
+                patient_id="DA123456789HY",
                 created_at=datetime(2025, 1, 1, 0, 0, 0),
                 updated_at=datetime(2025, 1, 1, 0, 0, 0),
                 status_history=[
