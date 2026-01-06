@@ -9,12 +9,10 @@ import { type IFilters } from '../types';
 
 type Props = {
   filters: IFilters;
-  // eslint-disable
+
   onFiltersChange: <Key extends keyof IFilters>(
-    // eslint-disable-next-line no-unused-vars
-    key: Key,
-    // eslint-disable-next-line no-unused-vars
-    value: IFilters[Key],
+    _key: Key,
+    _value: IFilters[Key],
   ) => void;
 } & HTMLProps<HTMLDivElement>;
 

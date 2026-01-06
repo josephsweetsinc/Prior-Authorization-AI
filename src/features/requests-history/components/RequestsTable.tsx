@@ -10,8 +10,7 @@ import { RequestDetails } from './RequestDetails';
 type Props = {
   data?: IRequestHistoryResponse;
   pagination: PaginationState;
-  // eslint-disable-next-line no-unused-vars
-  onPaginationChange: (state: PaginationState) => void;
+  onPaginationChange: (_state: PaginationState) => void;
   isLoading?: boolean;
 };
 
