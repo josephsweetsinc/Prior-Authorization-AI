@@ -341,6 +341,37 @@ class RequestDocumentSchema(BaseModel):
 class RequestWithStatusHistorySchema(AmbulanceRequestResponseSchema):
     """Response schema for request with status history."""
 
+    pickup_address: Annotated[
+        str,
+        Field(
+            min_length=5,
+            max_length=500,
+            examples=['123 Main St, Springfield, IL 62701'],
+        ),
+    ]
+    destination_address: Annotated[
+        str,
+        Field(
+            min_length=5,
+            max_length=500,
+            examples=[
+                'Memorial Dialysis Center, '
+                '456 Medical Dr, Springfield, IL 62702'
+            ],
+        ),
+    ]
+    transportation_type: TransportationType
+    patient_id: Annotated[
+        str,
+        Field(
+            min_length=1,
+            max_length=50,
+            description=(
+                'Patient Medicare Beneficiary Identifier (MBI) or other ID'
+            ),
+            examples=['1EG4-TE5-MK72'],
+        ),
+    ]
     status_history: list[RequestStatusHistoryResponseSchema] = []
     documents: list[RequestDocumentSchema] = Field(
         default_factory=list,
