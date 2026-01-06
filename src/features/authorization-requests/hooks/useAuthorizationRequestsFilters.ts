@@ -1,25 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useFilters } from '@/shared/hooks/useFilters';
 
 import { type AuthorizationRequestsFilters } from '../types';
 
+const DEFAULT_FILTERS: AuthorizationRequestsFilters = {
+  searchQuery: '',
+  status: 'all',
+  date: 'all',
+};
+
 export const useAuthorizationRequestsFilters = () => {
-  const [filters, setFilters] = useState<AuthorizationRequestsFilters>({
-    searchQuery: '',
-    status: 'all',
-    date: 'all',
-  });
-
-  const handleFiltersChange = <Key extends keyof AuthorizationRequestsFilters>(
-    key: Key,
-    value: AuthorizationRequestsFilters[Key],
-  ) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
-  return { filters, handleFiltersChange };
+  return useFilters(DEFAULT_FILTERS);
 };
