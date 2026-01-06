@@ -1,6 +1,7 @@
 import { type JSX } from 'react';
 
-import { Button, Input, OverlayIcon, Window } from '@/shared/components';
+import { SecuritySettingsForm } from '@/features/settings/components/SecuritySettingsForm';
+import { OverlayIcon, Window } from '@/shared/components';
 
 export const SecuritySettings = (): JSX.Element => {
   return (
@@ -14,32 +15,7 @@ export const SecuritySettings = (): JSX.Element => {
           </p>
         </div>
       </div>
-      <div className='space-y-5'>
-        <Input
-          labelVariant='static'
-          label='Current Password'
-          type='password'
-          placeholder='Enter password'
-        />
-        <Input
-          labelVariant='static'
-          label='New Password'
-          type='password'
-          placeholder='Enter password'
-        />
-
-        <Input
-          labelVariant='static'
-          label='Confirm Password'
-          type='password'
-          placeholder='Confirm password'
-        />
-      </div>
-      <div className='flex justify-end'>
-        <Button variant='primary' size='default' className='w-fit'>
-          Update Information
-        </Button>
-      </div>
+      <SecuritySettingsForm />
     </Window>
   );
 };
