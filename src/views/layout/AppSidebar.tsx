@@ -1,6 +1,6 @@
 'use client';
 
-import { useGetCurrentUserQuery } from '@/services';
+import { useIsAdmin } from '@/services/auth/hooks';
 import LogoIcon from '@/shared/assets/icons/logo';
 import {
   Sidebar,
@@ -13,10 +13,7 @@ import {
 } from '@/shared/components';
 
 export const AppSidebar = () => {
-  const { data: currentUser, isLoading } = useGetCurrentUserQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
-  const isAdmin = currentUser?.role === 'admin';
+  const { isAdmin, isLoading } = useIsAdmin();
 
   return (
     <Sidebar className='row-span-2'>
