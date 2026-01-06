@@ -1,10 +1,9 @@
 'use client';
 
 import { BellDot, type icons, Settings } from 'lucide-react';
-import { useState } from 'react';
 
 import { LogoutModal } from '@/features/profile/components/LogoutModal';
-import { useLogout } from '@/services/auth/hooks/useLogout';
+import { useLogoutModal } from '@/features/profile/hooks/useLogoutModal';
 import {
   Button,
   GlobalSearch,
@@ -16,16 +15,7 @@ import {
 } from '@/shared/components';
 
 export const AppHeader = () => {
-  const { logout, isLoading: isLoggingOut } = useLogout();
-  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
-
-  const openLogoutModal = () => setIsLogoutOpen(true);
-  const closeLogoutModal = () => setIsLogoutOpen(false);
-  const handleLogoutConfirm = () => {
-    if (!isLoggingOut) {
-      logout();
-    }
-  };
+  const { isOpen, isLoading, open, close, confirm } = useLogoutModal();
 
   const profileActions: ProfileAction[] = [
     {
@@ -39,7 +29,7 @@ export const AppHeader = () => {
       label: 'Log Out',
       icon: 'LogOut' as keyof typeof icons,
       variant: 'destructive',
-      onClick: openLogoutModal,
+      onClick: open,
     },
   ] as const;
 
@@ -70,10 +60,10 @@ export const AppHeader = () => {
         </HeaderGroup>
       </Header>
       <LogoutModal
-        isOpen={isLogoutOpen}
-        onCloseAction={closeLogoutModal}
-        onConfirm={handleLogoutConfirm}
-        isLoading={isLoggingOut}
+        isOpen={isOpen}
+        onCloseAction={close}
+        onConfirm={confirm}
+        isLoading={isLoading}
       />
     </>
   );

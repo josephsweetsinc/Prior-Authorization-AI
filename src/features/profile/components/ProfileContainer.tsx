@@ -1,9 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 
-import { useLogout } from '@/services/auth/hooks/useLogout';
+import { useLogoutModal } from '../hooks/useLogoutModal';
 
 import { AccountDetailsCard } from './AccountDetailsCard';
 import { ActivitySummaryCard } from './ActivitySummaryCard';
@@ -11,17 +10,8 @@ import { LogoutModal } from './LogoutModal';
 import { ProfileHeaderCard } from './ProfileHeaderCard';
 
 export const ProfileContainer = () => {
-  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
-  const { logout, isLoading } = useLogout();
+  const { isOpen, isLoading, close, confirm } = useLogoutModal();
   const router = useRouter();
-
-  const closeLogoutModal = () => setIsLogoutOpen(false);
-
-  const handleLogoutConfirm = () => {
-    if (!isLoading) {
-      logout();
-    }
-  };
 
   return (
     <main className='space-y-5'>
@@ -38,9 +28,9 @@ export const ProfileContainer = () => {
         <ActivitySummaryCard />
       </div>
       <LogoutModal
-        isOpen={isLogoutOpen}
-        onCloseAction={closeLogoutModal}
-        onConfirm={handleLogoutConfirm}
+        isOpen={isOpen}
+        onCloseAction={close}
+        onConfirm={confirm}
         isLoading={isLoading}
       />
     </main>

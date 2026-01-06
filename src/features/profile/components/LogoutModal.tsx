@@ -1,24 +1,18 @@
 import { Button, Modal } from '@/shared/components';
+import { type ModalProps } from '@/shared/components/modal/Modal';
 
-type Props = {
-  isOpen: boolean;
-  onCloseAction: () => void;
+type Props = Omit<ModalProps, 'children'> & {
   onConfirm: () => void;
   isLoading?: boolean;
 };
 
 export const LogoutModal = ({
-  isOpen,
-  onCloseAction,
   onConfirm,
   isLoading = false,
+  ...modalProps
 }: Props) => {
   return (
-    <Modal
-      isOpen={isOpen}
-      onCloseAction={onCloseAction}
-      containerClassName='max-w-[600px] w-screen'
-    >
+    <Modal {...modalProps} containerClassName='max-w-[600px] w-screen'>
       <div className='space-y-4'>
         <h2 className='text-brand-dark text-[32px] font-bold'>Log out?</h2>
         <p className='text-gray-dark text-base'>
@@ -36,7 +30,7 @@ export const LogoutModal = ({
           <Button
             variant='gray'
             className='w-full rounded-full sm:w-32'
-            onClick={onCloseAction}
+            onClick={modalProps.onCloseAction}
           >
             Cancel
           </Button>
