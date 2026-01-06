@@ -211,7 +211,7 @@ async def get_all_users(
         description='Search by user name, surname, or email',
         examples=['John'],
     ),
-    role: list[UserRole] | None = Query(
+    role: list[UserRole] | None = Query(  # noqa: B008
         None,
         description='Filter by user roles. Can specify multiple roles.',
         examples=[['admin'], ['provider'], ['admin', 'provider']],
