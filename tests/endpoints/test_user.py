@@ -1,5 +1,6 @@
 """Tests for user admin endpoints and self-profile updates."""
 
+from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -56,6 +57,7 @@ class TestUserAdminEndpoints:
             email=user.email,
             role=user.role,
             is_active=user.is_active,
+            created_at=user.created_at,
         )
 
         result = await update_me(
@@ -124,6 +126,7 @@ class TestUserAdminEndpoints:
                 email=provider.email,
                 role=provider.role,
                 is_active=provider.is_active,
+                created_at=provider.created_at,
             )
 
             response = client.patch(

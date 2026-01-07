@@ -163,6 +163,40 @@ class UserResponseShema(BaseModel):
     email: str
     role: UserRole
     is_active: bool
+    phone: Annotated[
+        str | None,
+        Field(
+            default=None,
+            description='Phone number of the user',
+        ),
+    ] = None
+    position: Annotated[
+        str | None,
+        Field(
+            default=None,
+            description='Position of the user',
+        ),
+    ] = None
+    place_of_work: Annotated[
+        str | None,
+        Field(
+            default=None,
+            description='Place of work of the user',
+        ),
+    ] = None
+    last_login: Annotated[
+        datetime | None,
+        Field(
+            default=None,
+            description='Date and time of last login',
+        ),
+    ] = None
+    created_at: Annotated[
+        datetime,
+        Field(
+            description='Date and time when the account was created',
+        ),
+    ]
     avatar_url: Annotated[
         str | None,
         Field(
