@@ -3,11 +3,15 @@ import { Chip } from '@/shared/components';
 
 export const STATUS_CONFIG: Record<
   RequestStatus,
-  { label: string; variant: 'info' | 'warning' | 'success' | 'destructive' }
+  {
+    label: string;
+    variant: 'info' | 'submitted' | 'warning' | 'success' | 'destructive';
+  }
 > = {
   approved: { label: 'Approved', variant: 'success' },
-  pending: { label: 'Pending ', variant: 'warning' },
-  processing: { label: 'Processing', variant: 'info' },
+  pending: { label: 'Pending ', variant: 'info' },
+  draft: { label: 'Draft', variant: 'warning' },
+  submitted: { label: 'Submitted', variant: 'submitted' },
   denied: { label: 'Denied', variant: 'destructive' },
 } as const;
 

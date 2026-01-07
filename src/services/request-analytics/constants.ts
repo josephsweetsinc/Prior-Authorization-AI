@@ -6,18 +6,30 @@ export const STATUS_CHART_CONFIG: Record<
 > = {
   approved: {
     label: 'Approved',
-    color: '#2FB400',
+    color: '#24B200',
   },
-  pending: {
+  draft: {
     label: 'Pending',
     color: '#FACC15',
   },
-  processing: {
-    label: 'Processing',
-    color: '#3B82F6',
+  submitted: {
+    label: 'Submitted',
+    color: '#4C00FE',
+  },
+  pending: {
+    label: 'Pending',
+    color: '#047CB4',
   },
   denied: {
     label: 'Denied',
-    color: '#EF4444',
+    color: '#FE5C73',
   },
+};
+
+export const ACTION_STATUS_TITLE: Record<RequestStatus, string> = {
+  approved: 'Approved request',
+  draft: 'Created a draft',
+  submitted: 'Submitted a request',
+  pending: 'Reviewed a request',
+  denied: 'Denied request',
 };

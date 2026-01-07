@@ -105,7 +105,7 @@ export const RequestDetails = ({
             <Separator className='bg-gray-200' />
             <section className='mt-5 space-y-5'>
               <h2 className='text-brand-dark text-base font-bold lg:text-lg xl:text-xl'>
-                Status timeline
+                Documents
               </h2>
               <div className='flex flex-wrap items-center gap-5'>
                 {data.documents.map((document) => (
