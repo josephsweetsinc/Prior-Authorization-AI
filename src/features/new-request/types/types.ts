@@ -1,12 +1,12 @@
 import {
-  type IUploadAndExtractionResult,
   type IExtractedData,
-} from '@/services';
+  type IUploadAndExtractionResult,
+} from '@/services/new-request';
 
 import { type FormState } from '../info-form';
 
 export type INewRequestState = {
-  extractedData: IExtractedData['extracted_data'] | null;
+  extractedData: Partial<IExtractedData> | null;
   extractionResult: IUploadAndExtractionResult | null;
   form: FormState | null;
 };
