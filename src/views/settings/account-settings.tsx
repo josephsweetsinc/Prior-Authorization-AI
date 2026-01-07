@@ -1,6 +1,7 @@
 import { type JSX } from 'react';
 
-import { Button, Input, OverlayIcon, Window } from '@/shared/components';
+import { AccountSettingsForm } from '@/features/settings/components';
+import { OverlayIcon, Window } from '@/shared/components';
 
 export const AccountSettings = (): JSX.Element => {
   return (
@@ -14,19 +15,7 @@ export const AccountSettings = (): JSX.Element => {
           </p>
         </div>
       </div>
-      <div className='grid grid-cols-2 gap-5'>
-        <Input labelVariant='static' label='First Name' />
-        <Input labelVariant='static' label='Last Name' />
-        <Input labelVariant='static' label='Email' />
-        <Input labelVariant='static' label='Phone' />
-        <Input labelVariant='static' label='Position' />
-        <Input labelVariant='static' label='Place of Work' />
-      </div>
-      <div className='flex justify-end'>
-        <Button variant='primary' size='default' className='w-fit'>
-          Update Information
-        </Button>
-      </div>
+      <AccountSettingsForm />
     </Window>
   );
 };
