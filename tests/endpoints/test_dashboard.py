@@ -108,7 +108,7 @@ class TestProviderDashboard:
         )
         await request_status_history_factory(
             request_id=approved_request.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             created_at=two_days_ago,
         )
         await request_status_history_factory(
@@ -128,7 +128,7 @@ class TestProviderDashboard:
         )
         await request_status_history_factory(
             request_id=pending_request.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             created_at=yesterday,
         )
         await request_status_history_factory(
@@ -143,12 +143,12 @@ class TestProviderDashboard:
             patient_first_name='Bob',
             patient_last_name='Johnson',
             primary_diagnosis='Hypertension',
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             created_at=now,
         )
         await request_status_history_factory(
             request_id=processing_request.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             created_at=now,
         )
 
@@ -163,7 +163,7 @@ class TestProviderDashboard:
         )
         await request_status_history_factory(
             request_id=denied_request.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             created_at=yesterday,
         )
         await request_status_history_factory(
@@ -194,9 +194,9 @@ class TestProviderDashboard:
         provider_data = data['provider']
 
         # Check summary statistics
-        # Note: total_requests only counts APPROVED + PENDING + DENIED (not PROCESSING)
+        # Note: total_requests only counts APPROVED + PENDING + DENIED (not SUBMITTED)
         summary = provider_data['summary']
-        assert summary['total_requests'] == 3  # APPROVED + PENDING + DENIED (PROCESSING not counted)
+        assert summary['total_requests'] == 3  # APPROVED + PENDING + DENIED (SUBMITTED not counted)
         assert summary['pending_review'] == 1
         assert summary['approved'] == 1
         # Approval rate = 1 / (1 + 1) * 100 = 50%
@@ -212,12 +212,12 @@ class TestProviderDashboard:
             'Jane Smith',
         ]
 
-        # Check requests in progress (PENDING + PROCESSING)
+        # Check requests in progress (PENDING + SUBMITTED)
         in_progress = provider_data['requests_in_progress']['items']
         assert len(in_progress) == 2
         statuses = {item['status'] for item in in_progress}
         assert RequestStatus.PENDING in statuses
-        assert RequestStatus.PROCESSING in statuses
+        assert RequestStatus.SUBMITTED in statuses
 
         # Check daily submitted requests
         daily_submitted = provider_data['daily_submitted_requests']
@@ -478,7 +478,7 @@ class TestAdminDashboard:
         )
         await request_status_history_factory(
             request_id=req1.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             created_at=yesterday,
         )
         await request_status_history_factory(
@@ -495,7 +495,7 @@ class TestAdminDashboard:
         )
         await request_status_history_factory(
             request_id=req2.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             created_at=now,
         )
         await request_status_history_factory(
@@ -513,7 +513,7 @@ class TestAdminDashboard:
         )
         await request_status_history_factory(
             request_id=req3.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             created_at=yesterday,
         )
         await request_status_history_factory(
@@ -530,7 +530,7 @@ class TestAdminDashboard:
         )
         await request_status_history_factory(
             request_id=req4.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             created_at=now,
         )
         await request_status_history_factory(
@@ -622,7 +622,7 @@ class TestAdminDashboard:
         # Status history: PENDING -> (wait 2 hours) -> next status
         await request_status_history_factory(
             request_id=pending_req.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             created_at=now - timedelta(hours=5),
         )
         await request_status_history_factory(
@@ -902,7 +902,7 @@ class TestAdminDashboard:
             )
             await request_status_history_factory(
                 request_id=req.id,
-                status=RequestStatus.PROCESSING,
+                status=RequestStatus.SUBMITTED,
                 created_at=now - timedelta(hours=i),
             )
             await request_status_history_factory(

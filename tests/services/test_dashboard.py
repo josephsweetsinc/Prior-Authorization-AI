@@ -217,7 +217,7 @@ class TestDashboardService:
         await ambulance_request_factory(
             user_id=provider.id,
             patient_first_name='Processing',
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
         )
         await ambulance_request_factory(
             user_id=provider.id,
@@ -239,7 +239,7 @@ class TestDashboardService:
         assert len(in_progress) == 2
         statuses = {item.status for item in in_progress}
         assert RequestStatus.PENDING in statuses
-        assert RequestStatus.PROCESSING in statuses
+        assert RequestStatus.SUBMITTED in statuses
 
     @pytest.mark.asyncio
     async def test_provider_dashboard_daily_submitted_requests(
@@ -567,7 +567,7 @@ class TestDashboardService:
             )
             await request_status_history_factory(
                 request_id=req.id,
-                status=RequestStatus.PROCESSING,
+                status=RequestStatus.SUBMITTED,
                 created_at=now - timedelta(hours=i),
             )
             await request_status_history_factory(

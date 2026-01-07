@@ -5,10 +5,14 @@ from .ai_extraction import (
     ExtractedTransportationData,
 )
 from .ambulance_request import (
+    AdminRequestWithStatusHistorySchema,
+    AdminUpdateRequestSchema,
     AmbulanceRequestResponseSchema,
     AmbulanceRequestsListResponseSchema,
+    ApproveRequestSchema,
     CreateAmbulanceRequestParseSchema,
     CreateAmbulanceRequestSchema,
+    DenyRequestSchema,
     FileUploadResponseSchema,
     FileUploadWithExtractionResponseSchema,
     RequestDocumentSchema,
@@ -41,13 +45,17 @@ from .user import (
 
 __all__ = [
     'AIExtractionResponse',
+    'AdminRequestWithStatusHistorySchema',
+    'AdminUpdateRequestSchema',
     'AmbulanceRequestResponseSchema',
     'AmbulanceRequestsListResponseSchema',
+    'ApproveRequestSchema',
     'CreateAmbulanceRequestParseSchema',
     'CreateAmbulanceRequestSchema',
     'CreateUserByAdminRequestSchema',
     'CreateUserRequestSchema',
     'DashboardResponseSchema',
+    'DenyRequestSchema',
     'ExtractedTransportationData',
     'FileUploadResponseSchema',
     'FileUploadWithExtractionResponseSchema',

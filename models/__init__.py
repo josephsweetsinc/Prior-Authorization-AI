@@ -1,5 +1,6 @@
 from .ambulance_request import (
     AmbulanceRequest,
+    DenialReason,
     RequestStatus,
     RequestStatusHistory,
     TransportationType,
@@ -13,6 +14,7 @@ from .user import User, UserRole
 __all__ = [
     'AmbulanceRequest',
     'BlacklistToken',
+    'DenialReason',
     'Organization',
     'PasswordResetCode',
     'RequestFile',

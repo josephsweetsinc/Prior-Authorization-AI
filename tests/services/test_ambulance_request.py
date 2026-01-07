@@ -266,6 +266,7 @@ class TestAmbulanceRequestService:
         service: AmbulanceRequestService,
         user_factory,
         db_session,
+        mock_ai_service,
     ):
         """Test successful request creation."""
         user = await user_factory()
@@ -280,7 +281,18 @@ class TestAmbulanceRequestService:
         file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
+        # Create draft request with extraction
+        from schemas.ambulance_request import CreateAmbulanceRequestParseSchema
+
+        parse_data = CreateAmbulanceRequestParseSchema(file_ids=file_ids)
+        draft_result = await service.create_request_with_extraction(
+            request_data=parse_data, user_id=user.id
+        )
+        await db_session.commit()
+
+        # Now create/submit the request
         request_data = CreateAmbulanceRequestSchema(
+            request_id=draft_result.request_id,
             transportation_type=TransportationType.AMBULANCE,
             patient_first_name='John',
             patient_last_name='Doe',
@@ -293,7 +305,6 @@ class TestAmbulanceRequestService:
             primary_diagnosis='Chronic heart failure',
             medical_justification='Patient requires transport',
             form_number='CMS-10344',
-            file_ids=file_ids,
         )
 
         result = await service.create_request(
@@ -302,7 +313,7 @@ class TestAmbulanceRequestService:
 
         assert result.id is not None
         assert result.patient_first_name == 'John'
-        assert result.status == RequestStatus.PROCESSING
+        assert result.status == RequestStatus.SUBMITTED
 
         # Verify files are linked
         file_dao = RequestFileDAO(db_session)
@@ -314,20 +325,21 @@ class TestAmbulanceRequestService:
         status_dao = RequestStatusHistoryDAO(db_session)
         history = await status_dao.get_by_request_id(result.id)
         assert len(history) == 1
-        assert history[0].status == RequestStatus.PROCESSING
+        assert history[0].status == RequestStatus.SUBMITTED
 
     @pytest.mark.asyncio
-    async def test_create_request_invalid_file_ids(
+    async def test_create_request_invalid_draft(
         self,
         service: AmbulanceRequestService,
         user_factory,
         db_session,
     ):
-        """Test create request with invalid file IDs raises exception."""
+        """Test create request with invalid draft request_id raises exception."""
         user = await user_factory()
         await db_session.commit()
 
         request_data = CreateAmbulanceRequestSchema(
+            request_id=99999,  # Non-existent draft request
             transportation_type=TransportationType.AMBULANCE,
             patient_first_name='John',
             patient_last_name='Doe',
@@ -340,16 +352,12 @@ class TestAmbulanceRequestService:
             primary_diagnosis=None,
             medical_justification=None,
             form_number=None,
-            file_ids=[99999, 99998],  # Non-existent file IDs
         )
 
-        with pytest.raises(AmbulanceRequestInvalidFileIdsException) as exc:
+        with pytest.raises(AmbulanceRequestNotFoundException):
             await service.create_request(
                 user_id=user.id, request_data=request_data
             )
-
-        assert '99999' in exc.value.detail
-        assert '99998' in exc.value.detail
 
     @pytest.mark.asyncio
     async def test_get_request_by_id_success(
@@ -371,7 +379,17 @@ class TestAmbulanceRequestService:
         file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
+        # Create draft
+        from schemas.ambulance_request import CreateAmbulanceRequestParseSchema
+
+        parse_data = CreateAmbulanceRequestParseSchema(file_ids=file_ids)
+        draft_result = await service.create_request_with_extraction(
+            request_data=parse_data, user_id=user.id
+        )
+        await db_session.commit()
+
         request_data = CreateAmbulanceRequestSchema(
+            request_id=draft_result.request_id,
             transportation_type=TransportationType.AMBULANCE,
             patient_first_name='John',
             patient_last_name='Doe',
@@ -381,7 +399,6 @@ class TestAmbulanceRequestService:
             time_of_transport=time(13, 40),
             pickup_address='123 Main St',
             destination_address='456 Medical Dr',
-            file_ids=file_ids,
         )
         created = await service.create_request(
             user_id=user.id, request_data=request_data
@@ -433,7 +450,17 @@ class TestAmbulanceRequestService:
         file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
+        # Create draft
+        from schemas.ambulance_request import CreateAmbulanceRequestParseSchema
+
+        parse_data = CreateAmbulanceRequestParseSchema(file_ids=file_ids)
+        draft_result = await service.create_request_with_extraction(
+            request_data=parse_data, user_id=user1.id
+        )
+        await db_session.commit()
+
         request_data = CreateAmbulanceRequestSchema(
+            request_id=draft_result.request_id,
             transportation_type=TransportationType.AMBULANCE,
             patient_first_name='John',
             patient_last_name='Doe',
@@ -443,7 +470,6 @@ class TestAmbulanceRequestService:
             time_of_transport=time(13, 40),
             pickup_address='123 Main St',
             destination_address='456 Medical Dr',
-            file_ids=file_ids,
         )
         created = await service.create_request(
             user_id=user1.id, request_data=request_data
@@ -477,7 +503,17 @@ class TestAmbulanceRequestService:
         file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
+        # Create draft
+        from schemas.ambulance_request import CreateAmbulanceRequestParseSchema
+
+        parse_data = CreateAmbulanceRequestParseSchema(file_ids=file_ids)
+        draft_result = await service.create_request_with_extraction(
+            request_data=parse_data, user_id=user1.id
+        )
+        await db_session.commit()
+
         request_data = CreateAmbulanceRequestSchema(
+            request_id=draft_result.request_id,
             transportation_type=TransportationType.AMBULANCE,
             patient_first_name='John',
             patient_last_name='Doe',
@@ -487,7 +523,6 @@ class TestAmbulanceRequestService:
             time_of_transport=time(13, 40),
             pickup_address='123 Main St',
             destination_address='456 Medical Dr',
-            file_ids=file_ids,
         )
         created = await service.create_request(
             user_id=user1.id, request_data=request_data
@@ -524,7 +559,17 @@ class TestAmbulanceRequestService:
             file_ids = [f.id for f in upload_result]
             await db_session.commit()
 
+            # Create draft
+            from schemas.ambulance_request import CreateAmbulanceRequestParseSchema
+
+            parse_data = CreateAmbulanceRequestParseSchema(file_ids=file_ids)
+            draft_result = await service.create_request_with_extraction(
+                request_data=parse_data, user_id=user1.id
+            )
+            await db_session.commit()
+
             request_data = CreateAmbulanceRequestSchema(
+                request_id=draft_result.request_id,
                 transportation_type=TransportationType.AMBULANCE,
                 patient_first_name=first_name,
                 patient_last_name='Doe',
@@ -534,7 +579,6 @@ class TestAmbulanceRequestService:
                 time_of_transport=time(13, 40),
                 pickup_address='123 Main St',
                 destination_address='456 Medical Dr',
-                file_ids=file_ids,
             )
             await service.create_request(
                 user_id=user1.id, request_data=request_data
@@ -549,7 +593,17 @@ class TestAmbulanceRequestService:
         file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
+        # Create draft
+        from schemas.ambulance_request import CreateAmbulanceRequestParseSchema
+
+        parse_data = CreateAmbulanceRequestParseSchema(file_ids=file_ids)
+        draft_result = await service.create_request_with_extraction(
+            request_data=parse_data, user_id=user2.id
+        )
+        await db_session.commit()
+
         request_data = CreateAmbulanceRequestSchema(
+            request_id=draft_result.request_id,
             transportation_type=TransportationType.AMBULANCE,
             patient_first_name='Jane',
             patient_last_name='Smith',
@@ -559,7 +613,6 @@ class TestAmbulanceRequestService:
             time_of_transport=time(13, 40),
             pickup_address='789 Oak Ave',
             destination_address='321 Pine St',
-            file_ids=file_ids,
         )
         await service.create_request(
             user_id=user2.id, request_data=request_data
@@ -603,7 +656,17 @@ class TestAmbulanceRequestService:
             file_ids = [f.id for f in upload_result]
             await db_session.commit()
 
+            # Create draft
+            from schemas.ambulance_request import CreateAmbulanceRequestParseSchema
+
+            parse_data = CreateAmbulanceRequestParseSchema(file_ids=file_ids)
+            draft_result = await service.create_request_with_extraction(
+                request_data=parse_data, user_id=user.id
+            )
+            await db_session.commit()
+
             request_data = CreateAmbulanceRequestSchema(
+                request_id=draft_result.request_id,
                 transportation_type=TransportationType.AMBULANCE,
                 patient_first_name='John',
                 patient_last_name='Doe',
@@ -613,7 +676,6 @@ class TestAmbulanceRequestService:
                 time_of_transport=time(13, 40),
                 pickup_address='123 Main St',
                 destination_address='456 Medical Dr',
-                file_ids=file_ids,
             )
             await service.create_request(
                 user_id=user.id, request_data=request_data
@@ -660,7 +722,17 @@ class TestAmbulanceRequestService:
             patient_id_digits = f'{100000000 + i:09d}'  # Ensure 9 digits: 100000000, 100000001, etc.
             # Use letters only for first name (pattern requires ^[a-zA-Z]+$)
             first_names = ['John', 'Jane', 'Bob', 'Alice', 'Charlie']
+            # Create draft
+            from schemas.ambulance_request import CreateAmbulanceRequestParseSchema
+
+            parse_data = CreateAmbulanceRequestParseSchema(file_ids=file_ids)
+            draft_result = await service.create_request_with_extraction(
+                request_data=parse_data, user_id=user.id
+            )
+            await db_session.commit()
+
             request_data = CreateAmbulanceRequestSchema(
+                request_id=draft_result.request_id,
                 transportation_type=TransportationType.AMBULANCE,
                 patient_first_name=first_names[i],
                 patient_last_name='Doe',
@@ -670,7 +742,6 @@ class TestAmbulanceRequestService:
                 time_of_transport=time(13, 40),
                 pickup_address='123 Main St',
                 destination_address='456 Medical Dr',
-                file_ids=file_ids,
             )
             await service.create_request(
                 user_id=user.id, request_data=request_data
@@ -727,7 +798,17 @@ class TestAmbulanceRequestService:
         file_ids = [f.id for f in upload_result]
         await db_session.commit()
 
+        # Create draft
+        from schemas.ambulance_request import CreateAmbulanceRequestParseSchema
+
+        parse_data = CreateAmbulanceRequestParseSchema(file_ids=file_ids)
+        draft_result = await service.create_request_with_extraction(
+            request_data=parse_data, user_id=user.id
+        )
+        await db_session.commit()
+
         request_data = CreateAmbulanceRequestSchema(
+            request_id=draft_result.request_id,
             transportation_type=TransportationType.AMBULANCE,
             patient_first_name='John',
             patient_last_name='Doe',
@@ -737,7 +818,6 @@ class TestAmbulanceRequestService:
             time_of_transport=time(13, 40),
             pickup_address='123 Main St',
             destination_address='456 Medical Dr',
-            file_ids=file_ids,
         )
         created = await service.create_request(
             user_id=user.id, request_data=request_data
@@ -757,7 +837,7 @@ class TestAmbulanceRequestService:
         status_dao = RequestStatusHistoryDAO(db_session)
         history = await status_dao.get_by_request_id(created.id)
         assert len(history) == 2
-        assert history[0].status == RequestStatus.PROCESSING
+        assert history[0].status == RequestStatus.SUBMITTED
         assert history[1].status == RequestStatus.APPROVED
         assert history[1].notes == 'Request approved by admin'
 

@@ -1,4 +1,5 @@
 import logging
+from datetime import UTC, datetime, time
 from io import BytesIO
 
 from fastapi import UploadFile
@@ -16,6 +17,7 @@ from exceptions import (
     AmbulanceRequestEmptyDocumentFileNameException,
     AmbulanceRequestFilesAlreadyLinkedException,
     AmbulanceRequestInvalidFileIdsException,
+    AmbulanceRequestInvalidStatusException,
     AmbulanceRequestNotFoundException,
     AmbulanceRequestPermissionException,
     IncorrectFileSizeException,
@@ -28,7 +30,10 @@ from models import (
     User,
     UserRole,
 )
+from models.ambulance_request import DenialReason, TransportationType
 from schemas import (
+    AdminRequestWithStatusHistorySchema,
+    AdminUpdateRequestSchema,
     AIExtractionResponse,
     AmbulanceRequestResponseSchema,
     CreateAmbulanceRequestParseSchema,
@@ -208,12 +213,13 @@ class AmbulanceRequestService(BaseService):
     async def create_request_with_extraction(
         self, request_data: CreateAmbulanceRequestParseSchema, user_id: int
     ) -> FileUploadWithExtractionResponseSchema:
-        """Validates provided file IDs and performs extraction on documents.
+        """Validates file IDs, performs extraction, creates draft request.
 
         This method checks that all requested files exist in the database
         and are not already linked to another ambulance request.
         If validation passes, it retrieves the corresponding S3 keys
         and delegates processing to the AI extraction service.
+        A draft request is created with status DRAFT and linked to the files.
 
         Args:
             request_data (CreateAmbulanceRequestParseSchema): Schema containing
@@ -221,9 +227,8 @@ class AmbulanceRequestService(BaseService):
             user_id (int): The ID of the user initiating the extraction request.
 
         Returns:
-            FileUploadWithExtractionResponseSchema: A schema containing
-                the structured
-                data extracted from the documents by the AI.
+            FileUploadWithExtractionResponseSchema: Schema with request ID
+                and structured data extracted from documents by AI.
 
         Raises:
             AmbulanceRequestInvalidFileIdsException: If one or more
@@ -266,7 +271,46 @@ class AmbulanceRequestService(BaseService):
                 user_id=user_id,
             )
         )
+        extracted = ai_response.extracted_data
+
+        # Create draft request with extracted data
+        # Use default values for required fields if not extracted
+
+        today = datetime.now(UTC).date()
+        draft_request = await self._request_dao.create(
+            user_id=user_id,
+            transportation_type=extracted.transportation_type
+            or TransportationType.AMBULANCE,
+            patient_first_name=extracted.patient_first_name or 'Unknown',
+            patient_last_name=extracted.patient_last_name or 'Unknown',
+            patient_date_of_birth=extracted.patient_date_of_birth or today,
+            patient_id=extracted.patient_id or 'TBD',
+            date_of_transport=extracted.date_of_transport or today,
+            time_of_transport=extracted.time_of_transport or time(12, 0),
+            pickup_address=extracted.pickup_address or 'TBD',
+            destination_address=extracted.destination_address or 'TBD',
+            primary_diagnosis=extracted.primary_diagnosis,
+            medical_justification=extracted.medical_justification,
+            form_number=extracted.form_number,
+            status=RequestStatus.DRAFT,
+            ambulatory_status=extracted.ambulatory_status,
+            oxygen_required=extracted.oxygen_required,
+            ai_accuracy=extracted.confidence_score,
+            ordering_physician=extracted.ordering_physician,
+            physician_phone=extracted.physician_phone,
+        )
+        await self._session.flush()
+
+        # Link files to draft request
+        for file_id in request_data.file_ids:
+            await self._file_dao.update_request_id(
+                file_id=file_id,
+                request_id=draft_request.id,
+            )
+        await self._session.commit()
+
         return FileUploadWithExtractionResponseSchema(
+            request_id=draft_request.id,
             extracted_data=ai_response.extracted_data,
         )
 
@@ -275,58 +319,55 @@ class AmbulanceRequestService(BaseService):
         user_id: int,
         request_data: CreateAmbulanceRequestSchema,
     ) -> AmbulanceRequestResponseSchema:
-        """Create a new ambulance request.
+        """Update draft request and submit it.
 
         Args:
             user_id: ID of the user creating the request.
-            request_data: Request data.
+            request_data: Request data with request_id of draft to update.
 
         Returns:
-            AmbulanceRequestResponseSchema: Created request.
+            AmbulanceRequestResponseSchema: Updated and submitted request.
 
         """
-        # Create request
-        request = await self._request_dao.create(
-            user_id=user_id,
-            transportation_type=request_data.transportation_type,
-            patient_first_name=request_data.patient_first_name,
-            patient_last_name=request_data.patient_last_name,
-            patient_date_of_birth=request_data.patient_date_of_birth,
-            patient_id=request_data.patient_id,
-            date_of_transport=request_data.date_of_transport,
-            time_of_transport=request_data.time_of_transport,
-            pickup_address=request_data.pickup_address,
-            destination_address=request_data.destination_address,
-            primary_diagnosis=request_data.primary_diagnosis,
-            medical_justification=request_data.medical_justification,
-            form_number=request_data.form_number,
-            status=RequestStatus.PROCESSING,
-            ambulatory_status=request_data.ambulatory_status,
-            oxygen_required=request_data.oxygen_required,
-            ai_accuracy=request_data.ai_accuracy,
-            ordering_physician=request_data.ordering_physician,
-            physician_phone=request_data.physician_phone,
+        # Get existing draft request
+        request = await self._request_dao.get_by_id(
+            request_id=request_data.request_id,
         )
+        if not request:
+            raise AmbulanceRequestNotFoundException
+        if request.user_id != user_id:
+            raise AmbulanceRequestPermissionException
+        if request.status != RequestStatus.DRAFT:
+            raise AmbulanceRequestInvalidStatusException(  # noqa: TRY003
+                'Request is not in DRAFT status'
+            )
+
+        # Update request with verified data
+        request.transportation_type = request_data.transportation_type
+        request.patient_first_name = request_data.patient_first_name
+        request.patient_last_name = request_data.patient_last_name
+        request.patient_date_of_birth = request_data.patient_date_of_birth
+        request.patient_id = request_data.patient_id
+        request.date_of_transport = request_data.date_of_transport
+        request.time_of_transport = request_data.time_of_transport
+        request.pickup_address = request_data.pickup_address
+        request.destination_address = request_data.destination_address
+        request.primary_diagnosis = request_data.primary_diagnosis
+        request.medical_justification = request_data.medical_justification
+        request.form_number = request_data.form_number
+        request.status = RequestStatus.SUBMITTED
+        request.ambulatory_status = request_data.ambulatory_status
+        request.oxygen_required = request_data.oxygen_required
+        request.ai_accuracy = request_data.ai_accuracy
+        request.ordering_physician = request_data.ordering_physician
+        request.physician_phone = request_data.physician_phone
         await self._session.flush()
 
-        # Link files to request
-        invalid_file_ids = []
-        for file_id in request_data.file_ids:
-            updated_file = await self._file_dao.update_request_id(
-                file_id=file_id,
-                request_id=request.id,
-            )
-            if not updated_file:
-                invalid_file_ids.append(file_id)
-
-        if invalid_file_ids:
-            raise AmbulanceRequestInvalidFileIdsException(
-                invalid_file_ids=invalid_file_ids
-            )
-        await self._session.flush()
+        # Files are already linked to the request during extraction step
+        # No need to link them again here
         await self._status_history_dao.create(
             request_id=request.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             notes='Request submitted',
         )
         await self._session.flush()
@@ -338,7 +379,7 @@ class AmbulanceRequestService(BaseService):
         self,
         user: User,
         request_id: int,
-    ) -> RequestWithStatusHistorySchema:
+    ) -> RequestWithStatusHistorySchema | AdminRequestWithStatusHistorySchema:
         """Get request by id.
 
         Args:
@@ -360,6 +401,31 @@ class AmbulanceRequestService(BaseService):
         # User can see his own requests, or all if he is an admin
         if request.user_id != user.id and user.role != UserRole.ADMIN:
             raise AmbulanceRequestPermissionException
+
+        # If admin opens SUBMITTED request for the first time, change to PENDING
+        if (
+            user.role == UserRole.ADMIN
+            and request.status == RequestStatus.SUBMITTED
+        ):
+            # Check if request was ever in PENDING status
+            status_history = await self._status_history_dao.get_by_request_id(
+                request_id=request_id
+            )
+            has_been_pending = any(
+                entry.status == RequestStatus.PENDING
+                for entry in status_history
+            )
+            if not has_been_pending:
+                request.status = RequestStatus.PENDING
+                await self._session.flush()
+                await self._status_history_dao.create(
+                    request_id=request_id,
+                    status=RequestStatus.PENDING,
+                    notes='Request opened by admin for review',
+                )
+                await self._session.commit()
+                await self._session.refresh(request)
+
         # Get files and generate presigned URLs
         files = await self._file_dao.get_by_request_id(request_id=request_id)
         logger.info(
@@ -401,9 +467,18 @@ class AmbulanceRequestService(BaseService):
                     )
                 )
 
-        response = RequestWithStatusHistorySchema.model_validate(request)
-        response.documents = documents
-        return response
+        # Return different schemas based on user role
+        if user.role == UserRole.ADMIN:
+            admin_response = AdminRequestWithStatusHistorySchema.model_validate(
+                request
+            )
+            admin_response.documents = documents
+            return admin_response
+        provider_response = RequestWithStatusHistorySchema.model_validate(
+            request
+        )
+        provider_response.documents = documents
+        return provider_response
 
     async def get_all_requests(
         self,
@@ -547,3 +622,192 @@ class AmbulanceRequestService(BaseService):
         await self._session.refresh(request)
 
         return AmbulanceRequestResponseSchema.model_validate(request)
+
+    async def approve_request(
+        self,
+        request_id: int,
+        reviewer_id: int,
+    ) -> AmbulanceRequestResponseSchema:
+        """Approve an ambulance request.
+
+        Args:
+            request_id: ID of the request to approve.
+            reviewer_id: ID of the admin reviewing the request.
+
+        Returns:
+            AmbulanceRequestResponseSchema: Approved request.
+
+        Raises:
+            AmbulanceRequestNotFoundException: If the request does not exist.
+
+        """
+        request = await self._request_dao.get_by_id(request_id=request_id)
+        if not request:
+            raise AmbulanceRequestNotFoundException
+        request.status = RequestStatus.APPROVED
+        request.reviewer_id = reviewer_id
+        request.denial_reason = None
+        request.denial_notes = None
+        await self._session.flush()
+        await self._status_history_dao.create(
+            request_id=request_id,
+            status=RequestStatus.APPROVED,
+            notes='Request approved by admin',
+        )
+        await self._session.flush()
+        await self._session.commit()
+        await self._session.refresh(request)
+
+        return AmbulanceRequestResponseSchema.model_validate(request)
+
+    async def deny_request(
+        self,
+        request_id: int,
+        reviewer_id: int,
+        denial_reason: 'DenialReason',
+        denial_notes: str | None = None,
+    ) -> AmbulanceRequestResponseSchema:
+        """Deny an ambulance request.
+
+        Args:
+            request_id: ID of the request to deny.
+            reviewer_id: ID of the admin reviewing the request.
+            denial_reason: Reason for denial.
+            denial_notes: Additional notes
+                (required if denial_reason is OTHER_REASON).
+
+        Returns:
+            AmbulanceRequestResponseSchema: Denied request.
+
+        Raises:
+            AmbulanceRequestNotFoundException: If the request does not exist.
+            ValueError: If denial_notes is missing for OTHER_REASON.
+
+        """
+        if denial_reason == DenialReason.OTHER_REASON and not denial_notes:
+            raise AmbulanceRequestInvalidStatusException(  # noqa: TRY003
+                'denial_notes is required when denial_reason is OTHER_REASON'
+            )
+
+        request = await self._request_dao.get_by_id(request_id=request_id)
+        if not request:
+            raise AmbulanceRequestNotFoundException
+        request.status = RequestStatus.DENIED
+        request.reviewer_id = reviewer_id
+        request.denial_reason = denial_reason
+        request.denial_notes = denial_notes
+        await self._session.flush()
+        await self._status_history_dao.create(
+            request_id=request_id,
+            status=RequestStatus.DENIED,
+            notes=f'Request denied: {denial_reason.value}',
+        )
+        await self._session.flush()
+        await self._session.commit()
+        await self._session.refresh(request)
+
+        return AmbulanceRequestResponseSchema.model_validate(request)
+
+    async def update_request_by_admin(  # noqa: PLR0915, PLR0912, C901
+        self,
+        request_id: int,
+        update_data: AdminUpdateRequestSchema,
+    ) -> AdminRequestWithStatusHistorySchema:
+        """Update request fields by admin.
+
+        Admin can update all fields except ai_accuracy and status.
+
+        Args:
+            request_id: ID of the request to update.
+            update_data: Data to update.
+
+        Returns:
+            AdminRequestWithStatusHistorySchema: Updated request.
+
+        Raises:
+            AmbulanceRequestNotFoundException: If the request does not exist.
+
+        """
+        request = await self._request_dao.get_by_id(request_id=request_id)
+        if not request:
+            raise AmbulanceRequestNotFoundException
+
+        # Update only provided fields
+        if update_data.transportation_type is not None:
+            request.transportation_type = update_data.transportation_type
+        if update_data.patient_first_name is not None:
+            request.patient_first_name = update_data.patient_first_name
+        if update_data.patient_last_name is not None:
+            request.patient_last_name = update_data.patient_last_name
+        if update_data.patient_date_of_birth is not None:
+            request.patient_date_of_birth = update_data.patient_date_of_birth
+        if update_data.patient_id is not None:
+            request.patient_id = update_data.patient_id
+        if update_data.date_of_transport is not None:
+            request.date_of_transport = update_data.date_of_transport
+        if update_data.time_of_transport is not None:
+            request.time_of_transport = update_data.time_of_transport
+        if update_data.pickup_address is not None:
+            request.pickup_address = update_data.pickup_address
+        if update_data.destination_address is not None:
+            request.destination_address = update_data.destination_address
+        if update_data.primary_diagnosis is not None:
+            request.primary_diagnosis = update_data.primary_diagnosis
+        if update_data.medical_justification is not None:
+            request.medical_justification = update_data.medical_justification
+        if update_data.form_number is not None:
+            request.form_number = update_data.form_number
+        if update_data.reviewer_id is not None:
+            request.reviewer_id = update_data.reviewer_id
+        if update_data.ambulatory_status is not None:
+            request.ambulatory_status = update_data.ambulatory_status
+        if update_data.oxygen_required is not None:
+            request.oxygen_required = update_data.oxygen_required
+        if update_data.ordering_physician is not None:
+            request.ordering_physician = update_data.ordering_physician
+        if update_data.physician_phone is not None:
+            request.physician_phone = update_data.physician_phone
+        if update_data.denial_reason is not None:
+            request.denial_reason = update_data.denial_reason
+        if update_data.denial_notes is not None:
+            request.denial_notes = update_data.denial_notes
+
+        await self._session.flush()
+        await self._session.commit()
+        await self._session.refresh(request)
+
+        # Get files and generate presigned URLs
+        files = await self._file_dao.get_by_request_id(request_id=request_id)
+        documents = []
+        for file in files:
+            try:
+                download_url = self._s3_actions.get_presigned_url(
+                    key=file.s3_key,
+                    expires_in=3600,
+                )
+                documents.append(
+                    RequestDocumentSchema(
+                        id=file.id,
+                        filename=file.filename,
+                        file_size=file.file_size,
+                        content_type=file.content_type,
+                        download_url=download_url,
+                    )
+                )
+            except Exception:
+                logger.exception(
+                    'Failed to generate presigned URL for file %s', file.id
+                )
+                documents.append(
+                    RequestDocumentSchema(
+                        id=file.id,
+                        filename=file.filename,
+                        file_size=file.file_size,
+                        content_type=file.content_type,
+                        download_url='',
+                    )
+                )
+
+        response = AdminRequestWithStatusHistorySchema.model_validate(request)
+        response.documents = documents
+        return response

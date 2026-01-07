@@ -105,3 +105,14 @@ class AmbulanceRequestPermissionException(AmbulanceRequestException):
             status_code=403,
             detail='Current user cannot access this ambulance request',
         )
+
+
+class AmbulanceRequestInvalidStatusException(AmbulanceRequestException):
+    """Exception raised when request has invalid status for operation."""
+
+    def __init__(self, detail: str) -> None:
+        """Initialize AmbulanceRequestInvalidStatusException."""
+        super().__init__(
+            status_code=400,
+            detail=detail,
+        )

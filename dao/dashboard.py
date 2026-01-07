@@ -236,13 +236,13 @@ class DashboardDAO(BaseDAO):
         *,
         user_id: int,
     ) -> list[AmbulanceRequest]:
-        """Get all in-progress requests (PENDING + PROCESSING) for a provider.
+        """Get all in-progress requests (PENDING + SUBMITTED) for a provider.
 
         Args:
             user_id: Provider user ID.
 
         Returns:
-            List of AmbulanceRequest instances in PENDING or PROCESSING status.
+            List of AmbulanceRequest instances in PENDING or SUBMITTED status.
 
         """
         stmt = (
@@ -251,7 +251,7 @@ class DashboardDAO(BaseDAO):
                 AmbulanceRequest.is_active == True,  # noqa: E712
                 AmbulanceRequest.user_id == user_id,
                 AmbulanceRequest.status.in_(
-                    [RequestStatus.PENDING, RequestStatus.PROCESSING]
+                    [RequestStatus.PENDING, RequestStatus.SUBMITTED]
                 ),
             )
             .order_by(
