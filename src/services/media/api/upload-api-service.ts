@@ -1,9 +1,13 @@
-import type { IExtractionRequest, IExtractedData, IFile } from '@/services';
+import type {
+  IExtractionRequest,
+  IFile,
+  IExtractionResponse,
+} from '@/services';
 import { api as baseApi } from '@/services/api/api';
 
 export const extractionApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
-    extractFromFiles: build.mutation<IExtractedData, IExtractionRequest>({
+    extractFromFiles: build.mutation<IExtractionResponse, IExtractionRequest>({
       query: (body) => ({
         url: '/ambulance-request/extraction',
         method: 'POST',

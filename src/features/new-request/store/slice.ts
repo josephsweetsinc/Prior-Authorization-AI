@@ -46,7 +46,7 @@ const slice = createSlice({
       state.extractedData = action.payload;
       save(state);
     },
-    setForm(state, action: PayloadAction<FormState>) {
+    setForm(state, action: PayloadAction<Partial<FormState>>) {
       state.form = action.payload;
       save(state);
     },

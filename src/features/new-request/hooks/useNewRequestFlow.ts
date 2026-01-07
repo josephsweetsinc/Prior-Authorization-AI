@@ -3,13 +3,14 @@ import { useState, useCallback } from 'react';
 import {
   type IUploadAndExtractionResult,
   type IExtractedData,
+  type IExtractionResponse,
 } from '@/services';
 import { normalizeExtraction } from '@/services/new-request/utils';
 import type { MediaItem } from '@/shared/components/upload/Uploader';
 
 interface Params {
   totalSteps: number;
-  initialExtractedData?: IExtractedData['extracted_data'] | null;
+  initialExtractedData?: Partial<IExtractedData> | null;
   initialExtractionResult?: IUploadAndExtractionResult | null;
   // eslint-disable-next-line no-unused-vars
   onExtractionReady?: (data: IUploadAndExtractionResult) => void;
@@ -32,7 +33,7 @@ export const useNewRequestFlow = ({
   const next = useCallback(
     (
       uploadedFiles?: MediaItem[] | null,
-      extraction?: IExtractedData | null,
+      extraction?: IExtractionResponse | null,
     ) => {
       const normalized = normalizeExtraction(extraction, uploadedFiles);
 

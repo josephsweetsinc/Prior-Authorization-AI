@@ -6,8 +6,8 @@ import { Input, DateInput, Select } from '@/shared/components';
 import { TRANSPORTATION_TYPE_OPTIONS } from '../../constants';
 
 type Props = {
-  form: FormState;
-  setForm: React.Dispatch<React.SetStateAction<FormState>>;
+  form: Partial<FormState>;
+  setForm: React.Dispatch<React.SetStateAction<Partial<FormState>>>;
   errors: Record<string, string>;
 };
 

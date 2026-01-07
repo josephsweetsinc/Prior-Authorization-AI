@@ -14,7 +14,7 @@ const toNumber = (value: unknown): number | null => {
 };
 
 export const extractedToForm = (
-  extracted?: Partial<IExtractedData>,
+  extracted: Partial<IExtractedData> | null,
 ): Partial<FormState> | null => {
   if (!extracted) {
     return null;

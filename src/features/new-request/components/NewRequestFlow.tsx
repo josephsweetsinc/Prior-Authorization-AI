@@ -80,14 +80,14 @@ export function NewRequestFlow() {
     }
   };
 
-  const handleInfoNext = (res?: FormState | null) => {
+  const handleInfoNext = (res?: Partial<FormState> | null) => {
     if (res) {
       dispatch(setForm(res));
     }
     next();
   };
 
-  const handleReviewEditNext = (res?: FormState | null) => {
+  const handleReviewEditNext = (res?: Partial<FormState> | null) => {
     if (res) {
       dispatch(setForm(res));
     }

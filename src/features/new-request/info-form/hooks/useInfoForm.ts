@@ -24,10 +24,8 @@ const defaultValues: FormState = {
 const requiredIfEmpty = (value: unknown, message: string) =>
   String(value ?? '').trim() === '' ? message : '';
 
-export function useInfoForm(
-  initialValues?: IExtractedData['extracted_data'] | null,
-) {
-  const [form, setForm] = useState<FormState>(defaultValues);
+export function useInfoForm(initialValues?: Partial<IExtractedData> | null) {
+  const [form, setForm] = useState<Partial<FormState>>(defaultValues);
 
   useEffect(() => {
     if (!initialValues) {
