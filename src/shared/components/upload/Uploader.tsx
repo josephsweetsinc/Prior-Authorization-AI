@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Loader2, Upload, Download } from 'lucide-react';
+import { Loader2, Upload } from 'lucide-react';
 import { type ChangeEvent, type DragEvent, useState } from 'react';
 import { toast } from 'react-toastify';
 
@@ -35,8 +35,7 @@ type Props = {
   multiple?: boolean;
   value: MediaItem[];
   onChangeAction: (_media: MediaItem[]) => void;
-  // eslint-disable-next-line no-unused-vars
-  onUploadComplete?: (result: IFile[] | null) => Promise<void> | void;
+
   uploadType?: string;
   className?: string;
   dropAreaClassName?: string;
@@ -47,7 +46,6 @@ export const Uploader = ({
   multiple = false,
   value,
   onChangeAction,
-  onUploadComplete,
   uploadType = 'logo',
   className,
   dropAreaClassName,
@@ -83,10 +81,6 @@ export const Uploader = ({
 
       try {
         const res = await uploadFile(file, uploadType);
-
-        if (onUploadComplete) {
-          await onUploadComplete(res);
-        }
 
         res.forEach((file: IFile) => nextMedia.push(apiFileToMediaItem(file)));
       } catch (err) {
@@ -200,56 +194,6 @@ export const Uploader = ({
                 onClick={() => setPreviewItem(item)}
                 key={item.id}
               />
-            );
-
-            return (
-              <div
-                key={String(item.id)}
-                onClick={() => setPreviewItem(item)}
-                className='flex cursor-pointer items-center justify-between rounded-xl bg-[rgba(4,124,180,0.05)] p-4 transition-colors hover:bg-blue-50/50'
-              >
-                <div className='flex flex-col gap-0.5 overflow-hidden'>
-                  <p
-                    className='truncate text-sm font-medium text-[#334155]'
-                    title={fileName}
-                  >
-                    {fileName}
-                  </p>
-                  {fileSizeFormatted && (
-                    <p className='text-xs text-[#64748B]'>
-                      {fileSizeFormatted}
-                    </p>
-                  )}
-                </div>
-
-                <div className='ml-4 flex shrink-0 items-center gap-2'>
-                  {fileUrl && (
-                    <a
-                      href={fileUrl}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      onClick={(e) => e.stopPropagation()}
-                      download
-                      className='group text-status-info flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-blue-100'
-                      title='Download'
-                    >
-                      <Download color='#047CB4' strokeWidth={1.5} />
-                    </a>
-                  )}
-
-                  <button
-                    type='button'
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeImage(item.id);
-                    }}
-                    className='group flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500'
-                    title='Remove'
-                  >
-                    <X color='#FE5C73' />
-                  </button>
-                </div>
-              </div>
             );
           })}
         </div>
