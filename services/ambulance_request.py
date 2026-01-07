@@ -1,4 +1,5 @@
 import logging
+from datetime import UTC, datetime, time
 from io import BytesIO
 
 from fastapi import UploadFile
@@ -16,6 +17,7 @@ from exceptions import (
     AmbulanceRequestEmptyDocumentFileNameException,
     AmbulanceRequestFilesAlreadyLinkedException,
     AmbulanceRequestInvalidFileIdsException,
+    AmbulanceRequestInvalidStatusException,
     AmbulanceRequestNotFoundException,
     AmbulanceRequestPermissionException,
     IncorrectFileSizeException,
@@ -28,7 +30,7 @@ from models import (
     User,
     UserRole,
 )
-from models.ambulance_request import DenialReason
+from models.ambulance_request import DenialReason, TransportationType
 from schemas import (
     AdminRequestWithStatusHistorySchema,
     AdminUpdateRequestSchema,
@@ -211,7 +213,7 @@ class AmbulanceRequestService(BaseService):
     async def create_request_with_extraction(
         self, request_data: CreateAmbulanceRequestParseSchema, user_id: int
     ) -> FileUploadWithExtractionResponseSchema:
-        """Validates provided file IDs, performs extraction, and creates draft request.
+        """Validates file IDs, performs extraction, creates draft request.
 
         This method checks that all requested files exist in the database
         and are not already linked to another ambulance request.
@@ -225,8 +227,8 @@ class AmbulanceRequestService(BaseService):
             user_id (int): The ID of the user initiating the extraction request.
 
         Returns:
-            FileUploadWithExtractionResponseSchema: A schema containing
-                the request ID and the structured data extracted from the documents by the AI.
+            FileUploadWithExtractionResponseSchema: Schema with request ID
+                and structured data extracted from documents by AI.
 
         Raises:
             AmbulanceRequestInvalidFileIdsException: If one or more
@@ -273,20 +275,17 @@ class AmbulanceRequestService(BaseService):
 
         # Create draft request with extracted data
         # Use default values for required fields if not extracted
-        from datetime import date, time
 
-        from models.ambulance_request import TransportationType
-
+        today = datetime.now(UTC).date()
         draft_request = await self._request_dao.create(
             user_id=user_id,
             transportation_type=extracted.transportation_type
             or TransportationType.AMBULANCE,
             patient_first_name=extracted.patient_first_name or 'Unknown',
             patient_last_name=extracted.patient_last_name or 'Unknown',
-            patient_date_of_birth=extracted.patient_date_of_birth
-            or date.today(),
+            patient_date_of_birth=extracted.patient_date_of_birth or today,
             patient_id=extracted.patient_id or 'TBD',
-            date_of_transport=extracted.date_of_transport or date.today(),
+            date_of_transport=extracted.date_of_transport or today,
             time_of_transport=extracted.time_of_transport or time(12, 0),
             pickup_address=extracted.pickup_address or 'TBD',
             destination_address=extracted.destination_address or 'TBD',
@@ -339,7 +338,9 @@ class AmbulanceRequestService(BaseService):
         if request.user_id != user_id:
             raise AmbulanceRequestPermissionException
         if request.status != RequestStatus.DRAFT:
-            raise ValueError('Request is not in DRAFT status')
+            raise AmbulanceRequestInvalidStatusException(  # noqa: TRY003
+                'Request is not in DRAFT status'
+            )
 
         # Update request with verified data
         request.transportation_type = request_data.transportation_type
@@ -672,7 +673,8 @@ class AmbulanceRequestService(BaseService):
             request_id: ID of the request to deny.
             reviewer_id: ID of the admin reviewing the request.
             denial_reason: Reason for denial.
-            denial_notes: Additional notes (required if denial_reason is OTHER_REASON).
+            denial_notes: Additional notes
+                (required if denial_reason is OTHER_REASON).
 
         Returns:
             AmbulanceRequestResponseSchema: Denied request.
@@ -683,7 +685,7 @@ class AmbulanceRequestService(BaseService):
 
         """
         if denial_reason == DenialReason.OTHER_REASON and not denial_notes:
-            raise ValueError(  # TODO: Проверять это в сериализаторе
+            raise AmbulanceRequestInvalidStatusException(  # noqa: TRY003
                 'denial_notes is required when denial_reason is OTHER_REASON'
             )
 
@@ -706,7 +708,7 @@ class AmbulanceRequestService(BaseService):
 
         return AmbulanceRequestResponseSchema.model_validate(request)
 
-    async def update_request_by_admin(  # noqa: PLR0915, C901
+    async def update_request_by_admin(  # noqa: PLR0915, PLR0912, C901
         self,
         request_id: int,
         update_data: AdminUpdateRequestSchema,

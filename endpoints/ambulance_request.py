@@ -5,8 +5,12 @@ from fastapi import APIRouter, Depends, File, Query, UploadFile
 from fastapi.params import Security
 
 from core import exception_handler, get_service, timing_handler
-from dependencies import get_current_user, get_provider_user_from_token
-from models import RequestStatus, User, UserRole
+from dependencies import (
+    get_admin_user_from_token,
+    get_current_user,
+    get_provider_user_from_token,
+)
+from models import RequestStatus, User
 from schemas.ambulance_request import (
     AdminRequestWithStatusHistorySchema,
     AdminUpdateRequestSchema,
@@ -263,7 +267,7 @@ async def get_user_requests(
 async def approve_request(
     request_id: int,
     request_data: ApproveRequestSchema,
-    user: Annotated[User, Security(get_current_user)],
+    user: Annotated[User, Security(get_admin_user_from_token())],
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
@@ -282,16 +286,9 @@ async def approve_request(
         AmbulanceRequestResponseSchema: Approved request.
 
     Raises:
-        HTTPException: If user is not admin, request not found, or approval fails.
+        HTTPException: If user is not admin, request not found, or approval.
 
     """
-    if user.role != UserRole.ADMIN:
-        from fastapi import HTTPException, status
-
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Only admin users can approve requests',
-        )
     return await service.approve_request(
         request_id=request_id,
         reviewer_id=user.id,
@@ -308,7 +305,7 @@ async def approve_request(
 async def deny_request(
     request_id: int,
     request_data: DenyRequestSchema,
-    user: Annotated[User, Security(get_current_user)],
+    user: Annotated[User, Security(get_admin_user_from_token)],
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
@@ -331,13 +328,6 @@ async def deny_request(
         HTTPException: If user is not admin, request not found, or denial fails.
 
     """
-    if user.role != UserRole.ADMIN:
-        from fastapi import HTTPException, status
-
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Only admin users can deny requests',
-        )
     return await service.deny_request(
         request_id=request_id,
         reviewer_id=user.id,
@@ -356,7 +346,7 @@ async def deny_request(
 async def update_request_by_admin(
     request_id: int,
     update_data: AdminUpdateRequestSchema,
-    user: Annotated[User, Security(get_current_user)],
+    user: Annotated[User, Security(get_admin_user_from_token)],
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
@@ -379,13 +369,6 @@ async def update_request_by_admin(
         HTTPException: If user is not admin, request not found, or update fails.
 
     """
-    if user.role != UserRole.ADMIN:
-        from fastapi import HTTPException, status
-
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Only admin users can update requests',
-        )
     return await service.update_request_by_admin(
         request_id=request_id,
         update_data=update_data,

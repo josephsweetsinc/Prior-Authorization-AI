@@ -11,6 +11,11 @@ from models.ambulance_request import (
 )
 from schemas.ai_extraction import ExtractedTransportationData
 
+# Error messages
+DENIAL_NOTES_REQUIRED_MSG = (
+    'denial_notes is required when denial_reason is OTHER_REASON'
+)
+
 
 class AmbulanceRequestsListResponseSchema(BaseModel):
     """Response schema for paginated list of requests.
@@ -419,7 +424,7 @@ class RequestWithStatusHistorySchema(AmbulanceRequestResponseSchema):
 
 
 class AdminRequestWithStatusHistorySchema(BaseModel):
-    """Response schema for request with status history (admin view - all fields)."""
+    """Response schema for request with status history."""
 
     id: int
     user_id: int
@@ -475,7 +480,10 @@ class DenyRequestSchema(BaseModel):
         Field(
             default=None,
             max_length=256,
-            description='Additional notes for denial (required if denial_reason is OTHER_REASON)',
+            description=(
+                'Additional notes for denial '
+                '(required if denial_reason is OTHER_REASON)'
+            ),
             examples=['Custom denial reason explanation'],
         ),
     ]
@@ -486,13 +494,14 @@ class DenyRequestSchema(BaseModel):
             self.denial_reason == DenialReason.OTHER_REASON
             and not self.denial_notes
         ):
-            raise ValueError(
-                'denial_notes is required when denial_reason is OTHER_REASON'
-            )
+            raise ValueError(DENIAL_NOTES_REQUIRED_MSG)
 
 
 class AdminUpdateRequestSchema(BaseModel):
-    """Schema for admin to update request fields (all fields except ai_accuracy and status)."""
+    """Schema for admin to update request fields.
+
+    All fields except ai_accuracy and status can be updated.
+    """
 
     transportation_type: TransportationType | None = None
     patient_first_name: Annotated[
@@ -522,7 +531,9 @@ class AdminUpdateRequestSchema(BaseModel):
             default=None,
             min_length=1,
             max_length=50,
-            description='Patient Medicare Beneficiary Identifier (MBI) or other ID',
+            description=(
+                'Patient Medicare Beneficiary Identifier (MBI) or other ID'
+            ),
         ),
     ]
     date_of_transport: date | None = None
@@ -569,7 +580,10 @@ class AdminUpdateRequestSchema(BaseModel):
         Field(
             default=None,
             max_length=256,
-            description='Additional notes for denial (required if denial_reason is OTHER_REASON)',
+            description=(
+                'Additional notes for denial '
+                '(required if denial_reason is OTHER_REASON)'
+            ),
         ),
     ]
 
@@ -579,6 +593,4 @@ class AdminUpdateRequestSchema(BaseModel):
             self.denial_reason == DenialReason.OTHER_REASON
             and not self.denial_notes
         ):
-            raise ValueError(
-                'denial_notes is required when denial_reason is OTHER_REASON'
-            )
+            raise ValueError(DENIAL_NOTES_REQUIRED_MSG)

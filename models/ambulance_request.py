@@ -170,7 +170,7 @@ class AmbulanceRequest(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
     denial_notes: Mapped[str | None] = mapped_column(
         String(256),
         nullable=True,
-        comment='Additional notes for denial (required if denial_reason is OTHER_REASON)',
+        comment='Additional notes for denial (required if denial_reason is OTHER_REASON)',  # noqa: E501
     )
     form_number: Mapped[str | None] = mapped_column(
         String(50),
