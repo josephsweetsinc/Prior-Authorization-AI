@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 
+import { parseApiError } from '@/services/api/types';
 import { useGetCurrentUserQuery } from '@/services/auth/api/auth-api-service';
 import { useUpdateUserAccountMutation } from '@/services/settings/api';
 import { Button } from '@/shared/components/button';
@@ -54,7 +55,7 @@ export const AccountSettingsForm = () => {
       await updateUserAccount(data).unwrap();
       toast.success('Account updated successfully');
     } catch (error) {
-      toast.error((error as string) ?? 'Failed to update account');
+      toast.error(parseApiError(error)?.message ?? 'Failed to update account');
     } finally {
       setIsUpdating(false);
     }
