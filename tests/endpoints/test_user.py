@@ -9,7 +9,11 @@ from dependencies.auth import get_admin_user_from_token, get_current_user
 from endpoints.user import update_me
 from main import app
 from models.user import UserRole
-from schemas.user import UpdateUserRequestSchema, UserResponseShema
+from schemas.user import (
+    UpdateMeRequestSchema,
+    UpdateUserRequestSchema,
+    UserResponseShema,
+)
 
 
 @pytest.fixture
@@ -41,13 +45,13 @@ class TestUserAdminEndpoints:
     ):
         """Provider user can successfully update only their own profile via /me."""
         user = await user_factory(role=UserRole.PROVIDER)
-        update_data = UpdateUserRequestSchema(name='UpdatedName')
+        update_data = UpdateMeRequestSchema(phone='12345678900')
 
         # Prepare a mock service and verify that endpoint calls it correctly
         mock_service = AsyncMock()
-        mock_service.update_user_by_id.return_value = UserResponseShema(
+        mock_service.update_me_profile.return_value = UserResponseShema(
             id=user.id,
-            name=update_data.name,
+            name=user.name,
             surname=user.surname,
             email=user.email,
             role=user.role,
@@ -61,13 +65,13 @@ class TestUserAdminEndpoints:
         )
 
         # Ensure endpoint delegates to service with current user id
-        mock_service.update_user_by_id.assert_awaited_once_with(
+        mock_service.update_me_profile.assert_awaited_once_with(
             user_id=user.id,
             user_data=update_data,
         )
         # And returns the updated user data
         assert result.id == user.id
-        assert result.name == update_data.name
+        assert result.name == user.name
 
     @pytest.mark.asyncio
     async def test_update_me_unauthorized_without_token(
@@ -77,7 +81,7 @@ class TestUserAdminEndpoints:
         """Updating /me without auth token should be unauthorized."""
         response = client.patch(
             '/Prod/api/v1/user/me',
-            json={'name': 'UpdatedName'},
+            json={'phone': '12345678900'},
         )
 
         # FastAPI returns 401 for missing auth, but 403 is also acceptable
