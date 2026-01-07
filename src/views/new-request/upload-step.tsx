@@ -2,8 +2,11 @@ import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
-import { type IExtractedData, type IFile } from '@/services';
-import { useExtractFileData } from '@/services/new-request';
+import { type IFile } from '@/services';
+import {
+  type IExtractionResponse,
+  useExtractFileData,
+} from '@/services/new-request';
 import { Uploader, type MediaItem, Button } from '@/shared/components';
 
 interface UploadStepProps {
@@ -11,14 +14,14 @@ interface UploadStepProps {
     // eslint-disable-next-line no-unused-vars
     uploadedFiles: MediaItem[],
     // eslint-disable-next-line no-unused-vars
-    extractionResult: IExtractedData | null,
+    extractionResult: IExtractionResponse | null,
   ) => void;
 }
 
 export const UploadStep = ({ onNext }: UploadStepProps) => {
   const [files, setFiles] = useState<MediaItem[]>([]);
   const [extractionResult, setExtractionResult] =
-    useState<IExtractedData | null>(null);
+    useState<IExtractionResponse | null>(null);
 
   const { extractFiles, isLoading } = useExtractFileData();
 

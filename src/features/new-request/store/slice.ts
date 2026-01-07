@@ -42,14 +42,11 @@ const slice = createSlice({
 
       save(state);
     },
-    setExtractedData(
-      state,
-      action: PayloadAction<IExtractedData['extracted_data']>,
-    ) {
+    setExtractedData(state, action: PayloadAction<IExtractedData>) {
       state.extractedData = action.payload;
       save(state);
     },
-    setForm(state, action: PayloadAction<FormState>) {
+    setForm(state, action: PayloadAction<Partial<FormState>>) {
       state.form = action.payload;
       save(state);
     },

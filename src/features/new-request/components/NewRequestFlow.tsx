@@ -10,23 +10,22 @@ import {
   clear,
   setExtractionResult,
 } from '@/features/new-request/store/slice';
-import { type IUploadAndExtractionResult } from '@/services';
 import {
   extractedToForm,
   formToExtracted,
+  type IUploadAndExtractionResult,
   selectNewRequest,
+  getErrorMessage,
+  useCreateRequest,
 } from '@/services/new-request';
-import { useCreateRequest } from '@/services/new-request/hooks/useCreateRequest';
-import { getErrorMessage } from '@/services/new-request/utils';
 import { TitleAndDesc, Window } from '@/shared/components';
 import { Stepper } from '@/shared/components/stepper/stepper';
 import { InfoStep } from '@/views/new-request/info-step';
 import { ReviewStep } from '@/views/new-request/review-step';
 import { UploadStep } from '@/views/new-request/upload-step';
 
+import { TOTAL_STEPS } from '../constants';
 import { useNewRequestFlow } from '../hooks/useNewRequestFlow';
-
-const TOTAL_STEPS = 3;
 
 export function NewRequestFlow() {
   const stored = useSelector(selectNewRequest);
@@ -56,7 +55,7 @@ export function NewRequestFlow() {
   const { createRequest, isLoading: isCreating } = useCreateRequest();
   const router = useRouter();
 
-  const reviewForm: FormState | null =
+  const reviewForm: Partial<FormState> | null =
     stored?.form ?? extractedToForm(extractedData);
 
   const handleCreate = async () => {
@@ -81,14 +80,14 @@ export function NewRequestFlow() {
     }
   };
 
-  const handleInfoNext = (res?: FormState | null) => {
+  const handleInfoNext = (res?: Partial<FormState> | null) => {
     if (res) {
       dispatch(setForm(res));
     }
     next();
   };
 
-  const handleReviewEditNext = (res?: FormState | null) => {
+  const handleReviewEditNext = (res?: Partial<FormState> | null) => {
     if (res) {
       dispatch(setForm(res));
     }
@@ -131,7 +130,7 @@ export function NewRequestFlow() {
           onBack={prev}
           onSubmit={handleCreate}
           onEdit={startReviewEdit}
-          form={reviewForm ?? undefined}
+          form={reviewForm}
           isSubmitting={isCreating}
         />
       );

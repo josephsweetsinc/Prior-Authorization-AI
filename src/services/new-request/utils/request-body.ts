@@ -9,18 +9,19 @@ import {
 } from './transform';
 
 export const buildRequestBody = (
-  stored: INewRequestState,
+  stored?: INewRequestState,
   params?: ICreateRequestParams,
-): ICreateRequestBody | null => {
+): Partial<ICreateRequestBody> | null => {
+  if (!stored) {
+    return null;
+  }
+
   if (!stored.extractedData || !stored.extractionResult) {
     return null;
   }
 
-  const draftBody = {
-    ...stored.extractedData,
-  };
-
-  const form = params?.form ?? stored.form ?? extractedToForm(draftBody);
+  const form =
+    params?.form ?? stored.form ?? extractedToForm(stored.extractedData);
 
   if (!form) {
     return null;

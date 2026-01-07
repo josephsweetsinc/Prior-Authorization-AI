@@ -1,11 +1,13 @@
-import { type IExtractedData } from '@/services';
+import { type IExtractionResponse } from '@/services';
 import { useExtractFromFilesMutation } from '@/services/media';
 
 export const useExtractFileData = () => {
   const [extract, { isLoading, error, data, reset }] =
     useExtractFromFilesMutation();
 
-  const extractFiles = async (fileIds: number[]): Promise<IExtractedData> => {
+  const extractFiles = async (
+    fileIds: number[],
+  ): Promise<IExtractionResponse> => {
     try {
       const response = await extract({ file_ids: fileIds }).unwrap();
 

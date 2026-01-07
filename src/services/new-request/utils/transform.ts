@@ -1,12 +1,12 @@
 import { type INewRequestState, type FormState } from '@/features/new-request';
-import {
-  type IRequestData,
-  type IExtractedData,
-  type IUploadAndExtractionResult,
-} from '@/services/media';
 import { type MediaItem } from '@/shared/components';
 
 import { FIELD_MAP } from '../constants';
+import {
+  type IExtractionResponse,
+  type IUploadAndExtractionResult,
+  type IExtractedData,
+} from '../types';
 
 const toNumber = (value: unknown): number | null => {
   const number = Number(value);
@@ -14,40 +14,37 @@ const toNumber = (value: unknown): number | null => {
 };
 
 export const extractedToForm = (
-  extracted?: IExtractedData['extracted_data'] | null,
-): FormState | null => {
+  extracted: Partial<IExtractedData> | null,
+): Partial<FormState> | null => {
   if (!extracted) {
     return null;
   }
 
-  return Object.fromEntries(
+  const transformedData = Object.fromEntries(
     Object.entries(FIELD_MAP).map(([formKey, extractedKey]) => [
       formKey,
-      String(extracted[extractedKey as keyof IRequestData] ?? ''),
+      String(extracted[extractedKey as keyof IExtractedData] ?? ''),
     ]),
-  ) as FormState;
-};
-
-export const formToExtracted = (form: FormState): IRequestData => {
-  const extracted = Object.entries(FIELD_MAP).reduce<Partial<IRequestData>>(
-    (acc, [formKey, extractedKey]) => {
-      const value = form[formKey as keyof FormState];
-
-      if (value !== undefined && value !== null) {
-        acc[extractedKey as keyof IExtractedData['extracted_data']] =
-          value as never;
-      }
-
-      return acc;
-    },
-    {},
   );
 
-  return extracted as IRequestData;
+  return transformedData;
+};
+
+export const formToExtracted = (
+  form: Partial<FormState>,
+): Partial<IExtractedData> => {
+  const transformedData = Object.fromEntries(
+    Object.entries(FIELD_MAP).map(([formKey, extractedKey]) => [
+      extractedKey,
+      String(form[formKey as keyof FormState] ?? ''),
+    ]),
+  );
+
+  return transformedData;
 };
 
 export const normalizeExtraction = (
-  extraction?: IExtractedData | null,
+  extraction?: IExtractionResponse | null,
   uploadedFiles?: MediaItem[] | null,
 ) => {
   if (!extraction || !extraction.extracted_data) {

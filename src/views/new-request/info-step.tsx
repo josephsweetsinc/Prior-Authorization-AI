@@ -11,8 +11,8 @@ import { Button, SensitiveMessage } from '@/shared/components';
 interface InfoStepProps {
   onBack: () => void;
   // eslint-disable-next-line no-unused-vars
-  onNext: (res?: FormState | null) => void;
-  initialValues?: IExtractedData['extracted_data'] | null;
+  onNext: (res?: Partial<FormState> | null) => void;
+  initialValues?: Partial<IExtractedData> | null;
   isComplete?: boolean;
   mode?: 'default' | 'review-edit';
 }
