@@ -55,7 +55,8 @@ export const AccountSettingsForm = () => {
       await updateUserAccount(data).unwrap();
       toast.success('Account updated successfully');
     } catch (error) {
-      toast.error(parseApiError(error)?.message ?? 'Failed to update account');
+      const parsedError = parseApiError(error)?.message;
+      toast.error(parsedError ?? 'Failed to update account');
     } finally {
       setIsUpdating(false);
     }
