@@ -307,6 +307,12 @@ class TestAmbulanceRequestService:
             form_number='CMS-10344',
         )
 
+        # Get draft request to check ai_accuracy
+        from dao import AmbulanceRequestDAO
+        request_dao = AmbulanceRequestDAO(db_session)
+        draft_request = await request_dao.get_by_id(draft_result.request_id)
+        draft_ai_accuracy = draft_request.ai_accuracy
+
         result = await service.create_request(
             user_id=user.id, request_data=request_data
         )
@@ -314,7 +320,6 @@ class TestAmbulanceRequestService:
         assert result.id is not None
         assert result.patient_first_name == 'John'
         assert result.status == RequestStatus.SUBMITTED
-
         # Verify files are linked
         file_dao = RequestFileDAO(db_session)
         files = await file_dao.get_by_request_id(result.id)

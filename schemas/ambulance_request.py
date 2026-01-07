@@ -244,13 +244,7 @@ class CreateAmbulanceRequestSchema(BaseModel):
         examples=[False],
         description='Whether oxygen is required for the patient',
     )
-    ai_accuracy: float | None = Field(
-        None,
-        examples=[37.3],
-        description='AI confidence in filled data (percentage with 1 decimal place, e.g., 37.3)',  # noqa: E501
-        ge=0.0,
-        le=100.0,
-    )
+    # ai_accuracy is not included - it's set during AI extraction and preserved
     ordering_physician: str | None = Field(
         None,
         examples=['Dr. John Smith'],
