@@ -75,7 +75,7 @@ export function NewRequestFlow() {
         </div>,
       );
 
-      router.push('/dashboard');
+      router.push('/');
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, 'Failed to create ambulance request'));
     }
