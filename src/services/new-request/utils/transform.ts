@@ -1,5 +1,6 @@
 import { type INewRequestState, type FormState } from '@/features/new-request';
 import {
+  type IRequestData,
   type IExtractedData,
   type IUploadAndExtractionResult,
 } from '@/services/media';
@@ -13,7 +14,7 @@ const toNumber = (value: unknown): number | null => {
 };
 
 export const extractedToForm = (
-  extracted?: IExtractedData | null,
+  extracted?: IExtractedData['extracted_data'] | null,
 ): FormState | null => {
   if (!extracted) {
     return null;
@@ -22,24 +23,27 @@ export const extractedToForm = (
   return Object.fromEntries(
     Object.entries(FIELD_MAP).map(([formKey, extractedKey]) => [
       formKey,
-      String(extracted[extractedKey as keyof IExtractedData] ?? ''),
+      String(extracted[extractedKey as keyof IRequestData] ?? ''),
     ]),
   ) as FormState;
 };
 
-export const formToExtracted = (
-  form?: FormState | null,
-): IExtractedData | null => {
-  if (!form) {
-    return null;
-  }
+export const formToExtracted = (form: FormState): IRequestData => {
+  const extracted = Object.entries(FIELD_MAP).reduce<Partial<IRequestData>>(
+    (acc, [formKey, extractedKey]) => {
+      const value = form[formKey as keyof FormState];
 
-  return Object.fromEntries(
-    Object.entries(FIELD_MAP).map(([formKey, extractedKey]) => [
-      extractedKey,
-      form[formKey as keyof FormState],
-    ]),
+      if (value !== undefined && value !== null) {
+        acc[extractedKey as keyof IExtractedData['extracted_data']] =
+          value as never;
+      }
+
+      return acc;
+    },
+    {},
   );
+
+  return extracted as IRequestData;
 };
 
 export const normalizeExtraction = (
@@ -50,13 +54,12 @@ export const normalizeExtraction = (
     return null;
   }
 
-  const extracted = extraction.extracted_data;
   const enriched: IUploadAndExtractionResult = {
-    ...extracted,
+    ...extraction,
     files: uploadedFiles ?? [],
   };
 
-  return { extracted, enriched };
+  return { extracted: extraction.extracted_data, enriched };
 };
 
 export const extractFileIdsFromStored = (
