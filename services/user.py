@@ -20,6 +20,7 @@ from models.user import UserRole
 from schemas import (
     CreateUserByAdminRequestSchema,
     CreateUserRequestSchema,
+    UpdateMeRequestSchema,
     UpdateUserRequestSchema,
     UserListItemSchema,
     UserResponseShema,
@@ -141,6 +142,35 @@ class UserService(BaseService):
             name=user_data.name,
             surname=user_data.surname,
             email=user_data.email,
+        )
+        await self._session.commit()
+        if not user:
+            raise UserNotFoundByIdException
+        return UserResponseShema.model_validate(user)
+
+    async def update_me_profile(
+        self,
+        user_id: int,
+        user_data: UpdateMeRequestSchema,
+    ) -> UserResponseShema:
+        """Update current user profile fields (phone, position, place_of_work).
+
+        Args:
+            user_id: User ID.
+            user_data: UpdateMeRequestSchema with fields to update.
+
+        Returns:
+            UserResponseShema: Updated user information.
+
+        Raises:
+            UserNotFoundByIdException: If user not found.
+
+        """
+        user: User | None = await self._user_dao.update_profile_fields_by_id(
+            user_id,
+            phone_number=user_data.phone,
+            position=user_data.position,
+            place_of_work=user_data.place_of_work,
         )
         await self._session.commit()
         if not user:

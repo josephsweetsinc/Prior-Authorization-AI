@@ -105,6 +105,55 @@ class UpdateUserRequestSchema(BaseModel):
         return self
 
 
+class UpdateMeRequestSchema(BaseModel):
+    """Update the current user profile request schema."""
+
+    phone: Annotated[
+        str | None,
+        Field(
+            None,
+            min_length=10,
+            max_length=15,
+            pattern=r'^1\d{10}$',
+            examples=['12345678900'],
+            description='Phone number',
+        ),
+    ]
+    position: Annotated[
+        str | None,
+        Field(
+            None,
+            min_length=3,
+            max_length=64,
+            examples=['Doctor'],
+            description='User position',
+        ),
+    ]
+    place_of_work: Annotated[
+        str | None,
+        Field(
+            None,
+            min_length=3,
+            max_length=64,
+            examples=['Hospital'],
+            description='Place of work',
+        ),
+    ]
+
+    @model_validator(mode='after')
+    def validate_at_least_one_field(self) -> UpdateMeRequestSchema:
+        """Validate that at least one field is provided for update."""
+        if (
+            self.phone is None
+            and self.position is None
+            and self.place_of_work is None
+        ):
+            raise ValueError(  # noqa: TRY003
+                'At least one field (phone, position, or place_of_work) must be'
+            )
+        return self
+
+
 class UserResponseShema(BaseModel):
     """User response schema."""
 

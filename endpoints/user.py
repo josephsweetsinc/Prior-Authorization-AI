@@ -10,6 +10,7 @@ from models.user import UserRole
 from schemas import (
     CreateUserByAdminRequestSchema,
     OrganizationResponseSchema,
+    UpdateMeRequestSchema,
     UpdateUserRequestSchema,
     UserResponseShema,
     UsersListResponseSchema,
@@ -180,20 +181,21 @@ async def get_me(
     summary='Update current user profile',
     description=(
         "Update the current authenticated user's profile information. "
-        'At least one field (name, surname, or email) must be provided.'
+        'At least one field (phone, position, or place_of_work) must be.'
     ),
     response_model=UserResponseShema,
     tags=['me'],
 )
 async def update_me(
-    user_data: UpdateUserRequestSchema,
+    user_data: UpdateMeRequestSchema,
     user: Annotated[User, Depends(get_current_user)],
     service: Annotated[UserService, Depends(get_service(UserService))],
 ) -> UserResponseShema:
     """Update the current authenticated user's profile.
 
     Args:
-        user_data (UpdateUserRequestSchema): Schema with user data to update.
+        user_data (UpdateMeRequestSchema): Schema with user data to update
+            (phone, position, place_of_work).
         user (User): Current authenticated user from token.
         service (UserService): Service for user-related operations.
 
@@ -201,7 +203,7 @@ async def update_me(
         UserResponseShema: Schema representing the updated user.
 
     """
-    return await service.update_user_by_id(
+    return await service.update_me_profile(
         user_id=user.id,
         user_data=user_data,
     )
