@@ -61,15 +61,16 @@ function Input({
               ? 'peer ease focus:border-accent-foreground w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm text-slate-700 shadow-sm transition duration-300 placeholder:text-slate-400 focus:shadow-none focus:outline-none'
               : 'ease focus:border-accent-foreground w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm text-slate-700 shadow-sm transition duration-300 focus:shadow-none focus:outline-none',
             'h-9 rounded-md px-6 py-6 has-[>svg]:px-3',
-            isSearch && 'rounded-xl pl-8',
+            isSearch && 'rounded-xl pl-11',
           )}
           {...props}
         />
 
         {isSearch && (
           <Search
-            size={18}
-            className='absolute top-1/2 left-3 -translate-y-1/2 text-slate-400'
+            color='#047CB4'
+            size={14}
+            className='pointer-events-none absolute top-1/2 left-3 -translate-y-1/2'
           />
         )}
 

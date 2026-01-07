@@ -34,6 +34,7 @@ interface SelectProps extends VariantProps<typeof selectTriggerVariants> {
   onChange?: (_value: string) => void;
   placeholder?: string;
   className?: string;
+  triggerClassName?: string;
   withIcon?: boolean;
   label?: string;
   labelClassName?: string;
@@ -49,6 +50,7 @@ export function Select({
   variant,
   size,
   className,
+  triggerClassName,
   withIcon = true,
   label,
   labelClassName,
@@ -156,11 +158,15 @@ export function Select({
         id={triggerId}
         type='button'
         onClick={toggleOpen}
-        className={cn(selectTriggerVariants({ variant, size }), {
-          'ring-destructive/20 dark:ring-destructive/40 border-destructive':
-            !!error,
-          'border-status-info': isOpen,
-        })}
+        className={cn(
+          selectTriggerVariants({ variant, size }),
+          triggerClassName,
+          {
+            'ring-destructive/20 dark:ring-destructive/40 border-destructive':
+              !!error,
+            'border-status-info': isOpen,
+          },
+        )}
         aria-haspopup='listbox'
         aria-expanded={isOpen}
       >

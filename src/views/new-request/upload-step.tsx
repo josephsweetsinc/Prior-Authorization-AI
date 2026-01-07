@@ -2,8 +2,10 @@ import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
-import { type IExtractedData, type IFile } from '@/services';
-import { useExtractFileData } from '@/services/new-request';
+import {
+  type IExtractionResponse,
+  useExtractFileData,
+} from '@/services/new-request';
 import { Uploader, type MediaItem, Button } from '@/shared/components';
 
 interface UploadStepProps {
@@ -11,29 +13,17 @@ interface UploadStepProps {
     // eslint-disable-next-line no-unused-vars
     uploadedFiles: MediaItem[],
     // eslint-disable-next-line no-unused-vars
-    extractionResult: IExtractedData | null,
+    extractionResult: IExtractionResponse | null,
   ) => void;
 }
 
 export const UploadStep = ({ onNext }: UploadStepProps) => {
   const [files, setFiles] = useState<MediaItem[]>([]);
-  const [extractionResult, setExtractionResult] =
-    useState<IExtractedData | null>(null);
-
   const { extractFiles, isLoading } = useExtractFileData();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!files.length) {
       toast.error('Please upload at least one document before proceeding.');
-      return;
-    }
-
-    onNext(files, extractionResult);
-  };
-
-  const handleUploadComplete = async (files: IFile[] | null) => {
-    if (!files || files.length === 0) {
-      toast.error('Failed to extract data from uploaded files.');
       return;
     }
 
@@ -46,7 +36,7 @@ export const UploadStep = ({ onNext }: UploadStepProps) => {
 
       const result = await extractFiles(fileIds);
 
-      setExtractionResult(result);
+      onNext(files, result);
     } catch (err) {
       toast.error('Failed to extract data from uploaded files.');
       console.error(err);
@@ -59,11 +49,7 @@ export const UploadStep = ({ onNext }: UploadStepProps) => {
         Upload Required Documents
       </h2>
 
-      <Uploader
-        value={files}
-        onChangeAction={setFiles}
-        onUploadComplete={handleUploadComplete}
-      />
+      <Uploader value={files} onChangeAction={setFiles} multiple />
 
       <div className='flex justify-end'>
         <Button

@@ -7,7 +7,7 @@ interface ReviewStepProps {
   onBack: () => void;
   onSubmit: () => void;
   onEdit?: () => void;
-  form?: FormState | null;
+  form: Partial<FormState> | null;
   isSubmitting?: boolean;
 }
 

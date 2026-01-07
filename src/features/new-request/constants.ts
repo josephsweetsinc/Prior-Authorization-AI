@@ -6,3 +6,5 @@ export const TRANSPORTATION_TYPE_OPTIONS = [
   { label: 'ALS', value: 'als' },
   { label: 'CCT', value: 'cct' },
 ];
+
+export const TOTAL_STEPS = 3;

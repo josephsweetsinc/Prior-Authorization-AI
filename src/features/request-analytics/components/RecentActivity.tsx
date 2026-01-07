@@ -50,7 +50,7 @@ export const RecentActivity = ({ data, className, ...props }: Props) => {
         {...props}
       >
         <h2 className='text-brand-dark text-2xl leading-8 font-bold capitalize'>
-          Requests in Progress
+          Recent Activity
         </h2>
         <EmptyStateMessage message='No recent activity detected' />
       </Window>

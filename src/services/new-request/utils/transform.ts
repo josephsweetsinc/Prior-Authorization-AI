@@ -1,11 +1,12 @@
 import { type INewRequestState, type FormState } from '@/features/new-request';
-import {
-  type IExtractedData,
-  type IUploadAndExtractionResult,
-} from '@/services/media';
 import { type MediaItem } from '@/shared/components';
 
 import { FIELD_MAP } from '../constants';
+import {
+  type IExtractionResponse,
+  type IUploadAndExtractionResult,
+  type IExtractedData,
+} from '../types';
 
 const toNumber = (value: unknown): number | null => {
   const number = Number(value);
@@ -13,50 +14,49 @@ const toNumber = (value: unknown): number | null => {
 };
 
 export const extractedToForm = (
-  extracted?: IExtractedData | null,
-): FormState | null => {
+  extracted: Partial<IExtractedData> | null,
+): Partial<FormState> | null => {
   if (!extracted) {
     return null;
   }
 
-  return Object.fromEntries(
+  const transformedData = Object.fromEntries(
     Object.entries(FIELD_MAP).map(([formKey, extractedKey]) => [
       formKey,
       String(extracted[extractedKey as keyof IExtractedData] ?? ''),
     ]),
-  ) as FormState;
+  );
+
+  return transformedData;
 };
 
 export const formToExtracted = (
-  form?: FormState | null,
-): IExtractedData | null => {
-  if (!form) {
-    return null;
-  }
-
-  return Object.fromEntries(
+  form: Partial<FormState>,
+): Partial<IExtractedData> => {
+  const transformedData = Object.fromEntries(
     Object.entries(FIELD_MAP).map(([formKey, extractedKey]) => [
       extractedKey,
-      form[formKey as keyof FormState],
+      String(form[formKey as keyof FormState] ?? ''),
     ]),
   );
+
+  return transformedData;
 };
 
 export const normalizeExtraction = (
-  extraction?: IExtractedData | null,
+  extraction?: IExtractionResponse | null,
   uploadedFiles?: MediaItem[] | null,
 ) => {
   if (!extraction || !extraction.extracted_data) {
     return null;
   }
 
-  const extracted = extraction.extracted_data;
   const enriched: IUploadAndExtractionResult = {
-    ...extracted,
+    ...extraction,
     files: uploadedFiles ?? [],
   };
 
-  return { extracted, enriched };
+  return { extracted: extraction.extracted_data, enriched };
 };
 
 export const extractFileIdsFromStored = (

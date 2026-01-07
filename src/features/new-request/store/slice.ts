@@ -35,21 +35,18 @@ const slice = createSlice({
   reducers: {
     setExtractionResult(
       state,
-      action: PayloadAction<IUploadAndExtractionResult | null>,
+      action: PayloadAction<IUploadAndExtractionResult>,
     ) {
       state.extractionResult = action.payload;
-      state.extractedData =
-        (action.payload?.extracted_data as Record<string, unknown>) ?? null;
+      state.extractedData = action.payload.extracted_data;
+
       save(state);
     },
-    setExtractedData(
-      state,
-      action: PayloadAction<IExtractedData['extracted_data'] | null>,
-    ) {
+    setExtractedData(state, action: PayloadAction<IExtractedData>) {
       state.extractedData = action.payload;
       save(state);
     },
-    setForm(state, action: PayloadAction<FormState | null>) {
+    setForm(state, action: PayloadAction<Partial<FormState>>) {
       state.form = action.payload;
       save(state);
     },
