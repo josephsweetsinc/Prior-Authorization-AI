@@ -1,6 +1,7 @@
 import { type JSX } from 'react';
 
-import { Button, Input, OverlayIcon, Window } from '@/shared/components';
+import { OrganizationSettingsForm } from '@/features/settings/components/OrganizationSettingsForm';
+import { OverlayIcon, Window } from '@/shared/components';
 
 export const OrganizationSettings = (): JSX.Element => {
   return (
@@ -14,35 +15,7 @@ export const OrganizationSettings = (): JSX.Element => {
           </p>
         </div>
       </div>
-      <div className='space-y-5'>
-        <Input
-          labelVariant='static'
-          label='Facility Name'
-          placeholder='Facility name'
-        />
-        <Input
-          labelVariant='static'
-          label='Provider Type'
-          placeholder='Provider type'
-        />
-
-        <Input
-          labelVariant='static'
-          label='Professional ID'
-          placeholder='Professional ID'
-        />
-
-        <Input
-          labelVariant='static'
-          label='Medic Name'
-          placeholder='Medic name'
-        />
-      </div>
-      <div className='flex justify-end'>
-        <Button variant='primary' size='default' className='w-fit'>
-          Update Information
-        </Button>
-      </div>
+      <OrganizationSettingsForm />
     </Window>
   );
 };

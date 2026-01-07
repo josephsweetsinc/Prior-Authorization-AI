@@ -139,6 +139,7 @@ export const api = createApi({
     'RequestsHistory',
     'RequestDetails',
     'Users',
+    'Settings',
   ],
   endpoints: () => ({}),
 });

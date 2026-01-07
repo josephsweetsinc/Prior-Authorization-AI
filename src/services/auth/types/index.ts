@@ -7,4 +7,5 @@ export {
   type SignUpRequest,
   type IUser,
   type UserRoles,
+  type UpdatePasswordRequest,
 } from './types';

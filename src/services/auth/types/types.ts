@@ -38,9 +38,17 @@ export type SignUpRequest = {
 
 export type IUser = {
   id: number;
-  name: string;
-  surname: string;
+  full_name: string;
   email: string;
   role: UserRoles;
-  is_active: boolean;
+  organization: {
+    provider_type: string;
+    professional_id: string;
+    medic_name: string;
+  };
+};
+
+export type UpdatePasswordRequest = {
+  old_password: string;
+  new_password: string;
 };

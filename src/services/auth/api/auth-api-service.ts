@@ -6,6 +6,7 @@ import type {
   PasswordResetResponse,
   SignUpRequest,
   IUser,
+  UpdatePasswordRequest,
 } from '@/services/auth/types';
 
 export const authApi = baseApi.injectEndpoints({
@@ -83,6 +84,14 @@ export const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['User'],
     }),
+
+    updatePassword: build.mutation<void, UpdatePasswordRequest>({
+      query: (body) => ({
+        url: '/auth/password-change',
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -95,4 +104,5 @@ export const {
   useSignupMutation,
   useLogoutMutation,
   useGetCurrentUserQuery,
+  useUpdatePasswordMutation,
 } = authApi;
