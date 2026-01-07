@@ -1,7 +1,7 @@
 'use client';
 
 import { cva, type VariantProps } from 'class-variance-authority';
-import { Check, X, Clock, Loader2, Info } from 'lucide-react';
+import { Check, X, Clock, Loader2, Info, ClockFading } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/shared/lib/utils';
@@ -15,7 +15,7 @@ const chipVariants = cva(
         info: 'bg-status-info/10 text-status-info',
         destructive: 'bg-status-destructive/10 text-status-destructive',
         warning: 'bg-status-warning/10 text-status-warning',
-
+        submitted: 'text-indigo-500 bg-indigo-100',
         default: 'bg-muted text-foreground',
         outlined: 'border border-input bg-background',
       },
@@ -37,6 +37,7 @@ const defaultIcons = {
   destructive: X,
   warning: Clock,
   info: Loader2,
+  submitted: ClockFading,
   default: Info,
   outlined: null,
 };

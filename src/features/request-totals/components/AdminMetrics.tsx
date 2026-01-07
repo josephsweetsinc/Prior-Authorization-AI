@@ -51,9 +51,9 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
       </MetricsCard>
       <MetricsCard className='shrink grow basis-[288px] items-center space-y-3'>
         <MetricsCard.Group className='flex gap-3'>
-          <OverlayIcon variant='ClockFading' color='orange' />
+          <OverlayIcon variant='ClockFading' color='indigo' />
           <MetricsCard.Group>
-            <MetricsCard.Label>Pending Review</MetricsCard.Label>
+            <MetricsCard.Label>Submitted Requests</MetricsCard.Label>
             <MetricsCard.Value>{kpi.pending_review}</MetricsCard.Value>
           </MetricsCard.Group>
         </MetricsCard.Group>
@@ -66,7 +66,7 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
         <MetricsCard.Group className='flex gap-3'>
           <OverlayIcon variant='CircleX' color='red' />
           <MetricsCard.Group>
-            <MetricsCard.Label>Denied Requests</MetricsCard.Label>
+            <MetricsCard.Label>Rejected Requests</MetricsCard.Label>
             <MetricsCard.Value>{kpi.denied_requests}</MetricsCard.Value>
           </MetricsCard.Group>
         </MetricsCard.Group>
@@ -77,7 +77,7 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
       </MetricsCard>
       <MetricsCard className='shrink grow basis-[288px] items-center space-y-3'>
         <MetricsCard.Group className='flex gap-3'>
-          <OverlayIcon variant='BrainCircuit' color='indigo' />
+          <OverlayIcon variant='BrainCircuit' color='blue' />
           <MetricsCard.Group>
             <MetricsCard.Label>AI Form Accuracy</MetricsCard.Label>
             <MetricsCard.Value>{kpi.ai_accuracy}%</MetricsCard.Value>

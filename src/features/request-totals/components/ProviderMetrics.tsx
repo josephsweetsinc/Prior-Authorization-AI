@@ -31,9 +31,9 @@ export const ProviderMetrics = ({ className, ...props }: Props) => {
         </MetricsCard.Group>
       </MetricsCard>
       <MetricsCard className='flex shrink grow basis-[288px] items-center gap-4'>
-        <OverlayIcon variant='ClockFading' color='orange' />
+        <OverlayIcon variant='ClockFading' color='indigo' />
         <MetricsCard.Group>
-          <MetricsCard.Label>Pending Review</MetricsCard.Label>
+          <MetricsCard.Label>Submitted </MetricsCard.Label>
           <MetricsCard.Value>{summary.pending_review}</MetricsCard.Value>
         </MetricsCard.Group>
       </MetricsCard>
@@ -45,7 +45,7 @@ export const ProviderMetrics = ({ className, ...props }: Props) => {
         </MetricsCard.Group>
       </MetricsCard>
       <MetricsCard className='flex shrink grow basis-[288px] items-center gap-4'>
-        <OverlayIcon variant='ChartNoAxesCombined' color='indigo' />
+        <OverlayIcon variant='ChartNoAxesCombined' color='orange' />
         <MetricsCard.Group>
           <MetricsCard.Label>Approval rate</MetricsCard.Label>
           <MetricsCard.Value>{summary.approval_rate}</MetricsCard.Value>
