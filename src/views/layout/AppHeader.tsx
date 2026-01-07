@@ -1,6 +1,7 @@
 'use client';
 
 import { BellDot, type icons, Settings } from 'lucide-react';
+import Link from 'next/link';
 
 import { LogoutModal } from '@/features/profile/components/LogoutModal';
 import { useLogoutModal } from '@/features/profile/hooks/useLogoutModal';
@@ -44,8 +45,10 @@ export const AppHeader = () => {
 
         <HeaderGroup separate>
           <HeaderActions>
-            <Button variant='ghost' size='icon' disabled>
-              <Settings className='text-status-info size-5' />
+            <Button variant='ghost' size='icon' asChild>
+              <Link href='/settings'>
+                <Settings className='text-status-info size-5' />
+              </Link>
             </Button>
             <Button variant='ghost' size='icon' disabled>
               <BellDot className='text-status-destructive size-5' />
