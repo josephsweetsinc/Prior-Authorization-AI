@@ -31,7 +31,7 @@ export function ChangeIndicator({
         {...props}
       >
         {Icon && <Icon className='h-4 w-4' />}
-        <p>{Math.abs(changeRate)}%</p>
+        <p>{Math.round(changeRate)}%</p>
       </div>
     </div>
   );
