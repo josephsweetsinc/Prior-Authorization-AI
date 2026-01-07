@@ -165,6 +165,11 @@ async def get_me(
         'email': user.email,
         'role': user.role,
         'is_active': user.is_active,
+        'phone': user.phone_number,
+        'position': user.position,
+        'place_of_work': user.place_of_work,
+        'last_login': user.last_login,
+        'created_at': user.created_at,
         'avatar_url': avatar_url,
         'organization': (
             OrganizationResponseSchema.model_validate(organization)
