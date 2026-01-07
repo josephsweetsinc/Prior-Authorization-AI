@@ -8,6 +8,8 @@ from core import exception_handler, get_service, timing_handler
 from dependencies import get_current_user, get_provider_user_from_token
 from models import RequestStatus, User, UserRole
 from schemas.ambulance_request import (
+    AdminRequestWithStatusHistorySchema,
+    AdminUpdateRequestSchema,
     AmbulanceRequestResponseSchema,
     AmbulanceRequestsListResponseSchema,
     ApproveRequestSchema,
@@ -139,7 +141,7 @@ async def create_request(
 @ambulance_request_router.get(
     '/{request_id}',
     description='Get ambulance request by ID',
-    response_model=RequestWithStatusHistorySchema,
+    response_model=RequestWithStatusHistorySchema | AdminRequestWithStatusHistorySchema,
 )
 @exception_handler
 async def get_request(
@@ -148,7 +150,7 @@ async def get_request(
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
-) -> RequestWithStatusHistorySchema:
+) -> RequestWithStatusHistorySchema | AdminRequestWithStatusHistorySchema:
     """Get ambulance request by ID with status history.
 
     Args:
@@ -338,4 +340,49 @@ async def deny_request(
         reviewer_id=user.id,
         denial_reason=request_data.denial_reason,
         denial_notes=request_data.denial_notes,
+    )
+
+
+@ambulance_request_router.patch(
+    '/{request_id}',
+    description='Update ambulance request fields (admin only)',
+    summary='Update request by admin',
+    response_model=AdminRequestWithStatusHistorySchema,
+)
+@exception_handler
+async def update_request_by_admin(
+    request_id: int,
+    update_data: AdminUpdateRequestSchema,
+    user: Annotated[User, Security(get_current_user)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+) -> AdminRequestWithStatusHistorySchema:
+    """Update ambulance request fields by admin.
+
+    Admin can update all fields except ai_accuracy and status.
+    Only admin users can update requests.
+
+    Args:
+        request_id: Request ID to update.
+        update_data: Data to update (all fields optional).
+        user: Current authenticated user (must be admin).
+        service: Ambulance request service.
+
+    Returns:
+        AdminRequestWithStatusHistorySchema: Updated request with all fields.
+
+    Raises:
+        HTTPException: If user is not admin, request not found, or update fails.
+
+    """
+    if user.role != UserRole.ADMIN:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Only admin users can update requests',
+        )
+    return await service.update_request_by_admin(
+        request_id=request_id,
+        update_data=update_data,
     )

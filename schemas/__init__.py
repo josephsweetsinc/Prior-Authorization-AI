@@ -5,6 +5,8 @@ from .ai_extraction import (
     ExtractedTransportationData,
 )
 from .ambulance_request import (
+    AdminRequestWithStatusHistorySchema,
+    AdminUpdateRequestSchema,
     AmbulanceRequestResponseSchema,
     AmbulanceRequestsListResponseSchema,
     ApproveRequestSchema,
@@ -42,6 +44,8 @@ from .user import (
 )
 
 __all__ = [
+    'AdminRequestWithStatusHistorySchema',
+    'AdminUpdateRequestSchema',
     'AIExtractionResponse',
     'AmbulanceRequestResponseSchema',
     'AmbulanceRequestsListResponseSchema',

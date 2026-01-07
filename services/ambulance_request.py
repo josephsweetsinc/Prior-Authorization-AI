@@ -29,6 +29,8 @@ from models import (
     UserRole,
 )
 from schemas import (
+    AdminRequestWithStatusHistorySchema,
+    AdminUpdateRequestSchema,
     AIExtractionResponse,
     AmbulanceRequestResponseSchema,
     CreateAmbulanceRequestParseSchema,
@@ -372,7 +374,7 @@ class AmbulanceRequestService(BaseService):
         self,
         user: User,
         request_id: int,
-    ) -> RequestWithStatusHistorySchema:
+    ) -> RequestWithStatusHistorySchema | AdminRequestWithStatusHistorySchema:
         """Get request by id.
 
         Args:
@@ -459,7 +461,11 @@ class AmbulanceRequestService(BaseService):
                     )
                 )
 
-        response = RequestWithStatusHistorySchema.model_validate(request)
+        # Return different schemas based on user role
+        if user.role == UserRole.ADMIN:
+            response = AdminRequestWithStatusHistorySchema.model_validate(request)
+        else:
+            response = RequestWithStatusHistorySchema.model_validate(request)
         response.documents = documents
         return response
 
@@ -696,3 +702,107 @@ class AmbulanceRequestService(BaseService):
         await self._session.refresh(request)
 
         return AmbulanceRequestResponseSchema.model_validate(request)
+
+    async def update_request_by_admin(
+        self,
+        request_id: int,
+        update_data: AdminUpdateRequestSchema,
+    ) -> AdminRequestWithStatusHistorySchema:
+        """Update request fields by admin.
+
+        Admin can update all fields except ai_accuracy and status.
+
+        Args:
+            request_id: ID of the request to update.
+            update_data: Data to update.
+
+        Returns:
+            AdminRequestWithStatusHistorySchema: Updated request.
+
+        Raises:
+            AmbulanceRequestNotFoundException: If the request does not exist.
+
+        """
+        request = await self._request_dao.get_by_id(request_id=request_id)
+        if not request:
+            raise AmbulanceRequestNotFoundException
+        
+        # Update only provided fields
+        if update_data.transportation_type is not None:
+            request.transportation_type = update_data.transportation_type
+        if update_data.patient_first_name is not None:
+            request.patient_first_name = update_data.patient_first_name
+        if update_data.patient_last_name is not None:
+            request.patient_last_name = update_data.patient_last_name
+        if update_data.patient_date_of_birth is not None:
+            request.patient_date_of_birth = update_data.patient_date_of_birth
+        if update_data.patient_id is not None:
+            request.patient_id = update_data.patient_id
+        if update_data.date_of_transport is not None:
+            request.date_of_transport = update_data.date_of_transport
+        if update_data.time_of_transport is not None:
+            request.time_of_transport = update_data.time_of_transport
+        if update_data.pickup_address is not None:
+            request.pickup_address = update_data.pickup_address
+        if update_data.destination_address is not None:
+            request.destination_address = update_data.destination_address
+        if update_data.primary_diagnosis is not None:
+            request.primary_diagnosis = update_data.primary_diagnosis
+        if update_data.medical_justification is not None:
+            request.medical_justification = update_data.medical_justification
+        if update_data.form_number is not None:
+            request.form_number = update_data.form_number
+        if update_data.reviewer_id is not None:
+            request.reviewer_id = update_data.reviewer_id
+        if update_data.ambulatory_status is not None:
+            request.ambulatory_status = update_data.ambulatory_status
+        if update_data.oxygen_required is not None:
+            request.oxygen_required = update_data.oxygen_required
+        if update_data.ordering_physician is not None:
+            request.ordering_physician = update_data.ordering_physician
+        if update_data.physician_phone is not None:
+            request.physician_phone = update_data.physician_phone
+        if update_data.denial_reason is not None:
+            request.denial_reason = update_data.denial_reason
+        if update_data.denial_notes is not None:
+            request.denial_notes = update_data.denial_notes
+        
+        await self._session.flush()
+        await self._session.commit()
+        await self._session.refresh(request)
+        
+        # Get files and generate presigned URLs
+        files = await self._file_dao.get_by_request_id(request_id=request_id)
+        documents = []
+        for file in files:
+            try:
+                download_url = self._s3_actions.get_presigned_url(
+                    key=file.s3_key,
+                    expires_in=3600,
+                )
+                documents.append(
+                    RequestDocumentSchema(
+                        id=file.id,
+                        filename=file.filename,
+                        file_size=file.file_size,
+                        content_type=file.content_type,
+                        download_url=download_url,
+                    )
+                )
+            except Exception:
+                logger.exception(
+                    'Failed to generate presigned URL for file %s', file.id
+                )
+                documents.append(
+                    RequestDocumentSchema(
+                        id=file.id,
+                        filename=file.filename,
+                        file_size=file.file_size,
+                        content_type=file.content_type,
+                        download_url='',
+                    )
+                )
+        
+        response = AdminRequestWithStatusHistorySchema.model_validate(request)
+        response.documents = documents
+        return response

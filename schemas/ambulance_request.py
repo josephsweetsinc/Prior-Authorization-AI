@@ -377,7 +377,7 @@ class RequestDocumentSchema(BaseModel):
 
 
 class RequestWithStatusHistorySchema(AmbulanceRequestResponseSchema):
-    """Response schema for request with status history."""
+    """Response schema for request with status history (provider view)."""
 
     pickup_address: Annotated[
         str,
@@ -418,6 +418,42 @@ class RequestWithStatusHistorySchema(AmbulanceRequestResponseSchema):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AdminRequestWithStatusHistorySchema(BaseModel):
+    """Response schema for request with status history (admin view - all fields)."""
+
+    id: int
+    user_id: int
+    transportation_type: TransportationType
+    patient_first_name: str
+    patient_last_name: str
+    patient_date_of_birth: date
+    patient_id: str
+    date_of_transport: date
+    time_of_transport: time
+    pickup_address: str
+    destination_address: str
+    primary_diagnosis: str | None
+    medical_justification: str | None
+    status: RequestStatus
+    form_number: str | None
+    reviewer_id: int | None
+    ambulatory_status: AmbulatoryStatus | None
+    oxygen_required: bool
+    ai_accuracy: float | None
+    ordering_physician: str | None
+    physician_phone: str | None
+    denial_reason: DenialReason | None
+    denial_notes: str | None
+    created_at: datetime
+    updated_at: datetime
+    status_history: list[RequestStatusHistoryResponseSchema] = []
+    documents: list[RequestDocumentSchema] = Field(
+        default_factory=list,
+        description='List of documents attached to the request',
+    )
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ApproveRequestSchema(BaseModel):
     """Schema for approving a request."""
 
@@ -441,6 +477,99 @@ class DenyRequestSchema(BaseModel):
             max_length=256,
             description='Additional notes for denial (required if denial_reason is OTHER_REASON)',
             examples=['Custom denial reason explanation'],
+        ),
+    ]
+
+    def model_post_init(self, __context: object) -> None:
+        """Validate that denial_notes is provided for OTHER_REASON."""
+        if (
+            self.denial_reason == DenialReason.OTHER_REASON
+            and not self.denial_notes
+        ):
+            raise ValueError(
+                'denial_notes is required when denial_reason is OTHER_REASON'
+            )
+
+
+class AdminUpdateRequestSchema(BaseModel):
+    """Schema for admin to update request fields (all fields except ai_accuracy and status)."""
+
+    transportation_type: TransportationType | None = None
+    patient_first_name: Annotated[
+        str | None,
+        Field(
+            default=None,
+            min_length=3,
+            max_length=15,
+            pattern=r'^[a-zA-Z]+$',
+            examples=['John'],
+        ),
+    ]
+    patient_last_name: Annotated[
+        str | None,
+        Field(
+            default=None,
+            min_length=3,
+            max_length=15,
+            pattern=r'^[a-zA-Z]+$',
+            examples=['Doe'],
+        ),
+    ]
+    patient_date_of_birth: date | None = None
+    patient_id: Annotated[
+        str | None,
+        Field(
+            default=None,
+            min_length=1,
+            max_length=50,
+            description='Patient Medicare Beneficiary Identifier (MBI) or other ID',
+        ),
+    ]
+    date_of_transport: date | None = None
+    time_of_transport: time | None = None
+    pickup_address: Annotated[
+        str | None,
+        Field(
+            default=None,
+            min_length=5,
+            max_length=500,
+        ),
+    ]
+    destination_address: Annotated[
+        str | None,
+        Field(
+            default=None,
+            min_length=5,
+            max_length=500,
+        ),
+    ]
+    primary_diagnosis: str | None = None
+    medical_justification: str | None = None
+    form_number: str | None = None
+    reviewer_id: int | None = None
+    ambulatory_status: AmbulatoryStatus | None = None
+    oxygen_required: bool | None = None
+    ordering_physician: Annotated[
+        str | None,
+        Field(
+            default=None,
+            max_length=200,
+        ),
+    ]
+    physician_phone: Annotated[
+        str | None,
+        Field(
+            default=None,
+            max_length=50,
+        ),
+    ]
+    denial_reason: DenialReason | None = None
+    denial_notes: Annotated[
+        str | None,
+        Field(
+            default=None,
+            max_length=256,
+            description='Additional notes for denial (required if denial_reason is OTHER_REASON)',
         ),
     ]
 
