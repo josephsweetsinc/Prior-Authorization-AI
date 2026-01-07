@@ -47,7 +47,6 @@ export const AppSidebar = () => {
                 to='/requests-history'
                 disabled
               />
-              <SidebarItem icon='Settings' label='Settings' to='/settings' />
             </>
           )}
         </SidebarGroup>
