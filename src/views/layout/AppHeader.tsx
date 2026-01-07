@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { LogoutModal } from '@/features/profile/components/LogoutModal';
 import { useLogoutModal } from '@/features/profile/hooks/useLogoutModal';
+import { useGetCurrentUserQuery } from '@/services';
 import {
   Button,
   GlobalSearch,
@@ -17,6 +18,7 @@ import {
 
 export const AppHeader = () => {
   const { isOpen, isLoading, open, close, confirm } = useLogoutModal();
+  const { data: currentUser } = useGetCurrentUserQuery();
 
   const profileActions: ProfileAction[] = [
     {
@@ -57,7 +59,11 @@ export const AppHeader = () => {
           <HeaderProfile
             src='/images/mock_avatar.jpg'
             name='Dr. Kraude'
-            role='Ambulance'
+            role={
+              currentUser?.role
+                ? currentUser.role[0].toUpperCase() + currentUser.role.slice(1)
+                : '—'
+            }
             actions={profileActions}
           />
         </HeaderGroup>
