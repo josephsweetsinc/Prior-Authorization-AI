@@ -1,7 +1,10 @@
 import { type HTMLProps } from 'react';
 
 import { type IRecentActivity } from '@/services/dashboard';
-import { formatRelativeDateTime } from '@/services/request-analytics/utils/formatRelativeDateTime';
+import {
+  formatRelativeDateTime,
+  transformStatusToAction,
+} from '@/services/request-analytics';
 import { EmptyStateMessage, Window } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
@@ -15,6 +18,7 @@ const ActivityRow = ({
   request_id,
   author_name,
   created_at,
+  status,
   className,
   ...props
 }: ActivityRowProps) => {
@@ -28,7 +32,7 @@ const ActivityRow = ({
     >
       <div className='space-y-1'>
         <p className='flex gap-2 text-base font-bold text-black'>
-          Action
+          {transformStatusToAction(status)}
           <span className='text-status-info decoration-status-info block underline'>
             {request_id}
           </span>
@@ -68,7 +72,7 @@ export const RecentActivity = ({ data, className, ...props }: Props) => {
 
       <ul className='space-y-4 divide-y divide-gray-100'>
         {data.map((activity) => (
-          <ActivityRow {...activity} key={activity.request_id} />
+          <ActivityRow {...activity} key={activity.created_at} />
         ))}
       </ul>
     </Window>

@@ -7,7 +7,8 @@ export const StatusIcon = ({ status }: { status: RequestStatus }) => {
   const styles: Record<RequestStatus, string> = {
     approved: 'bg-status-success/10 text-status-success',
     pending: 'bg-status-success/10 text-status-success',
-    processing: 'bg-status-success/10 text-status-success',
+    draft: 'bg-status-warning/10 text-status-warning',
+    submitted: 'bg-indigo-100 text-indigo-500',
     denied: 'bg-status-destructive/10 text-status-destructive',
   };
 
