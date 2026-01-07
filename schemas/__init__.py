@@ -32,6 +32,7 @@ from .organization import (
 from .user import (
     CreateUserByAdminRequestSchema,
     CreateUserRequestSchema,
+    UpdateMeRequestSchema,
     UpdateUserRequestSchema,
     UserListItemSchema,
     UserResponseShema,
@@ -61,6 +62,7 @@ __all__ = [
     'RequestStatusHistoryResponseSchema',
     'RequestWithStatusHistorySchema',
     'TokenSchemas',
+    'UpdateMeRequestSchema',
     'UpdateOrganizationRequestSchema',
     'UpdateUserRequestSchema',
     'UserListItemSchema',

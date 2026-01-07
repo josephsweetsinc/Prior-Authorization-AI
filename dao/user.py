@@ -123,6 +123,47 @@ class UserDAO(BaseDAO):
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def update_profile_fields_by_id(
+        self,
+        user_id: int,
+        *,
+        phone_number: str | None = None,
+        position: str | None = None,
+        place_of_work: str | None = None,
+    ) -> User | None:
+        """Update user profile fields by id (phone, position, place_of_work).
+
+        Args:
+            user_id: User ID.
+            phone_number: New phone number (optional).
+            position: New position (optional).
+            place_of_work: New place of work (optional).
+
+        Returns:
+            User | None: Updated user instance or None if not found.
+
+        """
+        update_values = {}
+        if phone_number is not None:
+            update_values['phone_number'] = phone_number
+        if position is not None:
+            update_values['position'] = position
+        if place_of_work is not None:
+            update_values['place_of_work'] = place_of_work
+
+        if not update_values:
+            return await self.get_by_id(user_id)
+
+        stmt = (
+            update(User)
+            .where(User.id == user_id)
+            .values(**update_values)
+            .returning(User)
+        )
+
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def update_password(
         self,
         user_id: int,
