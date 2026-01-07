@@ -38,8 +38,12 @@ export type SignUpRequest = {
 
 export type IUser = {
   id: number;
-  full_name: string;
+  name: string;
+  surname: string;
   email: string;
+  phone_number: string;
+  position: string;
+  place_of_work: string;
   role: UserRoles;
   organization: {
     provider_type: string;
