@@ -141,7 +141,8 @@ async def create_request(
 @ambulance_request_router.get(
     '/{request_id}',
     description='Get ambulance request by ID',
-    response_model=RequestWithStatusHistorySchema | AdminRequestWithStatusHistorySchema,
+    response_model=RequestWithStatusHistorySchema
+    | AdminRequestWithStatusHistorySchema,
 )
 @exception_handler
 async def get_request(
@@ -286,6 +287,7 @@ async def approve_request(
     """
     if user.role != UserRole.ADMIN:
         from fastapi import HTTPException, status
+
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='Only admin users can approve requests',
@@ -331,6 +333,7 @@ async def deny_request(
     """
     if user.role != UserRole.ADMIN:
         from fastapi import HTTPException, status
+
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='Only admin users can deny requests',
@@ -378,6 +381,7 @@ async def update_request_by_admin(
     """
     if user.role != UserRole.ADMIN:
         from fastapi import HTTPException, status
+
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='Only admin users can update requests',

@@ -223,7 +223,7 @@ async def generate_requests(
         status_distribution: list[RequestStatus] = (
             [RequestStatus.APPROVED] * 20
             + [RequestStatus.PENDING] * 10
-            + [RequestStatus.PROCESSING] * 10
+            + [RequestStatus.PENDING] * 10
             + [RequestStatus.DENIED] * 10
         )
         random.shuffle(status_distribution)
@@ -303,7 +303,7 @@ async def generate_requests(
             # Always start with PROCESSING
             processing_history = RequestStatusHistory(
                 request_id=request.id,
-                status=RequestStatus.PROCESSING,
+                status=RequestStatus.PENDING,
                 notes='Request submitted',
                 created_at=current_time,
             )
@@ -311,7 +311,7 @@ async def generate_requests(
             await session.flush()
 
             # Build status history based on final status
-            if status == RequestStatus.PROCESSING:
+            if status == RequestStatus.PENDING:
                 # Still processing - no further status changes
                 request.updated_at = current_time
             elif status == RequestStatus.PENDING:

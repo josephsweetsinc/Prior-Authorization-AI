@@ -457,7 +457,7 @@ class AdminRequestWithStatusHistorySchema(BaseModel):
 class ApproveRequestSchema(BaseModel):
     """Schema for approving a request."""
 
-    pass  # No additional fields needed for approval
+    # No additional fields needed for approval
 
 
 class DenyRequestSchema(BaseModel):

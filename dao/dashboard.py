@@ -250,9 +250,7 @@ class DashboardDAO(BaseDAO):
             .where(
                 AmbulanceRequest.is_active == True,  # noqa: E712
                 AmbulanceRequest.user_id == user_id,
-                AmbulanceRequest.status.in_(
-                    [RequestStatus.PENDING, RequestStatus.PROCESSING]
-                ),
+                AmbulanceRequest.status.in_([RequestStatus.PENDING]),
             )
             .order_by(
                 AmbulanceRequest.created_at.desc(),

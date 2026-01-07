@@ -28,6 +28,7 @@ from models import (
     User,
     UserRole,
 )
+from models.ambulance_request import DenialReason
 from schemas import (
     AdminRequestWithStatusHistorySchema,
     AdminUpdateRequestSchema,
@@ -269,18 +270,21 @@ class AmbulanceRequestService(BaseService):
             )
         )
         extracted = ai_response.extracted_data
-        
+
         # Create draft request with extracted data
         # Use default values for required fields if not extracted
         from datetime import date, time
+
         from models.ambulance_request import TransportationType
-        
+
         draft_request = await self._request_dao.create(
             user_id=user_id,
-            transportation_type=extracted.transportation_type or TransportationType.AMBULANCE,
+            transportation_type=extracted.transportation_type
+            or TransportationType.AMBULANCE,
             patient_first_name=extracted.patient_first_name or 'Unknown',
             patient_last_name=extracted.patient_last_name or 'Unknown',
-            patient_date_of_birth=extracted.patient_date_of_birth or date.today(),
+            patient_date_of_birth=extracted.patient_date_of_birth
+            or date.today(),
             patient_id=extracted.patient_id or 'TBD',
             date_of_transport=extracted.date_of_transport or date.today(),
             time_of_transport=extracted.time_of_transport or time(12, 0),
@@ -297,7 +301,7 @@ class AmbulanceRequestService(BaseService):
             physician_phone=extracted.physician_phone,
         )
         await self._session.flush()
-        
+
         # Link files to draft request
         for file_id in request_data.file_ids:
             await self._file_dao.update_request_id(
@@ -305,7 +309,7 @@ class AmbulanceRequestService(BaseService):
                 request_id=draft_request.id,
             )
         await self._session.commit()
-        
+
         return FileUploadWithExtractionResponseSchema(
             request_id=draft_request.id,
             extracted_data=ai_response.extracted_data,
@@ -336,7 +340,7 @@ class AmbulanceRequestService(BaseService):
             raise AmbulanceRequestPermissionException
         if request.status != RequestStatus.DRAFT:
             raise ValueError('Request is not in DRAFT status')
-        
+
         # Update request with verified data
         request.transportation_type = request_data.transportation_type
         request.patient_first_name = request_data.patient_first_name
@@ -396,7 +400,7 @@ class AmbulanceRequestService(BaseService):
         # User can see his own requests, or all if he is an admin
         if request.user_id != user.id and user.role != UserRole.ADMIN:
             raise AmbulanceRequestPermissionException
-        
+
         # If admin opens SUBMITTED request for the first time, change to PENDING
         if (
             user.role == UserRole.ADMIN
@@ -407,7 +411,8 @@ class AmbulanceRequestService(BaseService):
                 request_id=request_id
             )
             has_been_pending = any(
-                entry.status == RequestStatus.PENDING for entry in status_history
+                entry.status == RequestStatus.PENDING
+                for entry in status_history
             )
             if not has_been_pending:
                 request.status = RequestStatus.PENDING
@@ -419,7 +424,7 @@ class AmbulanceRequestService(BaseService):
                 )
                 await self._session.commit()
                 await self._session.refresh(request)
-        
+
         # Get files and generate presigned URLs
         files = await self._file_dao.get_by_request_id(request_id=request_id)
         logger.info(
@@ -463,7 +468,9 @@ class AmbulanceRequestService(BaseService):
 
         # Return different schemas based on user role
         if user.role == UserRole.ADMIN:
-            response = AdminRequestWithStatusHistorySchema.model_validate(request)
+            response = AdminRequestWithStatusHistorySchema.model_validate(
+                request
+            )
         else:
             response = RequestWithStatusHistorySchema.model_validate(request)
         response.documents = documents
@@ -630,8 +637,6 @@ class AmbulanceRequestService(BaseService):
             AmbulanceRequestNotFoundException: If the request does not exist.
 
         """
-        from models.ambulance_request import DenialReason
-        
         request = await self._request_dao.get_by_id(request_id=request_id)
         if not request:
             raise AmbulanceRequestNotFoundException
@@ -674,16 +679,11 @@ class AmbulanceRequestService(BaseService):
             ValueError: If denial_notes is missing for OTHER_REASON.
 
         """
-        from models.ambulance_request import DenialReason
-        
-        if (
-            denial_reason == DenialReason.OTHER_REASON
-            and not denial_notes
-        ):
-            raise ValueError(
+        if denial_reason == DenialReason.OTHER_REASON and not denial_notes:
+            raise ValueError(  # TODO: Проверять это в сериализаторе
                 'denial_notes is required when denial_reason is OTHER_REASON'
             )
-        
+
         request = await self._request_dao.get_by_id(request_id=request_id)
         if not request:
             raise AmbulanceRequestNotFoundException
@@ -703,7 +703,7 @@ class AmbulanceRequestService(BaseService):
 
         return AmbulanceRequestResponseSchema.model_validate(request)
 
-    async def update_request_by_admin(
+    async def update_request_by_admin(  # noqa: PLR0915, C901
         self,
         request_id: int,
         update_data: AdminUpdateRequestSchema,
@@ -726,7 +726,7 @@ class AmbulanceRequestService(BaseService):
         request = await self._request_dao.get_by_id(request_id=request_id)
         if not request:
             raise AmbulanceRequestNotFoundException
-        
+
         # Update only provided fields
         if update_data.transportation_type is not None:
             request.transportation_type = update_data.transportation_type
@@ -766,11 +766,11 @@ class AmbulanceRequestService(BaseService):
             request.denial_reason = update_data.denial_reason
         if update_data.denial_notes is not None:
             request.denial_notes = update_data.denial_notes
-        
+
         await self._session.flush()
         await self._session.commit()
         await self._session.refresh(request)
-        
+
         # Get files and generate presigned URLs
         files = await self._file_dao.get_by_request_id(request_id=request_id)
         documents = []
@@ -802,7 +802,7 @@ class AmbulanceRequestService(BaseService):
                         download_url='',
                     )
                 )
-        
+
         response = AdminRequestWithStatusHistorySchema.model_validate(request)
         response.documents = documents
         return response

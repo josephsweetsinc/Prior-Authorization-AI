@@ -49,10 +49,14 @@ class DenialReason(StrEnum):
     INVALID_REQUEST_TYPE = 'invalid_request_type'
     INVALID_DIAGNOSIS_CODE = 'invalid_diagnosis_code'
     MISSING_PHYSICIAN_SIGNATURE = 'missing_physician_signature'
-    TRANSPORT_LEVEL_NOT_MEDICALLY_NECESSARY = 'transport_level_not_medically_necessary'
+    TRANSPORT_LEVEL_NOT_MEDICALLY_NECESSARY = (
+        'transport_level_not_medically_necessary'
+    )
     INCOMPLETE_MEDICAL_DOCUMENTATION = 'incomplete_medical_documentation'
     OUTDATED_OR_EXPIRED_DOCUMENTS = 'outdated_or_expired_documents'
-    INCORRECT_OR_INCONSISTENT_PATIENT_INFORMATION = 'incorrect_or_inconsistent_patient_information'
+    INCORRECT_OR_INCONSISTENT_PATIENT_INFORMATION = (
+        'incorrect_or_inconsistent_patient_information'
+    )
     OTHER_REASON = 'other_reason'
 
 

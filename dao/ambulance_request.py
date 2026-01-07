@@ -148,10 +148,9 @@ class AmbulanceRequestDAO(BaseDAO):
 
         if user_id is not None:
             stmt = stmt.where(AmbulanceRequest.user_id == user_id)
-        else:
-            # Admin view: exclude DRAFT requests unless explicitly requested
-            if status != RequestStatus.DRAFT:
-                stmt = stmt.where(AmbulanceRequest.status != RequestStatus.DRAFT)
+        # Admin view: exclude DRAFT requests unless explicitly requested
+        elif status != RequestStatus.DRAFT:
+            stmt = stmt.where(AmbulanceRequest.status != RequestStatus.DRAFT)
 
         if search:
             search_pattern = f'%{search}%'
