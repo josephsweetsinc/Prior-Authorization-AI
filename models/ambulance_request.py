@@ -35,10 +35,25 @@ class TransportationType(StrEnum):
 class RequestStatus(StrEnum):
     """Enumeration of request statuses."""
 
-    APPROVED = 'approved'
+    DRAFT = 'draft'
+    SUBMITTED = 'submitted'
     PENDING = 'pending'
-    PROCESSING = 'processing'
+    APPROVED = 'approved'
     DENIED = 'denied'
+
+
+class DenialReason(StrEnum):
+    """Enumeration of denial reasons."""
+
+    DUPLICATE_REQUEST = 'duplicate_request'
+    INVALID_REQUEST_TYPE = 'invalid_request_type'
+    INVALID_DIAGNOSIS_CODE = 'invalid_diagnosis_code'
+    MISSING_PHYSICIAN_SIGNATURE = 'missing_physician_signature'
+    TRANSPORT_LEVEL_NOT_MEDICALLY_NECESSARY = 'transport_level_not_medically_necessary'
+    INCOMPLETE_MEDICAL_DOCUMENTATION = 'incomplete_medical_documentation'
+    OUTDATED_OR_EXPIRED_DOCUMENTS = 'outdated_or_expired_documents'
+    INCORRECT_OR_INCONSISTENT_PATIENT_INFORMATION = 'incorrect_or_inconsistent_patient_information'
+    OTHER_REASON = 'other_reason'
 
 
 class AmbulatoryStatus(StrEnum):
@@ -140,8 +155,18 @@ class AmbulanceRequest(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
     status: Mapped[RequestStatus] = mapped_column(
         Enum(RequestStatus),
         nullable=False,
-        server_default='PROCESSING',
+        server_default='DRAFT',
         comment='Current status of the request',
+    )
+    denial_reason: Mapped[DenialReason | None] = mapped_column(
+        Enum(DenialReason),
+        nullable=True,
+        comment='Reason for denial if request was denied',
+    )
+    denial_notes: Mapped[str | None] = mapped_column(
+        String(256),
+        nullable=True,
+        comment='Additional notes for denial (required if denial_reason is OTHER_REASON)',
     )
     form_number: Mapped[str | None] = mapped_column(
         String(50),

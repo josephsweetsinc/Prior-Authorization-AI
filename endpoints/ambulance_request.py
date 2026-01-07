@@ -6,12 +6,14 @@ from fastapi.params import Security
 
 from core import exception_handler, get_service, timing_handler
 from dependencies import get_current_user, get_provider_user_from_token
-from models import RequestStatus, User
+from models import RequestStatus, User, UserRole
 from schemas.ambulance_request import (
     AmbulanceRequestResponseSchema,
     AmbulanceRequestsListResponseSchema,
+    ApproveRequestSchema,
     CreateAmbulanceRequestParseSchema,
     CreateAmbulanceRequestSchema,
+    DenyRequestSchema,
     FileUploadResponseSchema,
     FileUploadWithExtractionResponseSchema,
     RequestWithStatusHistorySchema,
@@ -75,14 +77,12 @@ async def create_request_with_extraction(
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
 ) -> FileUploadWithExtractionResponseSchema:
-    """Triggers AI extraction of medical data from previously uploaded files.
+    """Triggers AI extraction of medical data and creates draft request.
 
     This endpoint acts as the second step in the request workflow.
     It takes a list of file IDs (uploaded in Step 1), validates them, and
     sends the documents to an AI service to parse medical details.
-
-    The result is returned for user verification and is not yet saved
-    as a permanent ambulance request in the system.
+    A draft request is created with status DRAFT and its ID is returned.
 
     Args:
         request_data (CreateAmbulanceRequestParseSchema): The input payload
@@ -92,7 +92,7 @@ async def create_request_with_extraction(
 
     Returns:
         FileUploadWithExtractionResponseSchema: The structured data
-            extracted from the medical documents.
+            extracted from the medical documents and the created request ID.
 
     """
     return await service.create_request_with_extraction(
@@ -114,21 +114,21 @@ async def create_request(
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
 ) -> AmbulanceRequestResponseSchema:
-    """Create a new ambulance request.
+    """Update draft request and submit it.
 
-    This endpoint combines step 2 (transportation info) and step 3 (review).
-    The request is created with status PROCESSING.
+    This endpoint updates an existing draft request with verified data
+    and changes its status to SUBMITTED.
 
     Args:
-        request_data: Request data with transportation info and review data.
+        request_data: Request data with request_id and verified information.
         user: Current authenticated user.
         service: Ambulance request service.
 
     Returns:
-        AmbulanceRequestResponseSchema: Created request.
+        AmbulanceRequestResponseSchema: Updated and submitted request.
 
     Raises:
-        HTTPException: If request creation fails.
+        HTTPException: If request update fails.
 
     """
     return await service.create_request(
@@ -247,4 +247,95 @@ async def get_user_requests(
         total=total,
         showing=showing,
         total_pages=total_pages,
+    )
+
+
+@ambulance_request_router.post(
+    '/{request_id}/approve',
+    description='Approve an ambulance request (admin only)',
+    summary='Approve request',
+    response_model=AmbulanceRequestResponseSchema,
+)
+@exception_handler
+async def approve_request(
+    request_id: int,
+    request_data: ApproveRequestSchema,
+    user: Annotated[User, Security(get_current_user)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+) -> AmbulanceRequestResponseSchema:
+    """Approve an ambulance request.
+
+    Only admin users can approve requests.
+
+    Args:
+        request_id: Request ID to approve.
+        request_data: Approval data (empty schema).
+        user: Current authenticated user (must be admin).
+        service: Ambulance request service.
+
+    Returns:
+        AmbulanceRequestResponseSchema: Approved request.
+
+    Raises:
+        HTTPException: If user is not admin, request not found, or approval fails.
+
+    """
+    if user.role != UserRole.ADMIN:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Only admin users can approve requests',
+        )
+    return await service.approve_request(
+        request_id=request_id,
+        reviewer_id=user.id,
+    )
+
+
+@ambulance_request_router.post(
+    '/{request_id}/deny',
+    description='Deny an ambulance request (admin only)',
+    summary='Deny request',
+    response_model=AmbulanceRequestResponseSchema,
+)
+@exception_handler
+async def deny_request(
+    request_id: int,
+    request_data: DenyRequestSchema,
+    user: Annotated[User, Security(get_current_user)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+) -> AmbulanceRequestResponseSchema:
+    """Deny an ambulance request.
+
+    Only admin users can deny requests.
+    If denial_reason is OTHER_REASON, denial_notes is required.
+
+    Args:
+        request_id: Request ID to deny.
+        request_data: Denial data with reason and optional notes.
+        user: Current authenticated user (must be admin).
+        service: Ambulance request service.
+
+    Returns:
+        AmbulanceRequestResponseSchema: Denied request.
+
+    Raises:
+        HTTPException: If user is not admin, request not found, or denial fails.
+
+    """
+    if user.role != UserRole.ADMIN:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Only admin users can deny requests',
+        )
+    return await service.deny_request(
+        request_id=request_id,
+        reviewer_id=user.id,
+        denial_reason=request_data.denial_reason,
+        denial_notes=request_data.denial_notes,
     )

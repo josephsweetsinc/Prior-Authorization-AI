@@ -33,7 +33,7 @@ class AmbulanceRequestDAO(BaseDAO):
         primary_diagnosis: str | None = None,
         medical_justification: str | None = None,
         form_number: str | None = None,
-        status: RequestStatus = RequestStatus.PROCESSING,
+        status: RequestStatus = RequestStatus.DRAFT,
         ambulatory_status: AmbulatoryStatus | None = None,
         oxygen_required: bool = False,
         ai_accuracy: float | None = None,
@@ -133,7 +133,7 @@ class AmbulanceRequestDAO(BaseDAO):
         """Build base filter statement for requests.
 
         Args:
-            user_id: User ID to filter by (None for all users).
+            user_id: User ID to filter by (None for all users - admin view).
             search: Search term for patient name or ID.
             status: Request status to filter by.
             days: Number of days to filter by (from today).
@@ -148,6 +148,10 @@ class AmbulanceRequestDAO(BaseDAO):
 
         if user_id is not None:
             stmt = stmt.where(AmbulanceRequest.user_id == user_id)
+        else:
+            # Admin view: exclude DRAFT requests unless explicitly requested
+            if status != RequestStatus.DRAFT:
+                stmt = stmt.where(AmbulanceRequest.status != RequestStatus.DRAFT)
 
         if search:
             search_pattern = f'%{search}%'

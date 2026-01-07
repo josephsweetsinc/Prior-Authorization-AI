@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from models.ambulance_request import (
     AmbulatoryStatus,
+    DenialReason,
     RequestStatus,
     TransportationType,
 )
@@ -86,6 +87,13 @@ class FileUploadResponseSchema(BaseModel):
 class FileUploadWithExtractionResponseSchema(BaseModel):
     """Response schema for file upload with AI-extracted data."""
 
+    request_id: Annotated[
+        int,
+        Field(
+            description='ID of the created ambulance request (DRAFT status)',
+            examples=[1],
+        ),
+    ]
     extracted_data: 'ExtractedTransportationData' = Field(
         description='Data extracted by AI from uploaded documents',
     )
@@ -126,6 +134,13 @@ class CreateAmbulanceRequestParseSchema(BaseModel):
 class CreateAmbulanceRequestSchema(BaseModel):
     """Schema for creating ambulance request (combines step 2 and 3)."""
 
+    request_id: Annotated[
+        int,
+        Field(
+            description='ID of the draft request to update and submit',
+            examples=[1],
+        ),
+    ]
     file_ids: Annotated[
         list[int],
         Field(
@@ -409,3 +424,40 @@ class RequestWithStatusHistorySchema(AmbulanceRequestResponseSchema):
         description='List of documents attached to the request',
     )
     model_config = ConfigDict(from_attributes=True)
+
+
+class ApproveRequestSchema(BaseModel):
+    """Schema for approving a request."""
+
+    pass  # No additional fields needed for approval
+
+
+class DenyRequestSchema(BaseModel):
+    """Schema for denying a request."""
+
+    denial_reason: Annotated[
+        DenialReason,
+        Field(
+            description='Reason for denial',
+            examples=[DenialReason.DUPLICATE_REQUEST],
+        ),
+    ]
+    denial_notes: Annotated[
+        str | None,
+        Field(
+            default=None,
+            max_length=256,
+            description='Additional notes for denial (required if denial_reason is OTHER_REASON)',
+            examples=['Custom denial reason explanation'],
+        ),
+    ]
+
+    def model_post_init(self, __context: object) -> None:
+        """Validate that denial_notes is provided for OTHER_REASON."""
+        if (
+            self.denial_reason == DenialReason.OTHER_REASON
+            and not self.denial_notes
+        ):
+            raise ValueError(
+                'denial_notes is required when denial_reason is OTHER_REASON'
+            )
