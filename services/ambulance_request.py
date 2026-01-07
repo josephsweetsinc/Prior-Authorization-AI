@@ -468,13 +468,16 @@ class AmbulanceRequestService(BaseService):
 
         # Return different schemas based on user role
         if user.role == UserRole.ADMIN:
-            response = AdminRequestWithStatusHistorySchema.model_validate(
+            admin_response = AdminRequestWithStatusHistorySchema.model_validate(
                 request
             )
-        else:
-            response = RequestWithStatusHistorySchema.model_validate(request)
-        response.documents = documents
-        return response
+            admin_response.documents = documents
+            return admin_response
+        provider_response = RequestWithStatusHistorySchema.model_validate(
+            request
+        )
+        provider_response.documents = documents
+        return provider_response
 
     async def get_all_requests(
         self,

@@ -219,11 +219,11 @@ async def generate_requests(
                 f'✅ Creating {count} requests for provider {target_user_email}'
             )
 
-        # Status distribution: ~40% approved, ~20% pending, ~20% processing, ~20% denied
+        # Status distribution: ~40% approved, ~20% pending, ~20% submitted, ~20% denied
         status_distribution: list[RequestStatus] = (
             [RequestStatus.APPROVED] * 20
             + [RequestStatus.PENDING] * 10
-            + [RequestStatus.PENDING] * 10
+            + [RequestStatus.SUBMITTED] * 10
             + [RequestStatus.DENIED] * 10
         )
         random.shuffle(status_distribution)
@@ -312,26 +312,8 @@ async def generate_requests(
 
             # Build status history based on final status
             if status == RequestStatus.PENDING:
-                # Still processing - no further status changes
+                # Still pending - no further status changes
                 request.updated_at = current_time
-            elif status == RequestStatus.PENDING:
-                # PROCESSING -> PENDING (current status)
-                # This will be updated later when status changes
-                pending_delay = timedelta(
-                    days=random.randint(1, 2),  # noqa: S311
-                    hours=random.randint(0, 12),  # noqa: S311
-                )
-                pending_time = current_time + pending_delay
-
-                pending_history = RequestStatusHistory(
-                    request_id=request.id,
-                    status=RequestStatus.PENDING,
-                    notes='Request pending review',
-                    created_at=pending_time,
-                )
-                session.add(pending_history)
-                await session.flush()
-                request.updated_at = pending_time
             else:
                 # APPROVED or DENIED - need realistic flow
                 # Most requests go through PENDING first (85% chance for better avg_wait_time data) # noqa: E501
