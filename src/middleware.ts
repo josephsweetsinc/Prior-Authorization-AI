@@ -10,15 +10,10 @@ export function middleware(request: NextRequest) {
 
   const sensitiveRoutes = ['/create-new-password', '/enter-code'];
 
-  const isProtectedRoute =
-    pathname.startsWith('/dashboard') || pathname.startsWith('/profile');
+  const isProtectedRoute = pathname === '/' || pathname.startsWith('/profile');
 
   if (accessToken && authRoutes.includes(pathname)) {
     return NextResponse.redirect(new URL('/', request.url));
-  }
-
-  if (!accessToken && pathname === '/') {
-    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   if (!accessToken && isProtectedRoute) {
@@ -35,7 +30,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith('/admin') && userRole !== 'admin') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();
