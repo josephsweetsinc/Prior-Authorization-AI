@@ -267,7 +267,7 @@ async def get_user_requests(
 async def approve_request(
     request_id: int,
     request_data: ApproveRequestSchema,
-    user: Annotated[User, Security(get_admin_user_from_token())],
+    user: Annotated[User, Security(get_admin_user_from_token)],
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],

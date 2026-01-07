@@ -40,7 +40,7 @@ class TestAmbulanceRequestDAO:
             primary_diagnosis='Chronic heart failure',
             medical_justification='Patient requires transport',
             form_number='CMS-10344',
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.DRAFT,
         )
         await db_session.commit()
 
@@ -50,7 +50,7 @@ class TestAmbulanceRequestDAO:
         assert request.patient_first_name == 'John'
         assert request.patient_last_name == 'Doe'
         assert request.patient_id == 'DA123456789HY'
-        assert request.status == RequestStatus.PROCESSING
+        assert request.status == RequestStatus.DRAFT
         assert request.form_number == 'CMS-10344'
 
     @pytest.mark.asyncio
@@ -234,7 +234,7 @@ class TestAmbulanceRequestDAO:
 
         dao = AmbulanceRequestDAO(db_session)
 
-        # Create requests for both users
+        # Create requests for both users (with SUBMITTED status so admin can see them)
         await dao.create(
             user_id=user1.id,
             transportation_type=TransportationType.AMBULANCE,
@@ -246,6 +246,7 @@ class TestAmbulanceRequestDAO:
             time_of_transport=time(13, 40),
             pickup_address='123 Main St',
             destination_address='456 Medical Dr',
+            status=RequestStatus.SUBMITTED,
         )
         await dao.create(
             user_id=user2.id,
@@ -258,6 +259,7 @@ class TestAmbulanceRequestDAO:
             time_of_transport=time(14, 0),
             pickup_address='789 Oak Ave',
             destination_address='321 Pine St',
+            status=RequestStatus.SUBMITTED,
         )
         await db_session.commit()
 
@@ -282,7 +284,7 @@ class TestAmbulanceRequestDAO:
 
         dao = AmbulanceRequestDAO(db_session)
 
-        # Create 5 requests across both users
+        # Create 5 requests across both users (with SUBMITTED status so admin can see them)
         request_ids = []
         for i in range(5):
             user = user1 if i % 2 == 0 else user2
@@ -297,6 +299,7 @@ class TestAmbulanceRequestDAO:
                 time_of_transport=time(13, 40),
                 pickup_address='123 Main St',
                 destination_address='456 Medical Dr',
+                status=RequestStatus.SUBMITTED,
             )
             request_ids.append(request.id)
             await db_session.commit()
@@ -355,14 +358,14 @@ class TestRequestStatusHistoryDAO:
         history_dao = RequestStatusHistoryDAO(db_session)
         history = await history_dao.create(
             request_id=request.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             notes='Request submitted',
         )
         await db_session.commit()
 
         assert history.id is not None
         assert history.request_id == request.id
-        assert history.status == RequestStatus.PROCESSING
+        assert history.status == RequestStatus.SUBMITTED
         assert history.notes == 'Request submitted'
 
     @pytest.mark.asyncio
@@ -393,7 +396,7 @@ class TestRequestStatusHistoryDAO:
         history_dao = RequestStatusHistoryDAO(db_session)
         history1 = await history_dao.create(
             request_id=request.id,
-            status=RequestStatus.PROCESSING,
+            status=RequestStatus.SUBMITTED,
             notes='Request submitted',
         )
         history2 = await history_dao.create(
@@ -409,7 +412,7 @@ class TestRequestStatusHistoryDAO:
         # Should be ordered by created_at asc
         assert all_history[0].id == history1.id
         assert all_history[1].id == history2.id
-        assert all_history[0].status == RequestStatus.PROCESSING
+        assert all_history[0].status == RequestStatus.SUBMITTED
         assert all_history[1].status == RequestStatus.PENDING
 
 

@@ -151,7 +151,7 @@ class TestAmbulanceRequestEndpoints:
                 patient_first_name='John',
                 patient_last_name='Doe',
                 primary_diagnosis='Chronic heart failure',
-                status=RequestStatus.PROCESSING,
+                status=RequestStatus.SUBMITTED,
                 pickup_address='Memorial Dialysis Center',
                 destination_address='456 Medical Dr, Springfield, IL 62702',
                 transportation_type=TransportationType.AMBULANCE,
@@ -173,7 +173,7 @@ class TestAmbulanceRequestEndpoints:
                 'primary_diagnosis': 'Chronic heart failure',
                 'medical_justification': 'Patient requires transport',
                 'form_number': 'CMS-10344',
-                'file_ids': [1, 2],
+                'request_id': 1,
             }
 
             response = client.post(
@@ -186,7 +186,7 @@ class TestAmbulanceRequestEndpoints:
             data = response.json()
             assert data['id'] == 1
             assert data['patient_first_name'] == 'John'
-            assert data['status'] == 'processing'
+            assert data['status'] == 'submitted'
 
     @pytest.mark.asyncio
     async def test_create_request_validation_error(
@@ -252,7 +252,7 @@ class TestAmbulanceRequestEndpoints:
                 patient_first_name='John',
                 patient_last_name='Doe',
                 primary_diagnosis='Chronic heart failure',
-                status=RequestStatus.PROCESSING,
+                status=RequestStatus.SUBMITTED,
                 pickup_address="123 Main St, Springfield, IL 62701",
                 destination_address="Memorial Dialysis Center, 456 Medical Dr",
                 transportation_type=TransportationType.AMBULANCE,
@@ -263,7 +263,7 @@ class TestAmbulanceRequestEndpoints:
                     RequestStatusHistoryResponseSchema(
                         id=1,
                         request_id=1,
-                        status=RequestStatus.PROCESSING,
+                        status=RequestStatus.SUBMITTED,
                         notes='Request submitted',
                         created_at=datetime(2025, 1, 1, 0, 0, 0),
                     )
@@ -381,7 +381,7 @@ class TestAmbulanceRequestEndpoints:
                         patient_first_name='John',
                         patient_last_name='Doe',
                         primary_diagnosis='Chronic heart failure',
-                        status=RequestStatus.PROCESSING,
+                        status=RequestStatus.SUBMITTED,
                         pickup_address='Memorial Dialysis Center',
                         destination_address='456 Medical Dr, Springfield, IL 62702',
                         transportation_type=TransportationType.AMBULANCE,
@@ -501,7 +501,7 @@ class TestAmbulanceRequestEndpoints:
                         patient_first_name='Bob',
                         patient_last_name='Johnson',
                         primary_diagnosis='Hypertension',
-                        status=RequestStatus.PROCESSING,
+                        status=RequestStatus.SUBMITTED,
                         pickup_address='Memorial Dialysis Center',
                         destination_address='456 Medical Dr, Springfield, IL 62702',
                         transportation_type=TransportationType.AMBULANCE,
@@ -570,7 +570,7 @@ class TestAmbulanceRequestEndpoints:
                         patient_first_name='John',
                         patient_last_name='Doe',
                         primary_diagnosis='Chronic heart failure',
-                        status=RequestStatus.PROCESSING,
+                        status=RequestStatus.SUBMITTED,
                         pickup_address='Memorial Dialysis Center',
                         destination_address='456 Medical Dr, Springfield, IL 62702',
                         transportation_type=TransportationType.AMBULANCE,

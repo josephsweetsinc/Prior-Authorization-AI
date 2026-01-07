@@ -342,7 +342,7 @@ def ambulance_request_factory(
         primary_diagnosis: str | None = 'Chronic heart failure',
         medical_justification: str | None = 'Patient requires transport',
         form_number: str | None = 'CMS-10344',
-        status: RequestStatus = RequestStatus.PROCESSING,
+        status: RequestStatus = RequestStatus.DRAFT,
         created_at: datetime | None = None,
     ) -> AmbulanceRequest:
         """Create an ambulance request instance.

@@ -96,7 +96,7 @@ class DashboardService(BaseService):
             for request in recent_requests_models
         ]
 
-        # Get in-progress requests (PENDING + PROCESSING) for provider
+        # Get in-progress requests (PENDING + SUBMITTED) for provider
         in_progress_requests = (
             await self._dashboard_dao.get_in_progress_requests(
                 user_id=user_id,
