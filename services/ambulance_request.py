@@ -356,21 +356,8 @@ class AmbulanceRequestService(BaseService):
         request.physician_phone = request_data.physician_phone
         await self._session.flush()
 
-        # Link files to request
-        invalid_file_ids = []
-        for file_id in request_data.file_ids:
-            updated_file = await self._file_dao.update_request_id(
-                file_id=file_id,
-                request_id=request.id,
-            )
-            if not updated_file:
-                invalid_file_ids.append(file_id)
-
-        if invalid_file_ids:
-            raise AmbulanceRequestInvalidFileIdsException(
-                invalid_file_ids=invalid_file_ids
-            )
-        await self._session.flush()
+        # Files are already linked to the request during extraction step
+        # No need to link them again here
         await self._status_history_dao.create(
             request_id=request.id,
             status=RequestStatus.SUBMITTED,

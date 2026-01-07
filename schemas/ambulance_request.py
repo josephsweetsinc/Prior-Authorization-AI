@@ -141,14 +141,6 @@ class CreateAmbulanceRequestSchema(BaseModel):
             examples=[1],
         ),
     ]
-    file_ids: Annotated[
-        list[int],
-        Field(
-            min_length=1,
-            examples=[[1, 2, 3]],
-            description='IDs of uploaded files (at least one required)',
-        ),
-    ]
     transportation_type: TransportationType
     patient_first_name: Annotated[
         str,
