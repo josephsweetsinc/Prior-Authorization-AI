@@ -1,9 +1,11 @@
 'use client';
 
 import { BellDot, type icons, Settings } from 'lucide-react';
+import Link from 'next/link';
 
 import { LogoutModal } from '@/features/profile/components/LogoutModal';
 import { useLogoutModal } from '@/features/profile/hooks/useLogoutModal';
+import { useGetCurrentUserQuery } from '@/services';
 import {
   Button,
   GlobalSearch,
@@ -16,6 +18,7 @@ import {
 
 export const AppHeader = () => {
   const { isOpen, isLoading, open, close, confirm } = useLogoutModal();
+  const { data: currentUser } = useGetCurrentUserQuery();
 
   const profileActions: ProfileAction[] = [
     {
@@ -44,8 +47,10 @@ export const AppHeader = () => {
 
         <HeaderGroup separate>
           <HeaderActions>
-            <Button variant='ghost' size='icon' disabled>
-              <Settings className='text-status-info size-5' />
+            <Button variant='ghost' size='icon' asChild>
+              <Link href='/settings'>
+                <Settings className='text-status-info size-5' />
+              </Link>
             </Button>
             <Button variant='ghost' size='icon' disabled>
               <BellDot className='text-status-destructive size-5' />
@@ -54,7 +59,11 @@ export const AppHeader = () => {
           <HeaderProfile
             src='/images/mock_avatar.jpg'
             name='Dr. Kraude'
-            role='Ambulance'
+            role={
+              currentUser?.role
+                ? currentUser.role[0].toUpperCase() + currentUser.role.slice(1)
+                : '—'
+            }
             actions={profileActions}
           />
         </HeaderGroup>

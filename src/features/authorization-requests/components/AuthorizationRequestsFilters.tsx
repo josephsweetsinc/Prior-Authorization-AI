@@ -47,6 +47,7 @@ export const AuthorizationRequestsFilters = ({
           )
         }
         className='lg:w-44'
+        triggerClassName='py-[9px] px-4 text-[14px] h-[38px]'
       />
       <Select
         options={STATUS_OPTIONS}
@@ -58,6 +59,7 @@ export const AuthorizationRequestsFilters = ({
           )
         }
         className='lg:w-44'
+        triggerClassName='py-[9px] px-4 text-[14px] h-[38px]'
       />
     </div>
   );
