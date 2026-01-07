@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import BaseService
 from core.constants import MAX_AVATAR_SIZE
-from dao import UserDAO
+from dao import OrganizationDAO, UserDAO
 from exceptions import (
     EmailAlreadyRegisteredException,
     IncorrectFileSizeException,
@@ -20,6 +20,7 @@ from models.user import UserRole
 from schemas import (
     CreateUserByAdminRequestSchema,
     CreateUserRequestSchema,
+    OrganizationResponseSchema,
     UpdateMeRequestSchema,
     UpdateUserRequestSchema,
     UserListItemSchema,
@@ -175,7 +176,46 @@ class UserService(BaseService):
         await self._session.commit()
         if not user:
             raise UserNotFoundByIdException
-        return UserResponseShema.model_validate(user)
+
+        # Load organization if exists
+        organization_dao = OrganizationDAO(self._session)
+        organization = await organization_dao.get_by_user_id(user_id)
+
+        # Generate presigned URL for avatar if exists
+        avatar_url = None
+        if user.avatar_key:
+            try:
+                avatar_url = self._s3_actions.get_presigned_url(
+                    key=user.avatar_key,
+                    expires_in=self._s3_actions.S3_EXPIRATION_TIME,
+                    require_object=True,
+                )
+            except Exception:
+                # If avatar doesn't exist in S3, set to None
+                avatar_url = None
+
+        # Build response
+        response_data = {
+            'id': user.id,
+            'name': user.name,
+            'surname': user.surname,
+            'email': user.email,
+            'role': user.role,
+            'is_active': user.is_active,
+            'phone': user.phone_number,
+            'position': user.position,
+            'place_of_work': user.place_of_work,
+            'last_login': user.last_login,
+            'created_at': user.created_at,
+            'avatar_url': avatar_url,
+            'organization': (
+                OrganizationResponseSchema.model_validate(organization)
+                if organization
+                else None
+            ),
+        }
+
+        return UserResponseShema.model_validate(response_data)
 
     async def delete_user_by_id(
         self, current_user: User, user_id: int

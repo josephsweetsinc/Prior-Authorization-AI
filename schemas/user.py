@@ -167,6 +167,7 @@ class UserResponseShema(BaseModel):
         str | None,
         Field(
             default=None,
+            alias='phone_number',
             description='Phone number of the user',
         ),
     ] = None
@@ -212,7 +213,7 @@ class UserResponseShema(BaseModel):
         ),
     ] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class UserListItemSchema(BaseModel):
