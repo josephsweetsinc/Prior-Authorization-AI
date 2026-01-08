@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/profile') ||
     pathname.startsWith('/requests-history');
   const providerOnlyRoutes = ['/new-request'];
-  const adminOnlyRoutes = ['/user-management', '/requests'];
+  const adminOnlyRoutes = ['/user-management', '/requests', '/reports'];
 
   const isSegmentRouteMatch = (route: string) =>
     pathname === route || pathname.startsWith(`${route}/`);
