@@ -14,7 +14,6 @@ from services import OrganizationService
 
 logger = logging.getLogger(__name__)
 
-
 organization_router = APIRouter()
 
 
