@@ -41,11 +41,11 @@ class TestDashboardService:
         req2 = await ambulance_request_factory(
             user_id=provider.id,
             patient_first_name='Jane',
-            status=RequestStatus.PENDING,
+            status=RequestStatus.SUBMITTED,
         )
         await request_status_history_factory(
             request_id=req2.id,
-            status=RequestStatus.PENDING,
+            status=RequestStatus.SUBMITTED,
         )
 
         await db_session.commit()
@@ -117,7 +117,7 @@ class TestDashboardService:
         )
         await db_session.commit()
 
-        # Create requests: 5 approved, 2 denied, 3 pending
+        # Create requests: 5 approved, 2 denied, 3 submitted
         for i in range(5):
             req = await ambulance_request_factory(
                 user_id=provider.id,
@@ -143,12 +143,12 @@ class TestDashboardService:
         for i in range(3):
             req = await ambulance_request_factory(
                 user_id=provider.id,
-                patient_first_name=f'Pending{i}',
-                status=RequestStatus.PENDING,
+                patient_first_name=f'Submitted{i}',
+                status=RequestStatus.SUBMITTED,
             )
             await request_status_history_factory(
                 request_id=req.id,
-                status=RequestStatus.PENDING,
+                status=RequestStatus.SUBMITTED,
             )
 
         await db_session.commit()
@@ -340,14 +340,14 @@ class TestDashboardService:
                 status=RequestStatus.APPROVED,
             )
 
-        pending_req = await ambulance_request_factory(
+        submitted_req = await ambulance_request_factory(
             user_id=provider2.id,
-            patient_first_name='P2Pending',
-            status=RequestStatus.PENDING,
+            patient_first_name='P2Submitted',
+            status=RequestStatus.SUBMITTED,
         )
         await request_status_history_factory(
-            request_id=pending_req.id,
-            status=RequestStatus.PENDING,
+            request_id=submitted_req.id,
+            status=RequestStatus.SUBMITTED,
         )
 
         await db_session.commit()
@@ -485,7 +485,7 @@ class TestDashboardService:
         )
         await db_session.commit()
 
-        # Create 4 approved, 2 pending, 1 denied
+        # Create 4 approved, 2 submitted, 1 denied
         for i in range(4):
             req = await ambulance_request_factory(
                 user_id=provider.id,
@@ -500,12 +500,12 @@ class TestDashboardService:
         for i in range(2):
             req = await ambulance_request_factory(
                 user_id=provider.id,
-                patient_first_name=f'Pending{i}',
-                status=RequestStatus.PENDING,
+                patient_first_name=f'Submitted{i}',
+                status=RequestStatus.SUBMITTED,
             )
             await request_status_history_factory(
                 request_id=req.id,
-                status=RequestStatus.PENDING,
+                status=RequestStatus.SUBMITTED,
             )
 
         denied_req = await ambulance_request_factory(
@@ -533,7 +533,7 @@ class TestDashboardService:
         # Check counts
         status_counts = {item.status: item.count for item in status_dist}
         assert status_counts[RequestStatus.APPROVED] == 4
-        assert status_counts[RequestStatus.PENDING] == 2
+        assert status_counts[RequestStatus.SUBMITTED] == 2
         assert status_counts[RequestStatus.DENIED] == 1
 
     @pytest.mark.asyncio

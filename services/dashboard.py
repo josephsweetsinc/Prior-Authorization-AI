@@ -68,7 +68,7 @@ class DashboardService(BaseService):
         )
         requests_count: RequestCountDTO = RequestCountDTO(
             approved_all=counts.get(RequestStatus.APPROVED, 0),
-            pending_all=counts.get(RequestStatus.PENDING, 0),
+            pending_all=counts.get(RequestStatus.SUBMITTED, 0),
             denied_all=counts.get(RequestStatus.DENIED, 0),
         )
         approval_rate = DashboardMetricsCalculator.calculate_approval_rate(
@@ -176,7 +176,7 @@ class DashboardService(BaseService):
         ] = await self._dashboard_dao.get_request_counts_by_status()
         requests_count: RequestCountDTO = RequestCountDTO(
             approved_all=counts.get(RequestStatus.APPROVED, 0),
-            pending_all=counts.get(RequestStatus.PENDING, 0),
+            pending_all=counts.get(RequestStatus.SUBMITTED, 0),
             denied_all=counts.get(RequestStatus.DENIED, 0),
         )
         today = datetime.now(tz=UTC).date()

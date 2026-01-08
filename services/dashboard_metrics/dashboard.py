@@ -66,7 +66,7 @@ class DashboardService(BaseService):
         )
         requests_count: RequestCountDTO = RequestCountDTO(
             approved_all=counts.get(RequestStatus.APPROVED, 0),
-            pending_all=counts.get(RequestStatus.PENDING, 0),
+            pending_all=counts.get(RequestStatus.SUBMITTED, 0),
             denied_all=counts.get(RequestStatus.DENIED, 0),
         )
         approval_rate = DashboardMetricsCalculator.calculate_approval_rate(
@@ -173,7 +173,7 @@ class DashboardService(BaseService):
         ] = await self._dashboard_dao.get_request_counts_by_status()
         requests_count: RequestCountDTO = RequestCountDTO(
             approved_all=counts.get(RequestStatus.APPROVED, 0),
-            pending_all=counts.get(RequestStatus.PENDING, 0),
+            pending_all=counts.get(RequestStatus.SUBMITTED, 0),
             denied_all=counts.get(RequestStatus.DENIED, 0),
         )
         today = datetime.now(tz=UTC).date()
@@ -248,10 +248,10 @@ class DashboardService(BaseService):
                 )
             )
 
-        # Requests by status distribution (APPROVED, PENDING, DENIED only).
+        # Requests by status distribution (APPROVED, SUBMITTED, DENIED only).
         distribution_statuses = [
             (RequestStatus.APPROVED, requests_count.approved_all),
-            (RequestStatus.PENDING, requests_count.pending_all),
+            (RequestStatus.SUBMITTED, requests_count.pending_all),
             (RequestStatus.DENIED, requests_count.denied_all),
         ]
         distribution_with_percentages = DashboardMetricsCalculator.calculate_status_distribution_percentages(  # noqa: E501
