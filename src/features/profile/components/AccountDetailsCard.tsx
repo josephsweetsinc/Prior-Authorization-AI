@@ -1,7 +1,6 @@
 import { IdCard, ClockFading, CalendarDays } from 'lucide-react';
 
 import { useGetCurrentUserQuery } from '@/services/auth/api/auth-api-service';
-
 import { Window } from '@/shared/components';
 
 const FALLBACK_VALUE = '—';

@@ -49,7 +49,7 @@ export const ProfileHeaderCard = ({
 
     try {
       await uploadAvatar(file).unwrap();
-    } catch (error) {
+    } catch {
       toast.error('Failed to upload avatar. Please try again.');
     }
   };
