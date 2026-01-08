@@ -117,27 +117,22 @@ class TestProviderDashboard:
             created_at=yesterday,
         )
 
-        # Pending request
-        pending_request = await ambulance_request_factory(
+        # Submitted request (for pending_review)
+        submitted_request = await ambulance_request_factory(
             user_id=provider.id,
             patient_first_name='Jane',
             patient_last_name='Smith',
             primary_diagnosis='Diabetes',
-            status=RequestStatus.PENDING,
-            created_at=yesterday,
-        )
-        await request_status_history_factory(
-            request_id=pending_request.id,
             status=RequestStatus.SUBMITTED,
             created_at=yesterday,
         )
         await request_status_history_factory(
-            request_id=pending_request.id,
-            status=RequestStatus.PENDING,
-            created_at=yesterday + timedelta(hours=1),
+            request_id=submitted_request.id,
+            status=RequestStatus.SUBMITTED,
+            created_at=yesterday,
         )
 
-        # Processing request
+        # Processing request (SUBMITTED)
         processing_request = await ambulance_request_factory(
             user_id=provider.id,
             patient_first_name='Bob',
@@ -150,6 +145,26 @@ class TestProviderDashboard:
             request_id=processing_request.id,
             status=RequestStatus.SUBMITTED,
             created_at=now,
+        )
+
+        # Pending request (opened by admin)
+        pending_request = await ambulance_request_factory(
+            user_id=provider.id,
+            patient_first_name='Charlie',
+            patient_last_name='Brown',
+            primary_diagnosis='Pneumonia',
+            status=RequestStatus.PENDING,
+            created_at=now - timedelta(hours=1),
+        )
+        await request_status_history_factory(
+            request_id=pending_request.id,
+            status=RequestStatus.SUBMITTED,
+            created_at=now - timedelta(hours=2),
+        )
+        await request_status_history_factory(
+            request_id=pending_request.id,
+            status=RequestStatus.PENDING,
+            created_at=now - timedelta(hours=1),
         )
 
         # Denied request
@@ -194,10 +209,10 @@ class TestProviderDashboard:
         provider_data = data['provider']
 
         # Check summary statistics
-        # Note: total_requests only counts APPROVED + PENDING + DENIED (not SUBMITTED)
+        # Note: total_requests counts APPROVED + SUBMITTED + DENIED
         summary = provider_data['summary']
-        assert summary['total_requests'] == 3  # APPROVED + PENDING + DENIED (SUBMITTED not counted)
-        assert summary['pending_review'] == 1
+        assert summary['total_requests'] == 4  # 1 APPROVED + 2 SUBMITTED + 1 DENIED
+        assert summary['pending_review'] == 2  # 2 SUBMITTED requests
         assert summary['approved'] == 1
         # Approval rate = 1 / (1 + 1) * 100 = 50%
         assert summary['approval_rate'] == 50
@@ -214,7 +229,7 @@ class TestProviderDashboard:
 
         # Check requests in progress (PENDING + SUBMITTED)
         in_progress = provider_data['requests_in_progress']['items']
-        assert len(in_progress) == 2
+        assert len(in_progress) == 3  # 2 SUBMITTED + 1 PENDING
         statuses = {item['status'] for item in in_progress}
         assert RequestStatus.PENDING in statuses
         assert RequestStatus.SUBMITTED in statuses
@@ -490,18 +505,13 @@ class TestAdminDashboard:
         req2 = await ambulance_request_factory(
             user_id=provider1.id,
             patient_first_name='Jane',
-            status=RequestStatus.PENDING,
+            status=RequestStatus.SUBMITTED,
             created_at=now,
         )
         await request_status_history_factory(
             request_id=req2.id,
             status=RequestStatus.SUBMITTED,
             created_at=now,
-        )
-        await request_status_history_factory(
-            request_id=req2.id,
-            status=RequestStatus.PENDING,
-            created_at=now + timedelta(hours=1),
         )
 
         # Provider 2 requests
@@ -588,7 +598,7 @@ class TestAdminDashboard:
         status_dist = admin_data['requests_by_status']
         status_counts = {item['status']: item['count'] for item in status_dist}
         assert status_counts.get(RequestStatus.APPROVED, 0) == 2
-        assert status_counts.get(RequestStatus.PENDING, 0) == 1
+        assert status_counts.get(RequestStatus.SUBMITTED, 0) == 1
         assert status_counts.get(RequestStatus.DENIED, 0) == 1
 
     @pytest.mark.asyncio
