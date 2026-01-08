@@ -169,6 +169,9 @@ class UserService(BaseService):
         """
         user: User | None = await self._user_dao.update_profile_fields_by_id(
             user_id,
+            name=user_data.name,
+            surname=user_data.surname,
+            email=user_data.email,
             phone_number=user_data.phone,
             position=user_data.position,
             place_of_work=user_data.place_of_work,

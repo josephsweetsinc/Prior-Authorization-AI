@@ -108,6 +108,39 @@ class UpdateUserRequestSchema(BaseModel):
 class UpdateMeRequestSchema(BaseModel):
     """Update the current user profile request schema."""
 
+    name: Annotated[
+        str | None,
+        Field(
+            None,
+            min_length=3,
+            max_length=15,
+            pattern=r'^[a-zA-Z]+$',
+            examples=['John'],
+            description='First name of the user',
+        ),
+    ]
+    surname: Annotated[
+        str | None,
+        Field(
+            None,
+            min_length=3,
+            max_length=15,
+            pattern=r'^[a-zA-Z]+$',
+            examples=['Doe'],
+            description='Last name of the user',
+        ),
+    ]
+    email: Annotated[
+        EmailStr | None,
+        Field(
+            None,
+            min_length=3,
+            max_length=30,
+            pattern=r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
+            examples=['user@example.com'],
+            description='Email of the user',
+        ),
+    ]
     phone: Annotated[
         str | None,
         Field(
@@ -144,12 +177,16 @@ class UpdateMeRequestSchema(BaseModel):
     def validate_at_least_one_field(self) -> UpdateMeRequestSchema:
         """Validate that at least one field is provided for update."""
         if (
-            self.phone is None
+            self.name is None
+            and self.surname is None
+            and self.email is None
+            and self.phone is None
             and self.position is None
             and self.place_of_work is None
         ):
             raise ValueError(  # noqa: TRY003
-                'At least one field (phone, position, or place_of_work) must be'
+                'At least one field (name, surname, email, phone, position, or '
+                'place_of_work) must be'
             )
         return self
 
