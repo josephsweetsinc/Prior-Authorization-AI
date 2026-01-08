@@ -412,6 +412,11 @@ class UserService(BaseService):
             'email': updated_user.email,
             'role': updated_user.role,
             'is_active': updated_user.is_active,
+            'phone': updated_user.phone_number,
+            'position': updated_user.position,
+            'place_of_work': updated_user.place_of_work,
+            'last_login': updated_user.last_login,
+            'created_at': updated_user.created_at,
             'avatar_url': avatar_url,
         }
 
