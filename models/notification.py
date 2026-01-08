@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Enum, ForeignKey, Integer, Text
+from sqlalchemy import Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.models import BaseIdMixin, BaseTimeStampMixin
@@ -25,6 +25,7 @@ class Notification(BaseIdMixin, BaseTimeStampMixin):
     Fields:
     - user_id: ID of the user who receives the notification.
     - category: Category of the notification (enum).
+    - title: Notification title/heading (auto-generated if not provided).
     - message: Notification message text.
     - request_id: ID of the related ambulance request (nullable for SYSTEM).
     - is_read: Whether the notification has been read.
@@ -42,6 +43,11 @@ class Notification(BaseIdMixin, BaseTimeStampMixin):
         Enum(NotificationCategory),
         nullable=False,
         comment='Category of the notification',
+    )
+    title: Mapped[str | None] = mapped_column(
+        String(200),
+        nullable=True,
+        comment='Notification title/heading',
     )
     message: Mapped[str] = mapped_column(
         Text,

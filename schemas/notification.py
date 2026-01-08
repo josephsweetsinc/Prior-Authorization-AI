@@ -17,6 +17,9 @@ class NotificationResponseSchema(BaseModel):
     category: NotificationCategory = Field(
         description='Category of the notification'
     )
+    title: str | None = Field(
+        default=None, description='Notification title/heading'
+    )
     message: str = Field(description='Notification message text')
     request_id: int | None = Field(
         default=None, description='ID of the related ambulance request'

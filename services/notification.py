@@ -39,6 +39,7 @@ class NotificationService(BaseService):
         category: NotificationCategory,
         message: str,
         request_id: int | None = None,
+        title: str | None = None,
     ) -> Notification:
         """Create a new notification.
 
@@ -48,6 +49,8 @@ class NotificationService(BaseService):
             message: Notification message text.
             request_id: ID of the related ambulance request (optional).
                 Must be None for SYSTEM notifications.
+            title: Notification title/heading (optional). If not provided,
+                will be auto-generated based on category and request_id.
 
         Returns:
             Notification: Created notification instance.
@@ -61,15 +64,52 @@ class NotificationService(BaseService):
         if category != NotificationCategory.SYSTEM and request_id is None:
             raise NotificationMissingRequestException(category.value)
 
+        # Auto-generate title if not provided
+        if title is None:
+            title = self._generate_title(
+                category=category, request_id=request_id
+            )
+
         notification = await self._notification_dao.create(
             user_id=user_id,
             category=category,
+            title=title,
             message=message,
             request_id=request_id,
         )
         await self._session.flush()
         await self._session.commit()
         return notification
+
+    def _generate_title(
+        self,
+        category: NotificationCategory,
+        request_id: int | None = None,
+    ) -> str:
+        """Generate notification title based on category and request_id.
+
+        Args:
+            category: Notification category.
+            request_id: Request ID (if applicable).
+
+        Returns:
+            str: Generated title.
+
+        """
+        if request_id is not None:
+            request_ref = f'Request #{request_id}'
+        else:
+            request_ref = 'Request'
+
+        match category:
+            case NotificationCategory.STATUS_UPDATE:
+                return f'{request_ref} Status Update'
+            case NotificationCategory.DOCUMENT:
+                return f'{request_ref} Document Update'
+            case NotificationCategory.REQUIREMENT:
+                return f'{request_ref} Requirement Update'
+            case NotificationCategory.SYSTEM:
+                return 'System Notification'
 
     async def create_status_update_notification(
         self,
