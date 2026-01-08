@@ -48,7 +48,7 @@ class StatsService(BaseService):
         approved = counts.get(RequestStatus.APPROVED, 0)
         submitted = counts.get(RequestStatus.SUBMITTED, 0)
         rejected = counts.get(RequestStatus.DENIED, 0)
-        # Total requests = only APPROVED + SUBMITTED + DENIED (same as dashboard)
+        # Total requests = only APPROVED + SUBMITTED + DENIED
         total_requests = approved + submitted + rejected
 
         return ProviderStatsResponseSchema(
