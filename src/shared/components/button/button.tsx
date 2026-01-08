@@ -20,6 +20,7 @@ const buttonVariants = cva(
           'border-1 border-destructive w-full text-md font-light cursor-pointer text-destructive hover:bg-primary/2 ',
         success:
           'bg-success w-full text-md font-light cursor-pointer text-primary-foreground hover:animate-pulse',
+        info: 'bg-status-info w-full text-md font-light cursor-pointer text-primary-foreground hover:animate-pulse',
         ghost:
           'hover:bg-accent cursor-pointer text-md font-medium w-full hover:text-accent-foreground dark:hover:bg-accent/50',
         gray: 'bg-[#E8E8E8] w-full text-md font-light cursor-pointer text-black hover:animate-pulse',
