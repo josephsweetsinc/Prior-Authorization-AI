@@ -37,6 +37,11 @@ from .organization import (
     OrganizationResponseSchema,
     UpdateOrganizationRequestSchema,
 )
+from .stats import (
+    AdminUserItemSchema,
+    AdminUsersResponseSchema,
+    ProviderStatsResponseSchema,
+)
 from .user import (
     CreateUserByAdminRequestSchema,
     CreateUserRequestSchema,
@@ -51,6 +56,8 @@ __all__ = [
     'AIExtractionResponse',
     'AdminRequestWithStatusHistorySchema',
     'AdminUpdateRequestSchema',
+    'AdminUserItemSchema',
+    'AdminUsersResponseSchema',
     'AmbulanceRequestResponseSchema',
     'AmbulanceRequestsListResponseSchema',
     'ApproveRequestSchema',
@@ -71,6 +78,7 @@ __all__ = [
     'PasswordResetConfirmSchema',
     'PasswordResetRequestSchema',
     'PasswordResetVerifySchema',
+    'ProviderStatsResponseSchema',
     'RefreshTokenRequestSchema',
     'RequestDocumentSchema',
     'RequestStatusHistoryResponseSchema',
