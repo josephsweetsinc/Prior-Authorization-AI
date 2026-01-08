@@ -1,6 +1,7 @@
 import { api as baseApi } from '@/services/api/api';
 
 import type {
+  IRequest,
   IRequestDetails,
   IRequestHistoryParams,
   IRequestHistoryResponse,
@@ -37,9 +38,26 @@ export const requestsHistoryAPI = baseApi.injectEndpoints({
       keepUnusedDataFor: 300,
       providesTags: (result) => [{ type: 'RequestDetails', id: result?.id }],
     }),
+    approveRequest: builder.mutation<IRequest, number>({
+      query: (id) => ({
+        url: `/ambulance-request/${id}/approve`,
+        method: 'POST',
+        body: {},
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'RequestDetails', id },
+        { type: 'RequestsHistory', id },
+        { type: 'RequestsHistory', id: 'LIST' },
+        { type: 'AuthorizationRequests', id },
+        { type: 'AuthorizationRequests', id: 'LIST' },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
 
-export const { useGetRequestsHistoryQuery, useGetRequestDetailsQuery } =
-  requestsHistoryAPI;
+export const {
+  useGetRequestsHistoryQuery,
+  useGetRequestDetailsQuery,
+  useApproveRequestMutation,
+} = requestsHistoryAPI;

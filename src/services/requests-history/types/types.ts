@@ -10,9 +10,16 @@ export type TransportationType =
 export interface IRequest {
   id: number;
   user_id: number;
+  form_number: string;
   patient_first_name: string;
   patient_last_name: string;
+  patient_date_of_birth: string;
+  ambulatory_status: string;
+  oxygen_required: boolean;
   primary_diagnosis: string;
+  medical_justification: string;
+  ordering_physician: string;
+  physician_phone: string;
   status: RequestStatus;
   created_at: string;
   updated_at: string;
@@ -20,6 +27,9 @@ export interface IRequest {
   pickup_address: string;
   destination_address: string;
   transportation_type: TransportationType;
+  date_of_transport: string;
+  time_of_transport: string;
+  ai_accuracy: number;
 }
 
 export interface IStatus {
