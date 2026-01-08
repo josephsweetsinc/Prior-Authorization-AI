@@ -85,7 +85,9 @@ class NotificationDAO(BaseDAO):
             stmt = stmt.where(Notification.is_read == is_read)
 
         stmt = (
-            stmt.order_by(Notification.created_at.desc(), Notification.id.desc())
+            stmt.order_by(
+                Notification.created_at.desc(), Notification.id.desc()
+            )
             .offset(offset)
             .limit(limit)
         )
@@ -118,9 +120,10 @@ class NotificationDAO(BaseDAO):
         if is_read is not None:
             stmt = stmt.where(Notification.is_read == is_read)
 
-        stmt = select(func.count()).select_from(stmt.subquery())
-        result = await self._session.execute(stmt)
-        return result.scalar_one() or 0
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        result = await self._session.execute(count_stmt)
+        count_value = result.scalar_one()
+        return int(count_value) if count_value is not None else 0
 
     async def mark_as_read(
         self,
@@ -132,7 +135,7 @@ class NotificationDAO(BaseDAO):
             notification_id: Notification ID.
 
         Returns:
-            Notification | None: Updated notification instance or None if not found.
+            Notification | None: Updated notification instance or None.
 
         """
         stmt = (
@@ -164,7 +167,7 @@ class NotificationDAO(BaseDAO):
             update(Notification)
             .where(
                 Notification.id.in_(notification_ids),
-                Notification.is_read == False,  # noqa: E712
+                ~Notification.is_read,
             )
             .values(is_read=True)
             .returning(Notification)
@@ -189,9 +192,8 @@ class NotificationDAO(BaseDAO):
             int: Number of notifications marked as read.
 
         """
-        stmt = (
-            update(Notification)
-            .where(Notification.user_id == user_id, Notification.is_read == False)  # noqa: E712
+        stmt = update(Notification).where(
+            Notification.user_id == user_id, ~Notification.is_read
         )
 
         if category is not None:
@@ -199,7 +201,7 @@ class NotificationDAO(BaseDAO):
 
         result = await self._session.execute(stmt)
         await self._session.flush()
-        return result.rowcount or 0
+        return result.rowcount or 0  # type: ignore[attr-defined]
 
     async def get_by_request_id(
         self,
@@ -276,7 +278,7 @@ class NotificationDAO(BaseDAO):
             .select_from(Notification)
             .where(
                 Notification.user_id == user_id,
-                Notification.is_read == False,  # noqa: E712
+                ~Notification.is_read,
             )
         )
         result = await self._session.execute(stmt)

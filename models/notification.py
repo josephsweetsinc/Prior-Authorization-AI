@@ -13,10 +13,10 @@ if TYPE_CHECKING:
 class NotificationCategory(StrEnum):
     """Enumeration of notification categories."""
 
-    STATUS_UPDATE = "status_updates"
-    DOCUMENT = "documents"
-    REQUIREMENT = "requirements"
-    SYSTEM = "system"
+    STATUS_UPDATE = 'status_updates'
+    DOCUMENT = 'documents'
+    REQUIREMENT = 'requirements'
+    SYSTEM = 'system'
 
 
 class Notification(BaseIdMixin, BaseTimeStampMixin):
@@ -26,7 +26,7 @@ class Notification(BaseIdMixin, BaseTimeStampMixin):
     - user_id: ID of the user who receives the notification.
     - category: Category of the notification (enum).
     - message: Notification message text.
-    - request_id: ID of the related ambulance request (nullable for SYSTEM notifications).
+    - request_id: ID of the related ambulance request (nullable for SYSTEM).
     - is_read: Whether the notification has been read.
     """
 
@@ -52,7 +52,7 @@ class Notification(BaseIdMixin, BaseTimeStampMixin):
         Integer,
         ForeignKey('ambulance_requests.id', ondelete='CASCADE'),
         nullable=True,
-        comment='ID of the related ambulance request (nullable for SYSTEM notifications)',
+        comment='ID of the related ambulance request (nullable for SYSTEM )',
     )
     is_read: Mapped[bool] = mapped_column(
         default=False,

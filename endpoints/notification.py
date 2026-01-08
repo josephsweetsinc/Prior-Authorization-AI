@@ -42,7 +42,7 @@ async def get_user_notifications(
         description='Filter by notification category',
         examples=['status_updates'],
     ),
-    is_read: bool | None = Query(
+    is_read: bool | None = Query(  # noqa: FBT001
         None,
         description='Filter by read status',
         examples=[False],
@@ -86,7 +86,9 @@ async def get_user_notifications(
 
     # Collect unread notification IDs for batch marking
     unread_notification_ids = [
-        notification.id for notification in notifications if not notification.is_read
+        notification.id
+        for notification in notifications
+        if not notification.is_read
     ]
 
     # Return notifications with their original read status
@@ -101,13 +103,14 @@ async def get_user_notifications(
         total_pages=total_pages,
     )
 
-    # Mark unread notifications as read after response is formed (background task)
+    # Mark unread notifications as read after response is forme
     if unread_notification_ids:
         try:
             await service.mark_notifications_as_read(unread_notification_ids)
         except Exception:
             logger.exception(
-                'Failed to mark notifications as read: %s', unread_notification_ids
+                'Failed to mark notifications as read: %s',
+                unread_notification_ids,
             )
 
     return response

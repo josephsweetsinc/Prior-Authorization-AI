@@ -1,10 +1,13 @@
 import logging
-from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import BaseService
 from dao import NotificationDAO
+from exceptions.notification import (
+    NotificationMissingRequestException,
+    NotificationSystemCategoryException,
+)
 from models.notification import Notification, NotificationCategory
 
 logger = logging.getLogger(__name__)
@@ -52,15 +55,11 @@ class NotificationService(BaseService):
         """
         # Validate that SYSTEM notifications don't have request_id
         if category == NotificationCategory.SYSTEM and request_id is not None:
-            raise ValueError(
-                'SYSTEM notifications cannot be associated with a request'
-            )
+            raise NotificationSystemCategoryException
 
         # Validate that non-SYSTEM notifications have request_id
         if category != NotificationCategory.SYSTEM and request_id is None:
-            raise ValueError(
-                f'{category.value} notifications must be associated with a request'
-            )
+            raise NotificationMissingRequestException(category.value)
 
         notification = await self._notification_dao.create(
             user_id=user_id,
@@ -84,7 +83,8 @@ class NotificationService(BaseService):
         Args:
             user_id: ID of the user who receives the notification.
             request_id: ID of the related ambulance request.
-            status_message: Status update message (e.g., "Request #123 was updated").
+            status_message: Status update message
+             (e.g., "Request #123 was updated").
 
         Returns:
             Notification: Created notification instance.
@@ -248,7 +248,7 @@ class NotificationService(BaseService):
             notification_id: Notification ID.
 
         Returns:
-            Notification | None: Updated notification instance or None if not found.
+            Notification | None: Updated notification instance or None.
 
         """
         notification = await self._notification_dao.mark_as_read(

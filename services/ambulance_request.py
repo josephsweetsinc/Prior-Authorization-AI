@@ -487,10 +487,11 @@ class AmbulanceRequestService(BaseService):
                 await self._session.flush()
                 # Create notification for the request owner
                 try:
-                    await self._notification_service.create_status_update_notification(
+                    await self._notification_service.create_status_update_notification(  # noqa: E501
                         user_id=request.user_id,
                         request_id=request_id,
-                        status_message=f'Request #{request_id} is now under review',
+                        status_message=f'Request #{request_id} is now under review',  # noqa: E501
+                        # TODO: Move it to some constants
                     )
                 except Exception:
                     logger.exception(
@@ -738,7 +739,8 @@ class AmbulanceRequestService(BaseService):
             )
         except Exception:
             logger.exception(
-                'Failed to create notification for approved request %s', request_id
+                'Failed to create notification for approved request %s',
+                request_id,
             )
         await self._session.commit()
         await self._session.refresh(request)
@@ -797,7 +799,8 @@ class AmbulanceRequestService(BaseService):
             )
         except Exception:
             logger.exception(
-                'Failed to create notification for denied request %s', request_id
+                'Failed to create notification for denied request %s',
+                request_id,
             )
         await self._session.commit()
         await self._session.refresh(request)
