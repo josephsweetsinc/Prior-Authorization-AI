@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useGetCurrentUserQuery } from '@/services/auth/api/auth-api-service';
 
 import { useLogoutModal } from '../hooks/useLogoutModal';
+import { getDisplayName, getProfileRole } from '../utils/userDisplay';
 
 import { AccountDetailsCard } from './AccountDetailsCard';
 import { ActivitySummaryCard } from './ActivitySummaryCard';
@@ -16,16 +17,9 @@ export const ProfileContainer = () => {
   const { isOpen, isLoading, close, confirm } = useLogoutModal();
   const router = useRouter();
   const { data: currentUser } = useGetCurrentUserQuery();
-  const fullName = [currentUser?.name, currentUser?.surname]
-    .filter(Boolean)
-    .join(' ');
-  const displayName = fullName || currentUser?.email || '—';
-  const roleLabel = currentUser?.role
-    ? currentUser.role[0].toUpperCase() + currentUser.role.slice(1)
-    : '—';
   const userRole = currentUser?.role;
-  const profileRole =
-    currentUser?.role === 'provider' ? currentUser?.position || '—' : roleLabel;
+  const displayName = getDisplayName(currentUser);
+  const profileRole = getProfileRole(currentUser);
 
   return (
     <main className='space-y-5'>

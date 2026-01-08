@@ -5,6 +5,10 @@ import Link from 'next/link';
 
 import { LogoutModal } from '@/features/profile/components/LogoutModal';
 import { useLogoutModal } from '@/features/profile/hooks/useLogoutModal';
+import {
+  getDisplayName,
+  getProfileRole,
+} from '@/features/profile/utils/userDisplay';
 import { useGetCurrentUserQuery } from '@/services';
 import {
   Button,
@@ -19,15 +23,8 @@ import {
 export const AppHeader = () => {
   const { isOpen, isLoading, open, close, confirm } = useLogoutModal();
   const { data: currentUser } = useGetCurrentUserQuery();
-  const fullName = [currentUser?.name, currentUser?.surname]
-    .filter(Boolean)
-    .join(' ');
-  const displayName = fullName || currentUser?.email || '—';
-  const roleLabel = currentUser?.role
-    ? currentUser.role[0].toUpperCase() + currentUser.role.slice(1)
-    : '—';
-  const profileRole =
-    currentUser?.role === 'provider' ? currentUser?.position || '—' : roleLabel;
+  const displayName = getDisplayName(currentUser);
+  const profileRole = getProfileRole(currentUser);
   const avatarSrc = currentUser?.avatar_url || null;
 
   const profileActions: ProfileAction[] = [

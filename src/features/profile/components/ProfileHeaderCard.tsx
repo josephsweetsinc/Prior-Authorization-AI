@@ -7,6 +7,8 @@ import { toast } from 'react-toastify';
 import { useUploadAvatarMutation } from '@/services/auth/api/auth-api-service';
 import { Avatar, Button, Chip, Window } from '@/shared/components';
 
+import { ALLOWED_AVATAR_TYPES, MAX_AVATAR_SIZE_BYTES } from '../constants';
+
 type Props = {
   name: string;
   role: string;
@@ -38,12 +40,16 @@ export const ProfileHeaderCard = ({
       return;
     }
 
-    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+    if (
+      !ALLOWED_AVATAR_TYPES.includes(
+        file.type as (typeof ALLOWED_AVATAR_TYPES)[number],
+      )
+    ) {
       toast.error('Only JPG or PNG files are allowed.');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_AVATAR_SIZE_BYTES) {
       toast.error('Avatar must be 5MB or less.');
       return;
     }

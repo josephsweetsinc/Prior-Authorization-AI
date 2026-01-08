@@ -3,34 +3,11 @@
 import { useGetProviderStatsQuery } from '@/services/stats';
 import { OverlayIcon, Window } from '@/shared/components';
 
+import { extractProviderSummary } from '../utils/extractProviderSummary';
+
 export const ActivitySummaryCard = () => {
   const { data: stats } = useGetProviderStatsQuery();
-  const summaryItems = [
-    {
-      label: 'Submitted',
-      value: stats?.submitted ?? 0,
-      icon: 'FileText',
-      color: 'blue',
-    },
-    {
-      label: 'Approved',
-      value: stats?.approved ?? 0,
-      icon: 'HeartPulse',
-      color: 'green',
-    },
-    {
-      label: 'Total Requests',
-      value: stats?.total_requests ?? 0,
-      icon: 'ClockFading',
-      color: 'orange',
-    },
-    {
-      label: 'Rejected',
-      value: stats?.rejected ?? 0,
-      icon: 'Shuffle',
-      color: 'red',
-    },
-  ] as const;
+  const summaryItems = extractProviderSummary(stats);
 
   return (
     <Window className='p-5'>

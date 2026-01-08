@@ -3,29 +3,24 @@
 import { useGetAdminUsersStatsQuery } from '@/services/stats';
 import { Window } from '@/shared/components';
 
+import { uniqueAdminEntries } from '../utils/uniqueAdminEntries';
+
 const FALLBACK_VALUE = '—';
 
 export const AdminAccountsCard = () => {
   const { data } = useGetAdminUsersStatsQuery();
   const admins = data?.recent_admins ?? [];
-  const entries = [
+  const primaryEntry =
     data?.full_name || data?.email
-      ? {
-          full_name: data?.full_name || FALLBACK_VALUE,
-          email: data?.email || FALLBACK_VALUE,
-        }
-      : null,
-    ...admins,
-  ].filter(Boolean) as Array<{ full_name: string; email: string }>;
-  const seen = new Set<string>();
-  const uniqueEntries = entries.filter((entry) => {
-    const key = entry.email.toLowerCase();
-    if (seen.has(key)) {
-      return false;
-    }
-    seen.add(key);
-    return true;
-  });
+      ? [
+          {
+            full_name: data?.full_name || FALLBACK_VALUE,
+            email: data?.email || FALLBACK_VALUE,
+          },
+        ]
+      : [];
+  const entries = [...primaryEntry, ...admins];
+  const uniqueEntries = uniqueAdminEntries(entries);
 
   return (
     <Window className='p-5'>
