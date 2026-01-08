@@ -127,6 +127,9 @@ class UserDAO(BaseDAO):
         self,
         user_id: int,
         *,
+        name: str | None = None,
+        surname: str | None = None,
+        email: str | None = None,
         phone_number: str | None = None,
         position: str | None = None,
         place_of_work: str | None = None,
@@ -135,6 +138,9 @@ class UserDAO(BaseDAO):
 
         Args:
             user_id: User ID.
+            name: New name (optional).
+            surname: New surname (optional).
+            email: New email (optional).
             phone_number: New phone number (optional).
             position: New position (optional).
             place_of_work: New place of work (optional).
@@ -144,6 +150,12 @@ class UserDAO(BaseDAO):
 
         """
         update_values = {}
+        if name is not None:
+            update_values['name'] = name
+        if surname is not None:
+            update_values['surname'] = surname
+        if email is not None:
+            update_values['email'] = email
         if phone_number is not None:
             update_values['phone_number'] = phone_number
         if position is not None:
