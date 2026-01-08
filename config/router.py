@@ -8,6 +8,7 @@ from endpoints import (
     auth_router,
     dashboard_router,
     main_router,
+    notification_router,
     organization_router,
     user_router,
 )
@@ -43,5 +44,10 @@ def initialize_routers() -> APIRouter:
         organization_router,
         prefix='/organization',
         tags=['organization'],
+    )
+    main_api_router.include_router(
+        notification_router,
+        prefix='/notification',
+        tags=['notification'],
     )
     return main_api_router

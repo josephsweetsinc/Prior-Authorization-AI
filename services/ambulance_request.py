@@ -46,6 +46,7 @@ from schemas import (
 )
 from services.ai.extractor import AIExtractionService
 from services.aws.actions import S3Actions
+from services.notification import NotificationService
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,7 @@ class AmbulanceRequestService(BaseService):
         status_history_dao: RequestStatusHistoryDAO | None = None,
         s3_actions: S3Actions | None = None,
         ai_extraction_service: AIExtractionService | None = None,
+        notification_service: NotificationService | None = None,
     ):
         """Initialize AmbulanceRequestService."""
         super().__init__(db_session)
@@ -74,6 +76,9 @@ class AmbulanceRequestService(BaseService):
         self._ai_extraction_service = (
             ai_extraction_service
             or AIExtractionService(s3_actions=self._s3_actions)
+        )
+        self._notification_service = (
+            notification_service or NotificationService(db_session)
         )
 
     async def upload_file(
@@ -479,6 +484,20 @@ class AmbulanceRequestService(BaseService):
                     status=RequestStatus.PENDING,
                     notes='Request opened by admin for review',
                 )
+                await self._session.flush()
+                # Create notification for the request owner
+                try:
+                    await self._notification_service.create_status_update_notification(  # noqa: E501
+                        user_id=request.user_id,
+                        request_id=request_id,
+                        status_message=f'Request #{request_id} is now under review',  # noqa: E501
+                        # TODO: Move it to some constants
+                    )
+                except Exception:
+                    logger.exception(
+                        'Failed to create notification for pending request %s',
+                        request_id,
+                    )
                 await self._session.commit()
                 await self._session.refresh(request)
 
@@ -711,6 +730,18 @@ class AmbulanceRequestService(BaseService):
             notes='Request approved by admin',
         )
         await self._session.flush()
+        # Create notification for the request owner
+        try:
+            await self._notification_service.create_status_update_notification(
+                user_id=request.user_id,
+                request_id=request_id,
+                status_message=f'Request #{request_id} has been approved',
+            )
+        except Exception:
+            logger.exception(
+                'Failed to create notification for approved request %s',
+                request_id,
+            )
         await self._session.commit()
         await self._session.refresh(request)
 
@@ -759,6 +790,18 @@ class AmbulanceRequestService(BaseService):
             notes=f'Request denied: {denial_reason.value}',
         )
         await self._session.flush()
+        # Create notification for the request owner
+        try:
+            await self._notification_service.create_status_update_notification(
+                user_id=request.user_id,
+                request_id=request_id,
+                status_message=f'Request #{request_id} has been denied',
+            )
+        except Exception:
+            logger.exception(
+                'Failed to create notification for denied request %s',
+                request_id,
+            )
         await self._session.commit()
         await self._session.refresh(request)
 

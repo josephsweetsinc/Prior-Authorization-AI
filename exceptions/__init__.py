@@ -17,6 +17,10 @@ from .auth import (
     WrongCredentialsException,
 )
 from .file import IncorrectFileSizeException, UnknownFiletypeException
+from .notification import (
+    NotificationMissingRequestException,
+    NotificationSystemCategoryException,
+)
 from .password_reset import (
     InvalidResetCodeException,
     ResetCodeExpiredException,
@@ -48,6 +52,8 @@ __all__ = [
     'InvalidResetCodeException',
     'NoFiltersException',
     'NoUpdateDataException',
+    'NotificationMissingRequestException',
+    'NotificationSystemCategoryException',
     'RefreshTokenException',
     'ResetCodeExpiredException',
     'ResetCodeUsedException',
