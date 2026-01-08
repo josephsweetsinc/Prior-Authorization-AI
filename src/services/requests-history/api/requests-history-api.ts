@@ -13,15 +13,14 @@ export const requestsHistoryAPI = baseApi.injectEndpoints({
       IRequestHistoryResponse,
       IRequestHistoryParams
     >({
-      query: ({ page = 1, search, status, days }) => ({
+      query: ({ page = 1, ...params }) => ({
         url: '/ambulance-request/',
         params: {
           page,
-          search,
-          status,
-          days,
+          ...params,
         },
       }),
+
       providesTags: (result) =>
         result
           ? [

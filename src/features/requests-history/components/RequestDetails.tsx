@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { type HTMLProps } from 'react';
 
 import { formatFileSize } from '@/services/media';
@@ -11,6 +10,8 @@ import {
 } from '@/shared/components';
 import { AttachedDocument } from '@/shared/components/attached-document';
 import { cn } from '@/shared/lib/utils';
+
+import { getRequestDetailsBlocks } from '../utils';
 
 import { DataBlock } from './DataBlock';
 import { RequestDetailsSkeleton } from './skeletons/RequestDetailsSkeleton';
@@ -30,6 +31,8 @@ export const RequestDetails = ({
   ...props
 }: Props) => {
   const { data, isLoading } = useGetRequestDetailsQuery(requestId);
+
+  const details = getRequestDetailsBlocks(data);
 
   if (isLoading) {
     return (
@@ -67,39 +70,21 @@ export const RequestDetails = ({
         <Separator className='bg-gray-200' />
 
         <section className='my-5 flex flex-wrap items-stretch gap-5'>
-          <DataBlock
-            label='Patient Name'
-            value={`${data?.patient_first_name} ${data?.patient_last_name}`}
-            className='shrink grow basis-[288px]'
-          />
-          <DataBlock
-            label='Transportation Type'
-            value={data.transportation_type}
-            className='shrink grow basis-[288px] capitalize'
-          />
-          <DataBlock
-            label='Date Submitted'
-            value={format(data.created_at, 'MM/dd/yyyy')}
-            className='shrink grow basis-[288px]'
-          />
-          <DataBlock
-            label='Patient ID'
-            value={data.patient_id.toString()}
-            className='shrink grow basis-[288px]'
-          />
-          <DataBlock
-            label='Pickup Address'
-            value={data.pickup_address}
-            className='shrink grow basis-[288px]'
-          />
-          <DataBlock
-            label='Destination Address'
-            value={data.destination_address}
-            className='shrink grow basis-[288px]'
-          />
+          {details.map((detail) => (
+            <DataBlock
+              key={detail.label}
+              label={detail.label}
+              value={detail.value}
+              className={detail.className}
+            />
+          ))}
         </section>
-        <Separator className='bg-gray-200' />
-        <StatusTimeline history={data.status_history} className='my-5' />
+        {data.status_history.length > 0 && (
+          <>
+            <Separator className='bg-gray-200' />
+            <StatusTimeline history={data.status_history} className='my-5' />
+          </>
+        )}
         {data.documents.length > 0 && (
           <>
             <Separator className='bg-gray-200' />
