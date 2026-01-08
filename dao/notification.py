@@ -16,6 +16,7 @@ class NotificationDAO(BaseDAO):
         category: NotificationCategory,
         message: str,
         request_id: int | None = None,
+        title: str | None = None,
     ) -> Notification:
         """Create a new notification.
 
@@ -24,6 +25,7 @@ class NotificationDAO(BaseDAO):
             category: Category of the notification.
             message: Notification message text.
             request_id: ID of the related ambulance request (optional).
+            title: Notification title/heading (optional).
 
         Returns:
             Notification: Created notification instance.
@@ -32,6 +34,7 @@ class NotificationDAO(BaseDAO):
         notification = Notification(
             user_id=user_id,
             category=category,
+            title=title,
             message=message,
             request_id=request_id,
         )
