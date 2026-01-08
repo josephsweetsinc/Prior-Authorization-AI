@@ -66,7 +66,9 @@ class NotificationService(BaseService):
 
         # Auto-generate title if not provided
         if title is None:
-            title = self._generate_title(category=category, request_id=request_id)
+            title = self._generate_title(
+                category=category, request_id=request_id
+            )
 
         notification = await self._notification_dao.create(
             user_id=user_id,
@@ -108,8 +110,6 @@ class NotificationService(BaseService):
                 return f'{request_ref} Requirement Update'
             case NotificationCategory.SYSTEM:
                 return 'System Notification'
-            case _:
-                return 'Notification'
 
     async def create_status_update_notification(
         self,
