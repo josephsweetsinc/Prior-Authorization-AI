@@ -28,6 +28,7 @@ export const ProfileHeaderCard = ({
 }: Props) => {
   const inputId = useId();
   const [uploadAvatar, { isLoading: isUploading }] = useUploadAvatarMutation();
+  const isAdmin = role.toLowerCase() === 'admin';
 
   const handleAvatarChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -87,17 +88,19 @@ export const ProfileHeaderCard = ({
             <div className='flex flex-wrap items-center justify-between'>
               <div className='flex flex-wrap items-center gap-3'>
                 <h2 className='text-2xl font-bold text-[#232323]'>{name}</h2>
-                <Chip label={role} variant='info' size='sm' />
+                {!isAdmin && <Chip label={role} variant='info' size='sm' />}
               </div>
-              <Button
-                variant='ghost'
-                size='sm'
-                className='text-status-info hover:text-status-info w-fit gap-2 underline'
-                onClick={onEditClick}
-              >
-                <SquarePen className='text-status-info size-4' />
-                Edit
-              </Button>
+              {!isAdmin && (
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  className='text-status-info hover:text-status-info w-fit gap-2 underline'
+                  onClick={onEditClick}
+                >
+                  <SquarePen className='text-status-info size-4' />
+                  Edit
+                </Button>
+              )}
             </div>
             <div className='flex flex-wrap items-center justify-between gap-5 text-base text-[#4A5568]'>
               <span className='flex items-center gap-2'>
@@ -108,10 +111,14 @@ export const ProfileHeaderCard = ({
                 <Phone className='text-status-info size-5' />
                 {phone ? phone : 'N/A'}
               </span>
-              <span className='flex items-center gap-2'>
-                <Building2 className='text-status-info size-5' />
-                {organization ? organization : 'N/A'}
-              </span>
+              {!isAdmin ? (
+                <span className='flex items-center gap-2'>
+                  <Building2 className='text-status-info size-5' />
+                  {organization ? organization : 'N/A'}
+                </span>
+              ) : (
+                <span />
+              )}
             </div>
           </div>
         </div>
