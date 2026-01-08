@@ -5,3 +5,9 @@ export interface IFilters {
   status: 'all' | RequestStatus;
   date: string;
 }
+
+export interface IDetail {
+  label: string;
+  value: string;
+  className?: string;
+}
