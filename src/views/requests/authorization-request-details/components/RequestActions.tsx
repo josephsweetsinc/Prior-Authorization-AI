@@ -5,9 +5,10 @@ import { Button } from '@/shared/components';
 type Props = {
   isVisible: boolean;
   onApprove: () => void;
+  onDeny: () => void;
 };
 
-export const RequestActions = ({ isVisible, onApprove }: Props) => {
+export const RequestActions = ({ isVisible, onApprove, onDeny }: Props) => {
   if (!isVisible) {
     return null;
   }
@@ -27,6 +28,7 @@ export const RequestActions = ({ isVisible, onApprove }: Props) => {
         variant={'destructive-outlined'}
         size={'default'}
         className='rounded-3xl'
+        onClick={onDeny}
       >
         <CircleX size={20} color='#FE5C73' strokeWidth={1.25} /> Deny Request
       </Button>

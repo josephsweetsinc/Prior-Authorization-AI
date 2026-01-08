@@ -1,28 +1,32 @@
 import { LoaderCircle } from 'lucide-react';
 
-import { Button, Modal, TitleAndDesc } from '@/shared/components';
+import {
+  Button,
+  Modal,
+  type ModalProps,
+  TitleAndDesc,
+} from '@/shared/components';
 
 type Props = {
-  isOpen: boolean;
-  onClose: () => void;
   onApprove: () => void;
   isApproving: boolean;
   requestLabel: string;
   patientName: string;
-};
+} & ModalProps;
 
 export const ApproveRequestModal = ({
-  isOpen,
-  onClose,
+  onCloseAction,
+  containerClassName,
   onApprove,
   isApproving,
   requestLabel,
   patientName,
+  ...modalProps
 }: Props) => (
   <Modal
-    isOpen={isOpen}
-    onCloseAction={onClose}
-    containerClassName='w-[90vw] max-w-2xl p-10'
+    onCloseAction={onCloseAction}
+    containerClassName={containerClassName ?? 'w-[90vw] max-w-2xl p-10'}
+    {...modalProps}
   >
     <TitleAndDesc
       title='Approve Authorization Request'
@@ -34,7 +38,7 @@ export const ApproveRequestModal = ({
       <Button
         variant='default-outlined'
         className='w-max'
-        onClick={onClose}
+        onClick={onCloseAction}
         disabled={isApproving}
       >
         Cancel
