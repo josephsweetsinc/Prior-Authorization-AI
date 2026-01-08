@@ -1,6 +1,7 @@
 import { api as baseApi } from '@/services/api/api';
 
 import type {
+  RequestUpdatePayload,
   IRequest,
   IRequestDetails,
   IRequestHistoryParams,
@@ -51,6 +52,43 @@ export const requestsHistoryAPI = baseApi.injectEndpoints({
         { type: 'AuthorizationRequests', id: 'LIST' },
       ],
     }),
+    denyRequest: builder.mutation<
+      IRequest,
+      { id: number; denial_reason: string; denial_notes?: string }
+    >({
+      query: ({ id, denial_reason, denial_notes }) => ({
+        url: `/ambulance-request/${id}/deny`,
+        method: 'POST',
+        body: {
+          denial_reason,
+          ...(denial_notes ? { denial_notes } : {}),
+        },
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'RequestDetails', id },
+        { type: 'RequestsHistory', id },
+        { type: 'RequestsHistory', id: 'LIST' },
+        { type: 'AuthorizationRequests', id },
+        { type: 'AuthorizationRequests', id: 'LIST' },
+      ],
+    }),
+    updateRequest: builder.mutation<
+      IRequestDetails,
+      { id: number; data: RequestUpdatePayload }
+    >({
+      query: ({ id, data }) => ({
+        url: `/ambulance-request/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'RequestDetails', id },
+        { type: 'RequestsHistory', id },
+        { type: 'RequestsHistory', id: 'LIST' },
+        { type: 'AuthorizationRequests', id },
+        { type: 'AuthorizationRequests', id: 'LIST' },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -59,4 +97,6 @@ export const {
   useGetRequestsHistoryQuery,
   useGetRequestDetailsQuery,
   useApproveRequestMutation,
+  useDenyRequestMutation,
+  useUpdateRequestMutation,
 } = requestsHistoryAPI;

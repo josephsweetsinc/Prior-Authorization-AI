@@ -23,6 +23,7 @@ function Input({
 }: InputProps) {
   const isPassword = type === 'password';
   const isSearch = type === 'search';
+  const isTime = type === 'time';
   const [visible, setVisible] = React.useState(false);
 
   const invalid = !!error || props['aria-invalid'] === true;
@@ -61,6 +62,7 @@ function Input({
               ? 'peer ease focus:border-accent-foreground w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm text-slate-700 shadow-sm transition duration-300 placeholder:text-slate-400 focus:shadow-none focus:outline-none'
               : 'ease focus:border-accent-foreground w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm text-slate-700 shadow-sm transition duration-300 focus:shadow-none focus:outline-none',
             'h-9 rounded-md px-6 py-6 has-[>svg]:px-3',
+            isTime && 'appearance-none py-0 leading-[1]',
             isSearch && 'rounded-xl pl-11',
           )}
           {...props}
