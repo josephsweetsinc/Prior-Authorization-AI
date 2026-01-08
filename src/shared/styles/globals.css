@@ -201,4 +201,23 @@
   .font-nunito-sans {
     font-family: var(--font-nunito-sans) !important;
   }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(83, 109, 254, 0.55) rgba(83, 109, 254, 0.08);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(83, 109, 254, 0.08);
+    border-radius: 999px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(83, 109, 254, 0.55);
+    border-radius: 999px;
+  }
 }

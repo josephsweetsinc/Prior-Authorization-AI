@@ -1,5 +1,9 @@
 import { TRANSPORTATION_TYPE_OPTIONS } from '@/features/new-request/constants';
-import { type IRequestDetails } from '@/services/requests-history';
+import {
+  type AmbulatoryStatus,
+  type IRequestDetails,
+  type TransportationType,
+} from '@/services/requests-history';
 import {
   Button,
   DateInput,
@@ -10,6 +14,7 @@ import {
   Window,
 } from '@/shared/components';
 
+import { AMBULATORY_STATUS_OPTIONS } from '../lib/constants';
 import { type RequestDetailsFormState } from '../lib/types';
 
 type Props = {
@@ -49,10 +54,7 @@ export const RequestDetailsContent = ({
           onChange={(event) => onChange({ patientId: event.target.value })}
         />
         <Select
-          options={[
-            { label: 'Ambulatory', value: 'ambulatory' },
-            { label: 'Non-Ambulatory', value: 'non-ambulatory' },
-          ]}
+          options={AMBULATORY_STATUS_OPTIONS}
           label='Ambulatory Status'
           placeholder='Select status'
           value={form.ambulatoryStatus}
@@ -102,7 +104,9 @@ export const RequestDetailsContent = ({
           label='Transport Type'
           placeholder='Select transport type'
           value={form.transportationType}
-          onChange={(value) => onChange({ transportationType: value })}
+          onChange={(value) =>
+            onChange({ transportationType: value as TransportationType })
+          }
         />
         <Select
           options={[

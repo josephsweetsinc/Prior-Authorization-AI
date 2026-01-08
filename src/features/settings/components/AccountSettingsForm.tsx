@@ -14,7 +14,7 @@ import { Input } from '@/shared/components/inputs';
 import { type UpdateAccountSchema, updateAccountSchema } from '../validation';
 
 export const AccountSettingsForm = () => {
-  const { data: currentUser } = useGetCurrentUserQuery();
+  const { data: currentUser, refetch } = useGetCurrentUserQuery();
 
   const {
     register,
@@ -53,6 +53,7 @@ export const AccountSettingsForm = () => {
     setIsUpdating(true);
     try {
       await updateUserAccount(data).unwrap();
+      await refetch();
       toast.success('Account updated successfully');
     } catch (error) {
       const parsedError = parseApiError(error)?.message;

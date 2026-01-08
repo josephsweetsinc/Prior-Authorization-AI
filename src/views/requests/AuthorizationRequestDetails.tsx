@@ -25,7 +25,7 @@ import {
   buildRequestDetailsFormState,
   buildRequestDetailsUiState,
   buildRequestUpdatePayload,
-} from './authorization-request-details/lib/utils';
+} from './authorization-request-details/lib/utils/builders';
 
 type Props = {
   requestId: string;

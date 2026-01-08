@@ -66,6 +66,20 @@ export const authApi = baseApi.injectEndpoints({
       providesTags: ['User'],
     }),
 
+    uploadAvatar: build.mutation<IUser, File>({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        return {
+          url: '/user/me/avatar',
+          method: 'POST',
+          body: formData,
+        };
+      },
+      invalidatesTags: ['User'],
+    }),
+
     signup: build.mutation<IUser, SignUpRequest>({
       query: (body) => ({
         url: '/auth/signup',
@@ -102,6 +116,7 @@ export const {
   usePasswordResetVerifyMutation,
   usePasswordResetConfirmMutation,
   useSignupMutation,
+  useUploadAvatarMutation,
   useLogoutMutation,
   useGetCurrentUserQuery,
   useUpdatePasswordMutation,
