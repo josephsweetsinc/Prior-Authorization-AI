@@ -6,6 +6,7 @@ from .ambulance_request import (
     TransportationType,
 )
 from .blacklist_token import BlacklistToken
+from .notification import Notification, NotificationCategory
 from .organization import Organization
 from .password_reset_code import PasswordResetCode
 from .request_file import RequestFile
@@ -15,6 +16,8 @@ __all__ = [
     'AmbulanceRequest',
     'BlacklistToken',
     'DenialReason',
+    'Notification',
+    'NotificationCategory',
     'Organization',
     'PasswordResetCode',
     'RequestFile',
