@@ -15,7 +15,7 @@ class NotificationSystemCategoryException(NotificationException):
     """
 
     def __init__(self) -> None:
-        """Initialize NotificationSystemCategoryException with default message."""
+        """Initialize NotificationSystemCategoryException with default message."""  # noqa: E501
         super().__init__(
             status_code=400,
             detail='SYSTEM notifications cannot be associated with a request',
@@ -40,5 +40,5 @@ class NotificationMissingRequestException(NotificationException):
         """
         super().__init__(
             status_code=400,
-            detail=f'{category} notifications must be associated with a request',
+            detail=f'{category} notifications must be associated with a request',  # noqa: E501
         )

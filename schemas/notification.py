@@ -11,8 +11,12 @@ class NotificationResponseSchema(BaseModel):
     """Schema for notification response."""
 
     id: int = Field(description='Notification ID')
-    user_id: int = Field(description='ID of the user who receives the notification')
-    category: NotificationCategory = Field(description='Category of the notification')
+    user_id: int = Field(
+        description='ID of the user who receives the notification'
+    )
+    category: NotificationCategory = Field(
+        description='Category of the notification'
+    )
     message: str = Field(description='Notification message text')
     request_id: int | None = Field(
         default=None, description='ID of the related ambulance request'
@@ -34,5 +38,7 @@ class NotificationsListResponseSchema(BaseModel):
     )
     page: int = Field(description='Current page number')
     total: int = Field(description='Total number of notifications')
-    showing: int = Field(description='Number of notifications shown on this page')
+    showing: int = Field(
+        description='Number of notifications shown on this page'
+    )
     total_pages: int = Field(description='Total number of pages')
