@@ -22,7 +22,8 @@ import {
 
 export const AppHeader = () => {
   const { isOpen, isLoading, open, close, confirm } = useLogoutModal();
-  const { data: currentUser } = useGetCurrentUserQuery();
+  const { data: currentUser, isLoading: isUserLoading } =
+    useGetCurrentUserQuery();
   const displayName = getDisplayName(currentUser);
   const profileRole = getProfileRole(currentUser);
   const avatarSrc = currentUser?.avatar_url || null;
@@ -70,6 +71,7 @@ export const AppHeader = () => {
             name={displayName}
             role={profileRole}
             actions={profileActions}
+            isLoading={isUserLoading}
           />
         </HeaderGroup>
       </Header>
