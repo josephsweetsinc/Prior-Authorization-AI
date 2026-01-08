@@ -47,6 +47,7 @@ export const AttachedDocument = ({
             className='group text-status-info flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-blue-100'
             title='Download'
             download
+            onClick={(event) => event.stopPropagation()}
           >
             <Download strokeWidth={1.5} />
           </a>

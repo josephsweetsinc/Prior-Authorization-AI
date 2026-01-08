@@ -7,6 +7,8 @@ export type TransportationType =
   | 'bls'
   | 'als'
   | 'cct';
+
+export type AmbulatoryStatus = 'ambulatory' | 'non-ambulatory';
 export interface IRequest {
   id: number;
   user_id: number;
@@ -14,7 +16,7 @@ export interface IRequest {
   patient_first_name: string;
   patient_last_name: string;
   patient_date_of_birth: string;
-  ambulatory_status: string;
+  ambulatory_status: AmbulatoryStatus;
   oxygen_required: boolean;
   primary_diagnosis: string;
   medical_justification: string;
@@ -53,6 +55,28 @@ export interface IRequestDetails extends IRequest {
   status_history: IStatus[];
   documents: IDocument[];
 }
+
+export type RequestUpdatePayload = {
+  transportation_type?: TransportationType;
+  patient_first_name?: string;
+  patient_last_name?: string;
+  patient_date_of_birth?: string;
+  patient_id?: string;
+  date_of_transport?: string;
+  time_of_transport?: string;
+  pickup_address?: string;
+  destination_address?: string;
+  primary_diagnosis?: string;
+  medical_justification?: string;
+  form_number?: string;
+  reviewer_id?: number;
+  ambulatory_status?: AmbulatoryStatus;
+  oxygen_required?: boolean;
+  ordering_physician?: string;
+  physician_phone?: string;
+  denial_reason?: string;
+  denial_notes?: string;
+};
 
 export interface IRequestHistoryResponse {
   items: IRequest[];

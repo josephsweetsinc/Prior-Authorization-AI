@@ -1,29 +1,31 @@
 'use client';
 
-import { format } from 'date-fns';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 
 import { parseApiError } from '@/services/api/types';
 import {
   useApproveRequestMutation,
+  useDenyRequestMutation,
   useGetRequestDetailsQuery,
+  useUpdateRequestMutation,
 } from '@/services/requests-history';
 import { Chip, SensitiveMessage, TitleAndDesc } from '@/shared/components';
-import { STATUS_CONFIG } from '@/shared/components/status-chip';
 
-import { ApproveRequestModal } from './authorization-request-details/ApproveRequestModal';
-import { AuthorizationRequestDetailsSkeleton } from './authorization-request-details/AuthorizationRequestDetailsSkeleton';
-import { RequestDetailsContent } from './authorization-request-details/RequestDetailsContent';
-import { RequestDetailsSidebar } from './authorization-request-details/RequestDetailsSidebar';
+import { ApproveRequestModal } from './authorization-request-details/components/ApproveRequestModal';
+import { AuthorizationRequestDetailsSkeleton } from './authorization-request-details/components/AuthorizationRequestDetailsSkeleton';
+import { DenyRequestModal } from './authorization-request-details/components/DenyRequestModal';
+import { RequestDetailsContent } from './authorization-request-details/components/RequestDetailsContent';
+import { RequestDetailsSidebar } from './authorization-request-details/components/RequestDetailsSidebar';
+import { type DenialReason } from './authorization-request-details/lib/denial-reasons';
+import { type RequestDetailsFormState } from './authorization-request-details/lib/types';
 import {
-  formatDate,
-  formatTime,
-  STATUS_LABELS,
-  TIMELINE_STATUS_MAP,
-} from './authorization-request-details/utils';
+  buildRequestDetailsFormState,
+  buildRequestDetailsUiState,
+  buildRequestUpdatePayload,
+} from './authorization-request-details/lib/utils';
 
 type Props = {
   requestId: string;
@@ -36,8 +38,19 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     skip: shouldSkip,
   });
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [isDenyModalOpen, setIsDenyModalOpen] = useState(false);
   const [approveRequest, { isLoading: isApproving }] =
     useApproveRequestMutation();
+  const [denyRequest, { isLoading: isDenying }] = useDenyRequestMutation();
+  const [updateRequest, { isLoading: isSaving }] = useUpdateRequestMutation();
+  const [formState, setFormState] = useState<{
+    requestId: number;
+    state: RequestDetailsFormState;
+  } | null>(null);
+  const defaultFormState = useMemo(
+    () => (data ? buildRequestDetailsFormState(data) : null),
+    [data],
+  );
 
   if (isLoading) {
     return <AuthorizationRequestDetailsSkeleton />;
@@ -77,24 +90,19 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     );
   }
 
-  const statusConfig = STATUS_CONFIG[data.status];
-  const patientDob = formatDate(data.patient_date_of_birth);
-  const appointmentDate = formatDate(data.date_of_transport);
-  const appointmentTime = formatTime(data.time_of_transport);
-  const shouldShowActions =
-    data.status !== 'approved' && data.status !== 'denied';
-  const patientName =
-    `${data.patient_first_name} ${data.patient_last_name}`.trim();
-  const requestLabel = data.form_number || String(data.id);
-
-  const timelineItems = data.status_history.map((item) => ({
-    title: STATUS_LABELS[item.status] ?? 'Status Update',
-    date: item.created_at
-      ? format(new Date(item.created_at), 'MMM dd, yyyy p')
-      : undefined,
-    description: item.notes ?? undefined,
-    status: TIMELINE_STATUS_MAP[item.status] ?? 'pending',
-  }));
+  const {
+    statusConfig,
+    shouldShowActions,
+    patientName,
+    requestLabel,
+    timelineItems,
+  } = buildRequestDetailsUiState(data);
+  const resolvedDefaultFormState =
+    defaultFormState ?? buildRequestDetailsFormState(data);
+  const effectiveFormState =
+    formState?.requestId === data.id
+      ? formState.state
+      : resolvedDefaultFormState;
 
   const handleApproveRequest = () => {
     approveRequest(data.id)
@@ -106,6 +114,46 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
       .catch((error) => {
         const parsedError = parseApiError(error);
         toast.error(parsedError.message ?? 'Failed to approve request.');
+      });
+  };
+
+  const handleDenyRequest = (payload: {
+    reason: DenialReason;
+    notes?: string;
+  }) => {
+    denyRequest({
+      id: data.id,
+      denial_reason: payload.reason,
+      denial_notes: payload.notes,
+    })
+      .unwrap()
+      .then(() => {
+        toast.success('Request denied successfully.');
+        setIsDenyModalOpen(false);
+      })
+      .catch((error) => {
+        const parsedError = parseApiError(error);
+        toast.error(parsedError.message ?? 'Failed to deny request.');
+      });
+  };
+
+  const openApproveModal = () => setIsApproveModalOpen(true);
+  const closeApproveModal = () => setIsApproveModalOpen(false);
+  const openDenyModal = () => setIsDenyModalOpen(true);
+  const closeDenyModal = () => setIsDenyModalOpen(false);
+
+  const handleUpdateRequest = () => {
+    updateRequest({
+      id: data.id,
+      data: buildRequestUpdatePayload(effectiveFormState),
+    })
+      .unwrap()
+      .then(() => {
+        toast.success('Request updated successfully.');
+      })
+      .catch((error) => {
+        const parsedError = parseApiError(error);
+        toast.error(parsedError.message ?? 'Failed to update request.');
       });
   };
 
@@ -142,25 +190,49 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
       <section className='grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]'>
         <RequestDetailsContent
           data={data}
-          patientDob={patientDob}
-          appointmentDate={appointmentDate}
-          appointmentTime={appointmentTime}
+          form={effectiveFormState}
+          onChange={(next) =>
+            setFormState((prev) => {
+              const baseState =
+                prev?.requestId === data.id
+                  ? prev.state
+                  : resolvedDefaultFormState;
+              return {
+                requestId: data.id,
+                state: {
+                  ...baseState,
+                  ...next,
+                },
+              };
+            })
+          }
+          onSave={handleUpdateRequest}
+          isSaving={isSaving}
         />
 
         <RequestDetailsSidebar
           shouldShowActions={shouldShowActions}
-          onApprove={() => setIsApproveModalOpen(true)}
+          onApprove={openApproveModal}
+          onDeny={openDenyModal}
           timelineItems={timelineItems}
           documents={data.documents}
         />
       </section>
       <ApproveRequestModal
         isOpen={isApproveModalOpen}
-        onClose={() => setIsApproveModalOpen(false)}
+        onCloseAction={closeApproveModal}
         onApprove={handleApproveRequest}
         isApproving={isApproving}
         requestLabel={requestLabel}
         patientName={patientName}
+      />
+      <DenyRequestModal
+        key={isDenyModalOpen ? 'deny-open' : 'deny-closed'}
+        isOpen={isDenyModalOpen}
+        onCloseAction={closeDenyModal}
+        onConfirm={handleDenyRequest}
+        isSubmitting={isDenying}
+        requestLabel={requestLabel}
       />
     </main>
   );
