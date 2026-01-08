@@ -29,6 +29,10 @@ from .auth import (
 )
 from .dasboard import DashboardResponseSchema
 from .main import HealthCheckResponseSchema
+from .notification import (
+    NotificationResponseSchema,
+    NotificationsListResponseSchema,
+)
 from .organization import (
     OrganizationResponseSchema,
     UpdateOrganizationRequestSchema,
@@ -60,6 +64,8 @@ __all__ = [
     'FileUploadResponseSchema',
     'FileUploadWithExtractionResponseSchema',
     'HealthCheckResponseSchema',
+    'NotificationResponseSchema',
+    'NotificationsListResponseSchema',
     'OrganizationResponseSchema',
     'PasswordChangeRequestSchema',
     'PasswordResetConfirmSchema',

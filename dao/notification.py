@@ -145,6 +145,34 @@ class NotificationDAO(BaseDAO):
         await self._session.flush()
         return result.scalar_one_or_none()
 
+    async def mark_multiple_as_read(
+        self,
+        notification_ids: list[int],
+    ) -> list[Notification]:
+        """Mark multiple notifications as read.
+
+        Args:
+            notification_ids: List of notification IDs to mark as read.
+
+        Returns:
+            list[Notification]: List of updated notification instances.
+
+        """
+        if not notification_ids:
+            return []
+        stmt = (
+            update(Notification)
+            .where(
+                Notification.id.in_(notification_ids),
+                Notification.is_read == False,  # noqa: E712
+            )
+            .values(is_read=True)
+            .returning(Notification)
+        )
+        result = await self._session.execute(stmt)
+        await self._session.flush()
+        return list(result.scalars().all())
+
     async def mark_all_as_read(
         self,
         user_id: int,

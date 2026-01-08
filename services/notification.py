@@ -258,6 +258,26 @@ class NotificationService(BaseService):
             await self._session.commit()
         return notification
 
+    async def mark_notifications_as_read(
+        self,
+        notification_ids: list[int],
+    ) -> list[Notification]:
+        """Mark multiple notifications as read.
+
+        Args:
+            notification_ids: List of notification IDs to mark as read.
+
+        Returns:
+            list[Notification]: List of updated notification instances.
+
+        """
+        notifications = await self._notification_dao.mark_multiple_as_read(
+            notification_ids
+        )
+        if notifications:
+            await self._session.commit()
+        return notifications
+
     async def mark_all_notifications_as_read(
         self,
         user_id: int,
