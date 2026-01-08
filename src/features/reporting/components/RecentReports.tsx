@@ -5,7 +5,8 @@ import { type HTMLProps } from 'react';
 import { DataTable, Window } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
-import { MOCK_RECENT_REPORTS, reportsColumns } from '../constants';
+import { reportsColumns } from '../columns';
+import { MOCK_RECENT_REPORTS } from '../constants';
 
 export const RecentReports = ({
   className,

@@ -6,7 +6,8 @@ import { MetricsCard } from '@/features/request-totals/components';
 import { DataTable, OverlayIcon, Window } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
-import { metricColumns, MOCK_METRICS } from '../constants';
+import { metricColumns } from '../columns';
+import { MOCK_METRICS } from '../constants';
 
 export const RequestReports = ({
   className,
