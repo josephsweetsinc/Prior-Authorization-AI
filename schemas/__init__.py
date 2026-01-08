@@ -29,6 +29,11 @@ from .auth import (
 )
 from .dasboard import DashboardResponseSchema
 from .main import HealthCheckResponseSchema
+from .stats import (
+    AdminUserItemSchema,
+    AdminUsersResponseSchema,
+    ProviderStatsResponseSchema,
+)
 from .notification import (
     NotificationResponseSchema,
     NotificationsListResponseSchema,
@@ -48,6 +53,8 @@ from .user import (
 )
 
 __all__ = [
+    'AdminUserItemSchema',
+    'AdminUsersResponseSchema',
     'AIExtractionResponse',
     'AdminRequestWithStatusHistorySchema',
     'AdminUpdateRequestSchema',
@@ -71,6 +78,7 @@ __all__ = [
     'PasswordResetConfirmSchema',
     'PasswordResetRequestSchema',
     'PasswordResetVerifySchema',
+    'ProviderStatsResponseSchema',
     'RefreshTokenRequestSchema',
     'RequestDocumentSchema',
     'RequestStatusHistoryResponseSchema',
