@@ -10,16 +10,18 @@ export function middleware(request: NextRequest) {
 
   const sensitiveRoutes = ['/create-new-password', '/enter-code'];
 
-  const isProtectedRoute = pathname === '/' || pathname.startsWith('/profile');
-  const providerOnlyRoutes = ['/new-request', '/requests-history'];
+  const isProtectedRoute =
+    pathname === '/' ||
+    pathname.startsWith('/profile') ||
+    pathname.startsWith('/requests-history');
+  const providerOnlyRoutes = ['/new-request'];
   const adminOnlyRoutes = ['/user-management', '/requests'];
 
-  const isProviderOnlyRoute = providerOnlyRoutes.some((route) =>
-    pathname.startsWith(route),
-  );
-  const isAdminOnlyRoute = adminOnlyRoutes.some((route) =>
-    pathname.startsWith(route),
-  );
+  const isSegmentRouteMatch = (route: string) =>
+    pathname === route || pathname.startsWith(`${route}/`);
+
+  const isProviderOnlyRoute = providerOnlyRoutes.some(isSegmentRouteMatch);
+  const isAdminOnlyRoute = adminOnlyRoutes.some(isSegmentRouteMatch);
 
   if (accessToken && authRoutes.includes(pathname)) {
     return NextResponse.redirect(new URL('/', request.url));
@@ -45,7 +47,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  if (isProviderOnlyRoute && userRole !== 'provider') {
+  if (isProviderOnlyRoute && userRole !== 'provider' && userRole !== 'admin') {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
