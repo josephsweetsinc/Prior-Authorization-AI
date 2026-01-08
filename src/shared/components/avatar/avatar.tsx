@@ -32,12 +32,13 @@ export interface UserProps
 }
 
 function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  const trimmed = name.trim();
+
+  if (!trimmed) {
+    return '?';
+  }
+
+  return trimmed[0].toUpperCase();
 }
 
 export function Avatar({
@@ -58,7 +59,7 @@ export function Avatar({
       <div
         data-slot='avatar'
         className={cn(
-          'bg-muted text-muted-foreground relative flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold select-none',
+          'text-muted-foreground relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white font-semibold select-none',
           avatarClassName,
         )}
       >

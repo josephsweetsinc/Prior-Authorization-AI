@@ -1,22 +1,162 @@
-import { CircleX, CircleCheck, ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
+'use client';
 
+import { ChevronLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
+import { toast } from 'react-toastify';
+
+import { parseApiError } from '@/services/api/types';
 import {
-  Button,
-  Chip,
-  Input,
-  SensitiveMessage,
-  Separator,
-  StatusTimeline,
-  TitleAndDesc,
-  Window,
-} from '@/shared/components';
+  useApproveRequestMutation,
+  useDenyRequestMutation,
+  useGetRequestDetailsQuery,
+  useUpdateRequestMutation,
+} from '@/services/requests-history';
+import { Chip, SensitiveMessage, TitleAndDesc } from '@/shared/components';
+
+import { ApproveRequestModal } from './authorization-request-details/components/ApproveRequestModal';
+import { AuthorizationRequestDetailsSkeleton } from './authorization-request-details/components/AuthorizationRequestDetailsSkeleton';
+import { DenyRequestModal } from './authorization-request-details/components/DenyRequestModal';
+import { RequestDetailsContent } from './authorization-request-details/components/RequestDetailsContent';
+import { RequestDetailsSidebar } from './authorization-request-details/components/RequestDetailsSidebar';
+import { type DenialReason } from './authorization-request-details/lib/denial-reasons';
+import { type RequestDetailsFormState } from './authorization-request-details/lib/types';
+import {
+  buildRequestDetailsFormState,
+  buildRequestDetailsUiState,
+  buildRequestUpdatePayload,
+} from './authorization-request-details/lib/utils/builders';
 
 type Props = {
   requestId: string;
 };
 
 const AuthorizationRequestDetails = ({ requestId }: Props) => {
+  const numericRequestId = Number(requestId);
+  const shouldSkip = Number.isNaN(numericRequestId);
+  const { data, isLoading } = useGetRequestDetailsQuery(numericRequestId, {
+    skip: shouldSkip,
+  });
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [isDenyModalOpen, setIsDenyModalOpen] = useState(false);
+  const [approveRequest, { isLoading: isApproving }] =
+    useApproveRequestMutation();
+  const [denyRequest, { isLoading: isDenying }] = useDenyRequestMutation();
+  const [updateRequest, { isLoading: isSaving }] = useUpdateRequestMutation();
+  const [formState, setFormState] = useState<{
+    requestId: number;
+    state: RequestDetailsFormState;
+  } | null>(null);
+  const defaultFormState = useMemo(
+    () => (data ? buildRequestDetailsFormState(data) : null),
+    [data],
+  );
+
+  if (isLoading) {
+    return <AuthorizationRequestDetailsSkeleton />;
+  }
+
+  if (!data) {
+    return (
+      <main className='space-y-6'>
+        <section className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
+          <div className='space-y-4'>
+            <Link
+              href='/requests'
+              className='flex items-center text-sm text-[#4A5568]'
+            >
+              <ChevronLeft
+                color='#4A5568'
+                strokeWidth={1.25}
+                width={16}
+                height={16}
+              />{' '}
+              Back to Request
+            </Link>
+            <TitleAndDesc
+              title={`Request ${requestId}`}
+              subtitle='CMS-10344 Medical Transportation Authorization Form'
+              titleClassName='text-2xl md:text-3xl'
+              subtitleClassName='text-base'
+            />
+          </div>
+        </section>
+        <SensitiveMessage
+          variant='destructive'
+          title='Request details unavailable'
+          description='We could not load this request. Please try again.'
+        />
+      </main>
+    );
+  }
+
+  const {
+    statusConfig,
+    shouldShowActions,
+    patientName,
+    requestLabel,
+    timelineItems,
+  } = buildRequestDetailsUiState(data);
+  const resolvedDefaultFormState =
+    defaultFormState ?? buildRequestDetailsFormState(data);
+  const effectiveFormState =
+    formState?.requestId === data.id
+      ? formState.state
+      : resolvedDefaultFormState;
+
+  const handleApproveRequest = () => {
+    approveRequest(data.id)
+      .unwrap()
+      .then(() => {
+        toast.success('Request approved successfully.');
+        setIsApproveModalOpen(false);
+      })
+      .catch((error) => {
+        const parsedError = parseApiError(error);
+        toast.error(parsedError.message ?? 'Failed to approve request.');
+      });
+  };
+
+  const handleDenyRequest = (payload: {
+    reason: DenialReason;
+    notes?: string;
+  }) => {
+    denyRequest({
+      id: data.id,
+      denial_reason: payload.reason,
+      denial_notes: payload.notes,
+    })
+      .unwrap()
+      .then(() => {
+        toast.success('Request denied successfully.');
+        setIsDenyModalOpen(false);
+      })
+      .catch((error) => {
+        const parsedError = parseApiError(error);
+        toast.error(parsedError.message ?? 'Failed to deny request.');
+      });
+  };
+
+  const openApproveModal = () => setIsApproveModalOpen(true);
+  const closeApproveModal = () => setIsApproveModalOpen(false);
+  const openDenyModal = () => setIsDenyModalOpen(true);
+  const closeDenyModal = () => setIsDenyModalOpen(false);
+
+  const handleUpdateRequest = () => {
+    updateRequest({
+      id: data.id,
+      data: buildRequestUpdatePayload(effectiveFormState),
+    })
+      .unwrap()
+      .then(() => {
+        toast.success('Request updated successfully.');
+      })
+      .catch((error) => {
+        const parsedError = parseApiError(error);
+        toast.error(parsedError.message ?? 'Failed to update request.');
+      });
+  };
+
   return (
     <main className='space-y-6'>
       <section className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
@@ -34,191 +174,66 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
             Back to Request
           </Link>
           <TitleAndDesc
-            title={`Request ${requestId}`}
-            subtitle='CMS-10344 Medical Transportation Authorization Form'
+            title={`Request ${data.id}`}
+            subtitle={`${data.form_number} Medical Transportation Authorization Form`}
             titleClassName='text-2xl md:text-3xl'
             subtitleClassName='text-base'
           />
         </div>
         <Chip
-          variant='warning'
-          label='Pending Review'
+          variant={statusConfig?.variant ?? 'warning'}
+          label={statusConfig?.label ?? 'Unknown'}
           className='self-end px-4 py-2.5 text-[16px]'
         />
       </section>
 
       <section className='grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]'>
-        <Window className='space-y-8'>
-          <div className='space-y-5'>
-            <h2 className='text-brand-dark text-lg font-bold'>
-              Patient Information
-            </h2>
-            <div className='grid gap-4 md:grid-cols-2'>
-              <Input
-                labelVariant='static'
-                label='Patient Name'
-                defaultValue='Sarah Johnson'
-                disabled
-              />
-              <Input
-                labelVariant='static'
-                label='Date of Birth'
-                defaultValue='03-15-1965'
-                disabled
-              />
-              <Input
-                labelVariant='static'
-                label='Medicare Number'
-                defaultValue='1EG4-TE5-MK73'
-                disabled
-              />
-              <Input
-                labelVariant='static'
-                label='Ambulatory Status'
-                defaultValue='Non-ambulatory'
-                disabled
-              />
-            </div>
-          </div>
-
-          <Separator className='bg-gray-200' />
-
-          <div className='space-y-5'>
-            <h2 className='text-brand-dark text-lg font-bold'>
-              Transport Details
-            </h2>
-            <div className='grid gap-4 md:grid-cols-2'>
-              <Input
-                labelVariant='static'
-                label='Pickup Address'
-                defaultValue='1234 Elm Street, Boston, MA 02101'
-                disabled
-              />
-              <Input
-                labelVariant='static'
-                label='Destination'
-                defaultValue='Massachusetts General Hospital, 55 Fruit St'
-                disabled
-              />
-              <Input
-                labelVariant='static'
-                label='Appointment Date'
-                defaultValue='01-10-2025'
-                disabled
-              />
-              <Input
-                labelVariant='static'
-                label='Appointment Time'
-                defaultValue='10:30 AM'
-                disabled
-              />
-              <Input
-                labelVariant='static'
-                label='Transport Type'
-                defaultValue='Ambulance'
-                disabled
-              />
-              <Input
-                labelVariant='static'
-                label='Oxygen Required'
-                defaultValue='Yes'
-                disabled
-              />
-            </div>
-          </div>
-
-          <Separator className='bg-gray-200' />
-
-          <div className='space-y-5'>
-            <h2 className='text-brand-dark text-lg font-bold'>
-              Medical Information
-            </h2>
-            <div className='grid gap-4 md:grid-cols-2'>
-              <Input
-                labelVariant='static'
-                label='Diagnosis'
-                defaultValue='Congestive Heart Failure, COPD'
-                disabled
-              />
-              <Input
-                labelVariant='static'
-                label='Ordering Physician'
-                defaultValue='Dr. Michael Roberts'
-                disabled
-              />
-              <Input
-                labelVariant='static'
-                label='Medical Necessity'
-                defaultValue='Continuous oxygen support and medical monitoring required'
-                disabled
-              />
-              <Input
-                labelVariant='static'
-                label='Physician Phone'
-                defaultValue='(617) 555-0123'
-                disabled
-              />
-            </div>
-          </div>
-
-          <SensitiveMessage
-            variant='ai'
-            title='AI Confidence Score: 98%'
-            description='This form was automatically populated by our AI engine. All fields have been verified against patient records and physician notes'
-          />
-        </Window>
-
-        <div className='space-y-5'>
-          <div className='space-y-3'>
-            <Button
-              variant={'success'}
-              size={'default'}
-              className='rounded-3xl'
-            >
-              <CircleCheck
-                size={20}
-                className='text-white'
-                strokeWidth={1.25}
-              />{' '}
-              Approve Request
-            </Button>
-            <Button
-              variant={'destructive-outlined'}
-              size={'default'}
-              className='rounded-3xl'
-            >
-              <CircleX size={20} color='#FE5C73' strokeWidth={1.25} /> Deny
-              Request
-            </Button>
-          </div>
-
-          <Window className='p-6'>
-            <h3 className='text-brand-dark mb-5 text-xl font-bold'>
-              Activity Log
-            </h3>
-            <StatusTimeline
-              items={[
-                {
-                  title: 'Request Submitted',
-                  date: 'Jan 15, 2025 at 10:30 AM',
-                  status: 'approved',
+        <RequestDetailsContent
+          data={data}
+          form={effectiveFormState}
+          onChange={(next) =>
+            setFormState((prev) => {
+              const baseState =
+                prev?.requestId === data.id
+                  ? prev.state
+                  : resolvedDefaultFormState;
+              return {
+                requestId: data.id,
+                state: {
+                  ...baseState,
+                  ...next,
                 },
-                {
-                  title: 'Under Review',
-                  date: 'Jan 16, 2025 at 10:30 AM',
-                  status: 'pending',
-                },
-                {
-                  title: 'Insurance Reviewer',
-                  description:
-                    'Additional documentation may be required for medical necessity.',
-                  status: 'denied',
-                },
-              ]}
-            />
-          </Window>
-        </div>
+              };
+            })
+          }
+          onSave={handleUpdateRequest}
+          isSaving={isSaving}
+        />
+
+        <RequestDetailsSidebar
+          shouldShowActions={shouldShowActions}
+          onApprove={openApproveModal}
+          onDeny={openDenyModal}
+          timelineItems={timelineItems}
+          documents={data.documents}
+        />
       </section>
+      <ApproveRequestModal
+        isOpen={isApproveModalOpen}
+        onCloseAction={closeApproveModal}
+        onApprove={handleApproveRequest}
+        isApproving={isApproving}
+        requestLabel={requestLabel}
+        patientName={patientName}
+      />
+      <DenyRequestModal
+        key={isDenyModalOpen ? 'deny-open' : 'deny-closed'}
+        isOpen={isDenyModalOpen}
+        onCloseAction={closeDenyModal}
+        onConfirm={handleDenyRequest}
+        isSubmitting={isDenying}
+        requestLabel={requestLabel}
+      />
     </main>
   );
 };

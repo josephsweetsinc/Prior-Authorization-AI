@@ -3,6 +3,8 @@ import { format } from 'date-fns';
 import { type IStatus } from '@/services';
 import { cn } from '@/shared/lib/utils';
 
+import { transformStatusToTimelineTitle } from '../utils';
+
 import { StatusIcon } from './StatusIcon';
 
 interface TimelineProps {
@@ -28,7 +30,7 @@ export const StatusTimeline = ({ history, className }: TimelineProps) => {
 
             <div className='space-y-1'>
               <p className='text-foreground text-xs leading-none font-bold capitalize md:text-sm lg:text-base'>
-                {requestState.status}
+                {transformStatusToTimelineTitle(requestState.status)}
               </p>
 
               <time

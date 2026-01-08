@@ -1,6 +1,8 @@
 import { api as baseApi } from '@/services/api/api';
 
 import type {
+  RequestUpdatePayload,
+  IRequest,
   IRequestDetails,
   IRequestHistoryParams,
   IRequestHistoryResponse,
@@ -12,15 +14,14 @@ export const requestsHistoryAPI = baseApi.injectEndpoints({
       IRequestHistoryResponse,
       IRequestHistoryParams
     >({
-      query: ({ page = 1, search, status, days }) => ({
+      query: ({ page = 1, ...params }) => ({
         url: '/ambulance-request/',
         params: {
           page,
-          search,
-          status,
-          days,
+          ...params,
         },
       }),
+
       providesTags: (result) =>
         result
           ? [
@@ -37,9 +38,65 @@ export const requestsHistoryAPI = baseApi.injectEndpoints({
       keepUnusedDataFor: 300,
       providesTags: (result) => [{ type: 'RequestDetails', id: result?.id }],
     }),
+    approveRequest: builder.mutation<IRequest, number>({
+      query: (id) => ({
+        url: `/ambulance-request/${id}/approve`,
+        method: 'POST',
+        body: {},
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'RequestDetails', id },
+        { type: 'RequestsHistory', id },
+        { type: 'RequestsHistory', id: 'LIST' },
+        { type: 'AuthorizationRequests', id },
+        { type: 'AuthorizationRequests', id: 'LIST' },
+      ],
+    }),
+    denyRequest: builder.mutation<
+      IRequest,
+      { id: number; denial_reason: string; denial_notes?: string }
+    >({
+      query: ({ id, denial_reason, denial_notes }) => ({
+        url: `/ambulance-request/${id}/deny`,
+        method: 'POST',
+        body: {
+          denial_reason,
+          ...(denial_notes ? { denial_notes } : {}),
+        },
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'RequestDetails', id },
+        { type: 'RequestsHistory', id },
+        { type: 'RequestsHistory', id: 'LIST' },
+        { type: 'AuthorizationRequests', id },
+        { type: 'AuthorizationRequests', id: 'LIST' },
+      ],
+    }),
+    updateRequest: builder.mutation<
+      IRequestDetails,
+      { id: number; data: RequestUpdatePayload }
+    >({
+      query: ({ id, data }) => ({
+        url: `/ambulance-request/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'RequestDetails', id },
+        { type: 'RequestsHistory', id },
+        { type: 'RequestsHistory', id: 'LIST' },
+        { type: 'AuthorizationRequests', id },
+        { type: 'AuthorizationRequests', id: 'LIST' },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
 
-export const { useGetRequestsHistoryQuery, useGetRequestDetailsQuery } =
-  requestsHistoryAPI;
+export const {
+  useGetRequestsHistoryQuery,
+  useGetRequestDetailsQuery,
+  useApproveRequestMutation,
+  useDenyRequestMutation,
+  useUpdateRequestMutation,
+} = requestsHistoryAPI;

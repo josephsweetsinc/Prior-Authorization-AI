@@ -41,11 +41,17 @@ export type IUser = {
   name: string;
   surname: string;
   email: string;
+  role: UserRoles;
+  is_active?: boolean;
   phone_number: string;
   position: string;
   place_of_work: string;
-  role: UserRoles;
+  last_login?: string;
+  created_at?: string;
+  avatar_url?: string | null;
   organization: {
+    id?: number;
+    user_id?: number;
     provider_type: string;
     professional_id: string;
     medic_name: string;

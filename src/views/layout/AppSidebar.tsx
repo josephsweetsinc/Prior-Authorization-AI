@@ -45,7 +45,6 @@ export const AppSidebar = () => {
                 icon='ClockFading'
                 label='Requests History'
                 to='/requests-history'
-                disabled
               />
             </>
           )}

@@ -5,10 +5,18 @@ export const DAY_MS = 24 * 60 * 60 * 1000;
 export const STATUS_OPTIONS = [
   { value: 'all', label: 'All statuses' },
   { value: 'pending', label: 'Pending' },
-  { value: 'processing', label: 'Processing' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'submitted', label: 'Submitted' },
   { value: 'approved', label: 'Approved' },
   { value: 'denied', label: 'Denied' },
 ];
+export const TIMELINE_STATUS_TITLE = {
+  draft: 'Request created',
+  submitted: 'Request submitted',
+  pending: 'Under review',
+  approved: 'Request approved',
+  denied: 'Request denied',
+};
 
 export const DATE_OPTIONS = [
   { value: 'all', label: 'All Time' },
