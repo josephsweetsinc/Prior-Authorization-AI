@@ -1,33 +1,37 @@
+'use client';
+
+import { useGetProviderStatsQuery } from '@/services/stats';
 import { OverlayIcon, Window } from '@/shared/components';
 
-const summaryItems = [
-  {
-    label: 'Submitted',
-    value: '156',
-    icon: 'FileText',
-    color: 'blue',
-  },
-  {
-    label: 'Approved',
-    value: '128',
-    icon: 'HeartPulse',
-    color: 'green',
-  },
-  {
-    label: 'Pending',
-    value: '18',
-    icon: 'ClockFading',
-    color: 'orange',
-  },
-  {
-    label: 'Denied',
-    value: '10',
-    icon: 'Shuffle',
-    color: 'red',
-  },
-] as const;
-
 export const ActivitySummaryCard = () => {
+  const { data: stats } = useGetProviderStatsQuery();
+  const summaryItems = [
+    {
+      label: 'Submitted',
+      value: stats?.submitted ?? 0,
+      icon: 'FileText',
+      color: 'blue',
+    },
+    {
+      label: 'Approved',
+      value: stats?.approved ?? 0,
+      icon: 'HeartPulse',
+      color: 'green',
+    },
+    {
+      label: 'Total Requests',
+      value: stats?.total_requests ?? 0,
+      icon: 'ClockFading',
+      color: 'orange',
+    },
+    {
+      label: 'Rejected',
+      value: stats?.rejected ?? 0,
+      icon: 'Shuffle',
+      color: 'red',
+    },
+  ] as const;
+
   return (
     <Window className='p-5'>
       <div className='space-y-8'>

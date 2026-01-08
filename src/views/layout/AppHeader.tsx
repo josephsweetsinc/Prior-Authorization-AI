@@ -19,6 +19,16 @@ import {
 export const AppHeader = () => {
   const { isOpen, isLoading, open, close, confirm } = useLogoutModal();
   const { data: currentUser } = useGetCurrentUserQuery();
+  const fullName = [currentUser?.name, currentUser?.surname]
+    .filter(Boolean)
+    .join(' ');
+  const displayName = fullName || currentUser?.email || '—';
+  const roleLabel = currentUser?.role
+    ? currentUser.role[0].toUpperCase() + currentUser.role.slice(1)
+    : '—';
+  const profileRole =
+    currentUser?.role === 'provider' ? currentUser?.position || '—' : roleLabel;
+  const avatarSrc = currentUser?.avatar_url || null;
 
   const profileActions: ProfileAction[] = [
     {
@@ -46,24 +56,22 @@ export const AppHeader = () => {
         />
 
         <HeaderGroup separate>
-          <HeaderActions>
-            <Button variant='ghost' size='icon' asChild>
-              <Link href='/settings'>
-                <Settings className='text-status-info size-5' />
-              </Link>
-            </Button>
-            <Button variant='ghost' size='icon' disabled>
-              <BellDot className='text-status-destructive size-5' />
-            </Button>
-          </HeaderActions>
+          {currentUser?.role !== 'admin' && (
+            <HeaderActions>
+              <Button variant='ghost' size='icon' asChild>
+                <Link href='/settings'>
+                  <Settings className='text-status-info size-5' />
+                </Link>
+              </Button>
+              <Button variant='ghost' size='icon' disabled>
+                <BellDot className='text-status-destructive size-5' />
+              </Button>
+            </HeaderActions>
+          )}
           <HeaderProfile
-            src='/images/mock_avatar.jpg'
-            name='Dr. Kraude'
-            role={
-              currentUser?.role
-                ? currentUser.role[0].toUpperCase() + currentUser.role.slice(1)
-                : '—'
-            }
+            src={avatarSrc}
+            name={displayName}
+            role={profileRole}
             actions={profileActions}
           />
         </HeaderGroup>

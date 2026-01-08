@@ -33,7 +33,7 @@ const HeaderProfile = forwardRef<HTMLDivElement, HeaderProfileProps>(
             ref={ref}
             {...props}
           >
-            <Avatar name={name} role={role} src={src} alt={alt} />
+            <Avatar name={name} role={role} src={src} alt={alt} className='' />
             <ChevronDown
               className={cn(
                 'size-4 transition-transform duration-200',

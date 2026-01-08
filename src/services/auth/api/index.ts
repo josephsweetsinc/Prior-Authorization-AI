@@ -1,1 +1,5 @@
-export { useLoginMutation, useGetCurrentUserQuery } from './auth-api-service';
+export {
+  useLoginMutation,
+  useGetCurrentUserQuery,
+  useUploadAvatarMutation,
+} from './auth-api-service';
