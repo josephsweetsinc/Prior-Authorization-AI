@@ -1,5 +1,5 @@
 import { type FormState } from '@/features/new-request';
-import { type TransportationType } from '@/services/requests-history';
+import { type TransportationType } from '@/services/requests';
 import { type MediaItem } from '@/shared/components';
 
 export interface IUploadAndExtractionResult extends IExtractionResponse {

@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 
 import { type RequestStatus } from '@/services/dashboard';
-import { type IRequestDetails } from '@/services/requests-history';
+import { type IRequestDetails } from '@/services/requests';
 
 import { TIMELINE_STATUS_TITLE } from '../constants';
 import { type IDetail, type IFilters } from '../types';

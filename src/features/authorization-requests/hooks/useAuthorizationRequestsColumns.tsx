@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 
-import { type AuthorizationRequest } from '@/services/authorization-requests';
+import { type AuthorizationRequest } from '@/services/requests';
 import { type RequestStatus } from '@/services/dashboard';
 import { DiagnosisCell, StatusChip, TableHeadCell } from '@/shared/components';
 

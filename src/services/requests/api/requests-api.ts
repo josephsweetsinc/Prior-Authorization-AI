@@ -1,15 +1,45 @@
 import { api as baseApi } from '@/services/api/api';
 
 import type {
-  RequestUpdatePayload,
+  AuthorizationRequestsParams,
+  AuthorizationRequestsResponse,
   IRequest,
   IRequestDetails,
   IRequestHistoryParams,
   IRequestHistoryResponse,
+  RequestUpdatePayload,
 } from '../types';
 
-export const requestsHistoryAPI = baseApi.injectEndpoints({
+export const requestsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getAuthorizationRequests: builder.query<
+      AuthorizationRequestsResponse,
+      AuthorizationRequestsParams | void
+    >({
+      query: (params) => {
+        const { page = 1, search, status, days } = params ?? {};
+
+        return {
+          url: '/ambulance-request/',
+          params: {
+            page,
+            search,
+            status,
+            days,
+          },
+        };
+      },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.items.map(({ id }) => ({
+                type: 'AuthorizationRequests' as const,
+                id,
+              })),
+              { type: 'AuthorizationRequests', id: 'LIST' },
+            ]
+          : [{ type: 'AuthorizationRequests', id: 'LIST' }],
+    }),
     getRequestsHistory: builder.query<
       IRequestHistoryResponse,
       IRequestHistoryParams
@@ -94,9 +124,10 @@ export const requestsHistoryAPI = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetAuthorizationRequestsQuery,
   useGetRequestsHistoryQuery,
   useGetRequestDetailsQuery,
   useApproveRequestMutation,
   useDenyRequestMutation,
   useUpdateRequestMutation,
-} = requestsHistoryAPI;
+} = requestsApi;

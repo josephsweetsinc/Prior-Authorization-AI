@@ -1,6 +1,6 @@
 import { type PaginationState } from '@tanstack/react-table';
 
-import { type IRequestHistoryResponse } from '@/services/requests-history';
+import { type IRequestHistoryResponse } from '@/services/requests';
 import { DataTable, DataTableSkeleton } from '@/shared/components';
 
 import { useGetColumns, useRequestDetails } from '../hooks';

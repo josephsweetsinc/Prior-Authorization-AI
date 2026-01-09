@@ -11,7 +11,7 @@ import {
   useDenyRequestMutation,
   useGetRequestDetailsQuery,
   useUpdateRequestMutation,
-} from '@/services/requests-history';
+} from '@/services/requests';
 import { Chip, SensitiveMessage, TitleAndDesc } from '@/shared/components';
 
 import { ApproveRequestModal } from './authorization-request-details/components/ApproveRequestModal';
