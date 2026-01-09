@@ -6,7 +6,7 @@ import {
 } from '@/services/requests';
 import { STATUS_CONFIG } from '@/shared/components/status-chip';
 
-import { STATUS_LABELS, TIMELINE_STATUS_MAP } from '../constants';
+import { TIMELINE_STATUS_MAP } from '../constants';
 import { type RequestDetailsFormState } from '../types';
 
 const normalizeTransportTime = (value?: string | null) =>
@@ -31,7 +31,7 @@ export const buildRequestDetailsUiState = (data: IRequestDetails) => {
   const requestLabel = data.form_number || String(data.id);
 
   const timelineItems = data.status_history.map((item) => ({
-    title: STATUS_LABELS[item.status] ?? 'Status Update',
+    title: item.notes ?? 'Status Update',
     date: item.created_at
       ? format(new Date(item.created_at), 'MMM dd, yyyy p')
       : undefined,

@@ -1,5 +1,6 @@
 export type RequestStatus =
   | 'approved'
+  | 'submitted'
   | 'pending'
   | 'draft'
   | 'submitted'

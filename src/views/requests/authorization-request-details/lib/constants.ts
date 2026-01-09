@@ -1,12 +1,12 @@
 import { type RequestStatus } from '@/services/dashboard';
 
-export type TimelineStatus = 'approved' | 'pending' | 'processing' | 'denied';
+export type TimelineStatus = 'approved' | 'pending' | 'submitted' | 'denied';
 
 export const TIMELINE_STATUS_MAP: Record<RequestStatus, TimelineStatus> = {
   approved: 'approved',
   pending: 'pending',
   draft: 'pending',
-  submitted: 'processing',
+  submitted: 'submitted',
   denied: 'denied',
 };
 

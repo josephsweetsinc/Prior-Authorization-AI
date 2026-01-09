@@ -24,5 +24,5 @@ export type RequestDetailsTimelineItem = {
   title: string;
   date?: string;
   description?: string;
-  status: 'approved' | 'pending' | 'processing' | 'denied';
+  status: 'approved' | 'pending' | 'submitted' | 'denied';
 };
