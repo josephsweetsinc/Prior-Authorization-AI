@@ -3,7 +3,7 @@ import {
   type AmbulatoryStatus,
   type IRequestDetails,
   type TransportationType,
-} from '@/services/requests-history';
+} from '@/services/requests';
 import {
   Button,
   DateInput,

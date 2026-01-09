@@ -1,7 +1,7 @@
 import { type HTMLProps } from 'react';
 
 import { formatFileSize } from '@/services/media';
-import { useGetRequestDetailsQuery } from '@/services/requests-history';
+import { useGetRequestDetailsQuery } from '@/services/requests';
 import {
   Modal,
   StatusChip,

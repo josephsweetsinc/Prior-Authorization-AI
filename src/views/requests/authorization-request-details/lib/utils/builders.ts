@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import {
   type IRequestDetails,
   type RequestUpdatePayload,
-} from '@/services/requests-history';
+} from '@/services/requests';
 import { STATUS_CONFIG } from '@/shared/components/status-chip';
 
 import { STATUS_LABELS, TIMELINE_STATUS_MAP } from '../constants';

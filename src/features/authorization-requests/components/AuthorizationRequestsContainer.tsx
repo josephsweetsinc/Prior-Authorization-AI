@@ -6,7 +6,7 @@ import { useMemo, useState } from 'react';
 import {
   buildAuthorizationRequestsParams,
   useGetAuthorizationRequestsQuery,
-} from '@/services/authorization-requests';
+} from '@/services/requests';
 
 import { useAuthorizationRequestsFilters } from '../hooks';
 import { type AuthorizationRequestsFilters } from '../types';

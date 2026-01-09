@@ -3,7 +3,7 @@
 import { type PaginationState } from '@tanstack/react-table';
 import { useState, type HTMLProps } from 'react';
 
-import { useGetRequestsHistoryQuery } from '@/services/requests-history';
+import { useGetRequestsHistoryQuery } from '@/services/requests';
 import { useFilters } from '@/shared/hooks/useFilters';
 import { cn } from '@/shared/lib/utils';
 

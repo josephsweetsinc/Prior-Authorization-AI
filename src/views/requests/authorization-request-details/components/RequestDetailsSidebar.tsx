@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { formatFileSize } from '@/services/media';
-import { type IDocument } from '@/services/requests-history';
+import { type IDocument } from '@/services/requests';
 import { Modal, StatusTimeline, Window } from '@/shared/components';
 import { AttachedDocument } from '@/shared/components/attached-document';
 
