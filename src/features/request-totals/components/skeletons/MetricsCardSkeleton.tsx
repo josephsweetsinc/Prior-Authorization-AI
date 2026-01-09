@@ -5,9 +5,7 @@ import MetricsCard from '../MetricsCard';
 
 export const MetricsCardSkeleton = ({ className }: { className?: string }) => {
   return (
-    <MetricsCard
-      className={cn('shrink grow basis-[288px] space-y-3', className)}
-    >
+    <MetricsCard className={cn('space-y-3', className)}>
       <MetricsCard.Group className='flex items-center gap-3'>
         <Skeleton className='box-content size-8 rounded-lg p-3.5' />
 

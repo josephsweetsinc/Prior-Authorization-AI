@@ -3,7 +3,7 @@ import { type HTMLProps } from 'react';
 import { type ProcessingTimeDistribution } from '@/services/dashboard';
 import { transformTimeSeries } from '@/services/request-analytics';
 import { BarChart, EmptyStateMessage, Window } from '@/shared/components';
-import { cn } from '@/shared/lib/utils';
+import { cn, groupByX } from '@/shared/lib/utils';
 
 type Props = {
   data: ProcessingTimeDistribution[];
@@ -15,6 +15,8 @@ export const TimeDistribution = ({ data, className, ...props }: Props) => {
     month: true,
     year: false,
   });
+
+  const groupedData = groupByX(transformedData, 'date', 'approved_count');
 
   if (transformedData.length === 0) {
     return (
@@ -44,7 +46,7 @@ export const TimeDistribution = ({ data, className, ...props }: Props) => {
       </div>
 
       <BarChart
-        data={transformedData}
+        data={groupedData}
         xKey='date'
         valueKey='approved_count'
         tooltipLabel='Requests'

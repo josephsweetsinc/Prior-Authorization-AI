@@ -10,7 +10,7 @@ export const MetricsListSkeleton = ({
 }: HTMLProps<HTMLElement>) => {
   return (
     <section
-      className={cn('flex flex-wrap items-center gap-5', className)}
+      className={cn('grid grid-cols-2 gap-5 xl:grid-cols-4', className)}
       {...props}
     >
       {Array.from({ length: 4 }).map((_, i) => (

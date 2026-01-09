@@ -42,23 +42,25 @@ export const UpdateUserForm = ({
       {...props}
       onSubmit={handleSubmit(onSubmit)}
     >
-      <Input
-        type='text'
-        label='First name'
-        labelVariant='static'
-        error={errors['name'] ? errors['name'].message : null}
-        placeholder='Enter Name'
-        {...register('name')}
-      />
+      <div className='flex gap-3'>
+        <Input
+          type='text'
+          label='First name'
+          labelVariant='static'
+          error={errors['name'] ? errors['name'].message : null}
+          placeholder='Enter Name'
+          {...register('name')}
+        />
 
-      <Input
-        type='text'
-        label='Last surname'
-        labelVariant='static'
-        error={errors['surname'] ? errors['surname'].message : null}
-        placeholder='Enter Name'
-        {...register('surname')}
-      />
+        <Input
+          type='text'
+          label='Last name'
+          labelVariant='static'
+          error={errors['surname'] ? errors['surname'].message : null}
+          placeholder='Enter Last Name'
+          {...register('surname')}
+        />
+      </div>
       <Input
         type='email'
         label='Email Address'
