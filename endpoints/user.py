@@ -9,14 +9,12 @@ from models import User
 from models.user import UserRole
 from schemas import (
     CreateUserByAdminRequestSchema,
-    OrganizationResponseSchema,
     UpdateMeRequestSchema,
     UpdateUserRequestSchema,
     UserResponseShema,
     UsersListResponseSchema,
 )
-from services import OrganizationService, UserService
-from services.aws.actions import S3Actions
+from services import UserService
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +44,9 @@ async def create_user(
      UserResponseShema: Schema representing the user.
 
     """
-    new_user = await service.create_new_user(
+    return await service.create_new_user(
         user_data=user_data, user_role=user_data.role
     )
-    return UserResponseShema.model_validate(new_user)
 
 
 @user_router.get(
@@ -63,61 +60,19 @@ async def create_user(
 )
 async def get_me(
     user: Annotated[User, Depends(get_current_user)],
-    organization_service: Annotated[
-        OrganizationService, Depends(get_service(OrganizationService))
-    ],
+    service: Annotated[UserService, Depends(get_service(UserService))],
 ) -> UserResponseShema:
     """Get information about current user.
 
     Args:
         user (User): Current authenticated user from token.
-        organization_service: Organization service.
+        service: User service.
 
     Returns:
         UserResponseShema: Schema representing the user with organization data.
 
     """
-    # Load organization if exists
-    organization = await organization_service.get_organization_by_user_id(
-        user.id
-    )
-
-    # Generate presigned URL for avatar if exists
-    avatar_url = None
-    if user.avatar_key:
-        s3_actions = S3Actions()
-        try:
-            avatar_url = s3_actions.get_presigned_url(
-                key=user.avatar_key,
-                expires_in=s3_actions.S3_EXPIRATION_TIME,
-                require_object=True,
-            )
-        except Exception:
-            # If avatar doesn't exist in S3, set to None
-            avatar_url = None
-
-    # Build response
-    response_data = {
-        'id': user.id,
-        'name': user.name,
-        'surname': user.surname,
-        'email': user.email,
-        'role': user.role,
-        'is_active': user.is_active,
-        'phone': user.phone_number,
-        'position': user.position,
-        'place_of_work': user.place_of_work,
-        'last_login': user.last_login,
-        'created_at': user.created_at,
-        'avatar_url': avatar_url,
-        'organization': (
-            OrganizationResponseSchema.model_validate(organization)
-            if organization
-            else None
-        ),
-    }
-
-    return UserResponseShema.model_validate(response_data)
+    return await service.get_me(user_id=user.id)
 
 
 @user_router.patch(
@@ -175,10 +130,9 @@ async def delete_user(
     Returns: 201 status code.
 
     """
-    new_user = await service.delete_user_by_id(
+    return await service.delete_user_by_id(
         current_user=admin_user, user_id=user_id
     )
-    return UserResponseShema.model_validate(new_user)
 
 
 @user_router.patch(

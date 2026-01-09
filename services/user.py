@@ -98,7 +98,33 @@ class UserService(BaseService):
         except IntegrityError:
             raise EmailAlreadyRegisteredException from None
         await self._session.commit()
-        return UserResponseShema.model_validate(created_user)
+
+        # Load organization if exists
+        organization_dao = OrganizationDAO(self._session)
+        organization = await organization_dao.get_by_user_id(created_user.id)
+
+        # Build response data to avoid lazy loading issues
+        response_data = {
+            'id': created_user.id,
+            'name': created_user.name,
+            'surname': created_user.surname,
+            'email': created_user.email,
+            'role': created_user.role,
+            'is_active': created_user.is_active,
+            'phone': created_user.phone_number,
+            'position': created_user.position,
+            'place_of_work': created_user.place_of_work,
+            'last_login': created_user.last_login,
+            'created_at': created_user.created_at,
+            'avatar_url': None,
+            'organization': (
+                OrganizationResponseSchema.model_validate(organization)
+                if organization
+                else None
+            ),
+        }
+
+        return UserResponseShema.model_validate(response_data)
 
     async def get_user_by_id(self, user_id: int) -> User:
         """Retrieve a user by ID.
@@ -120,6 +146,61 @@ class UserService(BaseService):
             raise UserNotFoundByIdException
         return user
 
+    async def get_me(self, user_id: int) -> UserResponseShema:
+        """Get current user profile with organization and avatar URL.
+
+        Args:
+            user_id: User ID.
+
+        Returns:
+            UserResponseShema: User information with organization.
+
+        Raises:
+            UserNotFoundByIdException: If user not found.
+
+        """
+        user = await self.get_user_by_id(user_id)
+
+        # Load organization if exists
+        organization_dao = OrganizationDAO(self._session)
+        organization = await organization_dao.get_by_user_id(user_id)
+
+        # Generate presigned URL for avatar if exists
+        avatar_url = None
+        if user.avatar_key:
+            try:
+                avatar_url = self._s3_actions.get_presigned_url(
+                    key=user.avatar_key,
+                    expires_in=self._s3_actions.S3_EXPIRATION_TIME,
+                    require_object=True,
+                )
+            except Exception:
+                # If avatar doesn't exist in S3, set to None
+                avatar_url = None
+
+        # Build response data
+        response_data = {
+            'id': user.id,
+            'name': user.name,
+            'surname': user.surname,
+            'email': user.email,
+            'role': user.role,
+            'is_active': user.is_active,
+            'phone': user.phone_number,
+            'position': user.position,
+            'place_of_work': user.place_of_work,
+            'last_login': user.last_login,
+            'created_at': user.created_at,
+            'avatar_url': avatar_url,
+            'organization': (
+                OrganizationResponseSchema.model_validate(organization)
+                if organization
+                else None
+            ),
+        }
+
+        return UserResponseShema.model_validate(response_data)
+
     async def update_user_by_id(
         self,
         user_id: int,
@@ -138,16 +219,45 @@ class UserService(BaseService):
             UserNotFoundByIdException: If user not found.
 
         """
-        user: User | None = await self._user_dao.update_by_id(
-            user_id,
-            name=user_data.name,
-            surname=user_data.surname,
-            email=user_data.email,
-        )
+        try:
+            user: User | None = await self._user_dao.update_by_id(
+                user_id,
+                name=user_data.name,
+                surname=user_data.surname,
+                email=user_data.email,
+            )
+        except IntegrityError:
+            raise EmailAlreadyRegisteredException from None
         await self._session.commit()
         if not user:
             raise UserNotFoundByIdException
-        return UserResponseShema.model_validate(user)
+
+        # Load organization if exists
+        organization_dao = OrganizationDAO(self._session)
+        organization = await organization_dao.get_by_user_id(user_id)
+
+        # Build response data to avoid lazy loading issues
+        response_data = {
+            'id': user.id,
+            'name': user.name,
+            'surname': user.surname,
+            'email': user.email,
+            'role': user.role,
+            'is_active': user.is_active,
+            'phone': user.phone_number,
+            'position': user.position,
+            'place_of_work': user.place_of_work,
+            'last_login': user.last_login,
+            'created_at': user.created_at,
+            'avatar_url': None,
+            'organization': (
+                OrganizationResponseSchema.model_validate(organization)
+                if organization
+                else None
+            ),
+        }
+
+        return UserResponseShema.model_validate(response_data)
 
     async def update_me_profile(
         self,
@@ -246,7 +356,33 @@ class UserService(BaseService):
         ):
             raise UserHasNoPermissionPermission
         await self._session.commit()
-        return UserResponseShema.model_validate(user)
+
+        # Load organization if exists
+        organization_dao = OrganizationDAO(self._session)
+        organization = await organization_dao.get_by_user_id(user_id)
+
+        # Build response data to avoid lazy loading issues
+        response_data = {
+            'id': user.id,
+            'name': user.name,
+            'surname': user.surname,
+            'email': user.email,
+            'role': user.role,
+            'is_active': user.is_active,
+            'phone': user.phone_number,
+            'position': user.position,
+            'place_of_work': user.place_of_work,
+            'last_login': user.last_login,
+            'created_at': user.created_at,
+            'avatar_url': None,
+            'organization': (
+                OrganizationResponseSchema.model_validate(organization)
+                if organization
+                else None
+            ),
+        }
+
+        return UserResponseShema.model_validate(response_data)
 
     async def get_all_users(
         self,
@@ -404,6 +540,10 @@ class UserService(BaseService):
                 require_object=True,
             )
 
+        # Load organization if exists
+        organization_dao = OrganizationDAO(self._session)
+        organization = await organization_dao.get_by_user_id(user_id)
+
         # Build response with avatar URL
         response_data = {
             'id': updated_user.id,
@@ -418,6 +558,11 @@ class UserService(BaseService):
             'last_login': updated_user.last_login,
             'created_at': updated_user.created_at,
             'avatar_url': avatar_url,
+            'organization': (
+                OrganizationResponseSchema.model_validate(organization)
+                if organization
+                else None
+            ),
         }
 
         return UserResponseShema.model_validate(response_data)
