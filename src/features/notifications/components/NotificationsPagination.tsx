@@ -1,21 +1,32 @@
-import { type Table } from '@tanstack/react-table';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { cn } from '@/shared/lib/utils';
 
-interface Props<TData> {
-  table: Table<TData>;
-  total: number;
-}
+import { useNotificationsPagination } from '../hooks';
+import { type NotificationsPaginationProps } from '../types';
 
-export function DataTablePagination<TData>({ table, total }: Props<TData>) {
-  const { pageIndex, pageSize } = table.getState().pagination;
-
-  const start = total === 0 ? 0 : pageIndex * pageSize + 1;
-  const end = Math.min(start + pageSize - 1, total);
-  const pageCount = table.getPageCount();
-
-  const visiblePages = getVisiblePages(pageIndex + 1, pageCount);
+export const NotificationsPagination = ({
+  pagination,
+  onPaginationChange,
+  total,
+  totalPages,
+}: NotificationsPaginationProps) => {
+  const {
+    start,
+    end,
+    canPreviousPage,
+    canNextPage,
+    visiblePages,
+    previousPage,
+    nextPage,
+    setPageIndex,
+    pageIndex,
+  } = useNotificationsPagination({
+    pagination,
+    onPaginationChange,
+    total,
+    totalPages,
+  });
 
   return (
     <div className='flex w-full items-center justify-between px-2 py-3'>
@@ -24,10 +35,7 @@ export function DataTablePagination<TData>({ table, total }: Props<TData>) {
       </div>
 
       <div className='flex flex-1 items-center justify-center gap-1'>
-        <PageButton
-          disabled={!table.getCanPreviousPage()}
-          onClick={() => table.previousPage()}
-        >
+        <PageButton disabled={!canPreviousPage} onClick={previousPage}>
           <ChevronLeft className='h-4 w-4' />
         </PageButton>
 
@@ -43,24 +51,21 @@ export function DataTablePagination<TData>({ table, total }: Props<TData>) {
             <PageButton
               key={page}
               active={page === pageIndex + 1}
-              onClick={() => table.setPageIndex(page - 1)}
+              onClick={() => setPageIndex(page - 1)}
             >
               {page}
             </PageButton>
           ),
         )}
 
-        <PageButton
-          disabled={!table.getCanNextPage()}
-          onClick={() => table.nextPage()}
-        >
+        <PageButton disabled={!canNextPage} onClick={nextPage}>
           <ChevronRight className='h-4 w-4' />
         </PageButton>
       </div>
       <div className='flex-1' />
     </div>
   );
-}
+};
 
 function PageButton({
   children,
@@ -88,20 +93,4 @@ function PageButton({
       {children}
     </button>
   );
-}
-
-export function getVisiblePages(current: number, total: number) {
-  if (total <= 7) {
-    return Array.from({ length: total }, (_, i) => i + 1);
-  }
-
-  if (current <= 4) {
-    return [1, 2, 3, 4, 5, '…', total];
-  }
-
-  if (current >= total - 3) {
-    return [1, '…', total - 4, total - 3, total - 2, total - 1, total];
-  }
-
-  return [1, '…', current - 1, current, current + 1, '…', total];
 }
