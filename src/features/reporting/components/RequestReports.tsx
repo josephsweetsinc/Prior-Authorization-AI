@@ -34,7 +34,10 @@ export const RequestReports = ({
           </MetricsCard.Group>
         </MetricsCard>
       </div>
-      <DataTable columns={metricColumns} data={MOCK_METRICS} />
+      <DataTable columns={metricColumns} data={MOCK_METRICS}>
+        <DataTable.Header />
+        <DataTable.Body />
+      </DataTable>
     </Window>
   );
 };
