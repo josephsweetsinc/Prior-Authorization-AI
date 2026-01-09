@@ -1,5 +1,8 @@
 import { type FormState } from '@/features/new-request';
-import { type TransportationType } from '@/services/requests-history';
+import {
+  type AmbulatoryStatus,
+  type TransportationType,
+} from '@/services/requests';
 import { type MediaItem } from '@/shared/components';
 
 export interface IUploadAndExtractionResult extends IExtractionResponse {
@@ -36,8 +39,6 @@ export interface ICreateRequestBody {
 export type IExtractionRequest = {
   file_ids: number[];
 };
-export type AmbulatoryStatus = 'ambulatory' | 'non-ambulatory';
-
 export interface IExtractedData {
   transportation_type: TransportationType;
   patient_first_name: string;

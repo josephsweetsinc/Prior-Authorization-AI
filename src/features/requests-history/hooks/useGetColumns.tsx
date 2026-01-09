@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { ArrowUpRight } from 'lucide-react';
 
 import { type RequestStatus } from '@/services/dashboard';
-import { type IRequest } from '@/services/requests-history';
+import { type IRequest } from '@/services/requests';
 import { DiagnosisCell, TableHeadCell, StatusChip } from '@/shared/components';
 
 interface Params {

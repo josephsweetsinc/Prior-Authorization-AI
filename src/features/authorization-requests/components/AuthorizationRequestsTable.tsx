@@ -2,7 +2,7 @@
 
 import { type PaginationState } from '@tanstack/react-table';
 
-import { type AuthorizationRequestsResponse } from '@/services/authorization-requests';
+import { type AuthorizationRequestsResponse } from '@/services/requests';
 import { DataTable, DataTableSkeleton } from '@/shared/components';
 
 import { useAuthorizationRequestsColumns } from '../hooks';

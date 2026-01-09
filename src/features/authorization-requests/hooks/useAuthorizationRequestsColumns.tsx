@@ -3,8 +3,8 @@ import { format } from 'date-fns';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 
-import { type AuthorizationRequest } from '@/services/authorization-requests';
 import { type RequestStatus } from '@/services/dashboard';
+import { type AuthorizationRequest } from '@/services/requests';
 import { DiagnosisCell, StatusChip, TableHeadCell } from '@/shared/components';
 
 export const useAuthorizationRequestsColumns =

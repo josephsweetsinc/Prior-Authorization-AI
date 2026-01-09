@@ -1,7 +1,7 @@
 import {
   type AmbulatoryStatus,
   type TransportationType,
-} from '@/services/requests-history';
+} from '@/services/requests';
 
 export type RequestDetailsFormState = {
   patientName: string;
