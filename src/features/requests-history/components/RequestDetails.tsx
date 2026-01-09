@@ -1,7 +1,6 @@
 import { format } from 'date-fns';
 import { type HTMLProps } from 'react';
 
-import { type RequestStatus } from '@/services/dashboard';
 import { formatFileSize } from '@/services/media';
 import { useGetRequestDetailsQuery } from '@/services/requests';
 import {
@@ -14,6 +13,7 @@ import {
 import { AttachedDocument } from '@/shared/components/attached-document';
 import { cn } from '@/shared/lib/utils';
 
+import { STATUS_TO_TIMELINE_STATUS } from '../constants';
 import {
   getRequestDetailsBlocks,
   transformStatusToTimelineTitle,
@@ -21,14 +21,6 @@ import {
 
 import { DataBlock } from './DataBlock';
 import { RequestDetailsSkeleton } from './skeletons/RequestDetailsSkeleton';
-
-const statusToTimelineStatus: Record<RequestStatus, RequestStatus> = {
-  approved: 'approved',
-  pending: 'pending',
-  draft: 'pending',
-  submitted: 'submitted',
-  denied: 'denied',
-};
 
 type Props = {
   requestId: number;
@@ -51,7 +43,7 @@ export const RequestDetails = ({
       title: transformStatusToTimelineTitle(item.status),
       date: format(new Date(item.created_at), "MMM d, yyyy 'at' h:mm a"),
       description: item.notes ?? undefined,
-      status: statusToTimelineStatus[item.status],
+      status: STATUS_TO_TIMELINE_STATUS[item.status],
     })) ?? [];
 
   if (isLoading) {

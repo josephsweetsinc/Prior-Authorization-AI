@@ -19,11 +19,11 @@ interface StatusTimelineProps {
 
 const StatusTimelineIcon = ({ status }: { status: RequestStatus }) => {
   if (status === 'denied') {
-    return <CircleX size={20} color='#FE5C73' strokeWidth={1.25} />;
+    return <CircleX size={5} color='#FE5C73' strokeWidth={1.25} />;
   }
 
   if (status === 'pending') {
-    return <ClockFading size={20} color='#F59E0B' strokeWidth={1.25} />;
+    return <ClockFading size={5} color='#F59E0B' strokeWidth={1.25} />;
   }
 
   return <SuccessFilledIcon />;

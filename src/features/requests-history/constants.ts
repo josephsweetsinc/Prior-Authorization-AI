@@ -1,3 +1,5 @@
+import { type RequestStatus } from '@/services/dashboard';
+
 import { type IFilters } from './types';
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
@@ -16,6 +18,14 @@ export const TIMELINE_STATUS_TITLE = {
   pending: 'Under review',
   approved: 'Request approved',
   denied: 'Request denied',
+};
+
+export const STATUS_TO_TIMELINE_STATUS: Record<RequestStatus, RequestStatus> = {
+  approved: 'approved',
+  pending: 'pending',
+  draft: 'pending',
+  submitted: 'submitted',
+  denied: 'denied',
 };
 
 export const DATE_OPTIONS = [
