@@ -3,11 +3,7 @@
 import { RequestDetails, useRequestDetails } from '@/features/requests-history';
 import { useGetCurrentUserQuery } from '@/services/auth';
 import { useGetRecentRequests } from '@/services/recent-requests';
-import {
-  DataTable,
-  DataTableSkeleton,
-  EmptyStateMessage,
-} from '@/shared/components';
+import { DataTable, EmptyStateMessage } from '@/shared/components';
 
 import { useGetColumns } from '../hooks';
 
@@ -25,17 +21,16 @@ const RequestsTable = () => {
 
   const isLoading = userLoading || requestsLoading;
 
-  if (isLoading) {
-    return <DataTableSkeleton columnCount={6} />;
-  }
-
   if (requests.length === 0) {
     return <EmptyStateMessage message='No requests found' />;
   }
 
   return (
     <>
-      <DataTable columns={columns} data={requests} />
+      <DataTable columns={columns} data={requests}>
+        <DataTable.Header />
+        <DataTable.Body isLoading={isLoading} />
+      </DataTable>
       {details.requestId && (
         <RequestDetails
           requestId={details.requestId!}

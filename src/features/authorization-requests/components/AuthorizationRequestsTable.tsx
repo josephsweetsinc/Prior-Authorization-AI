@@ -3,7 +3,7 @@
 import { type PaginationState } from '@tanstack/react-table';
 
 import { type AuthorizationRequestsResponse } from '@/services/requests';
-import { DataTable, DataTableSkeleton } from '@/shared/components';
+import { DataTable } from '@/shared/components';
 
 import { useAuthorizationRequestsColumns } from '../hooks';
 
@@ -22,10 +22,6 @@ export const AuthorizationRequestsTable = ({
 }: Props) => {
   const columns = useAuthorizationRequestsColumns();
 
-  if (isLoading) {
-    return <DataTableSkeleton columnCount={6} />;
-  }
-
   return (
     <DataTable
       total={data ? data.total : paginationState.pageSize}
@@ -36,6 +32,9 @@ export const AuthorizationRequestsTable = ({
       pageCount={data ? data.total_pages : 1}
       paginationState={paginationState}
       onPaginationChange={onPaginationChange}
-    />
+    >
+      <DataTable.Header />
+      <DataTable.Body isLoading={isLoading} />
+    </DataTable>
   );
 };

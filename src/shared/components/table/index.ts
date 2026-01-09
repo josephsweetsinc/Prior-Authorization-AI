@@ -1,3 +1,3 @@
+export { getVisiblePages } from './utils';
 export { TableHeadCell } from './table-head-cell';
-export { DataTable } from './data-table';
-export { DataTableSkeleton } from './data-table-skeleton';
+export { default as DataTable } from './data-table';

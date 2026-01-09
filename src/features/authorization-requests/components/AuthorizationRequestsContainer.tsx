@@ -32,7 +32,7 @@ export const AuthorizationRequestsContainer = () => {
     [filters, pagination.pageIndex],
   );
 
-  const { data, isLoading } = useGetAuthorizationRequestsQuery(queryParams);
+  const { data, isFetching } = useGetAuthorizationRequestsQuery(queryParams);
 
   const handleFiltersUpdate = <Key extends keyof AuthorizationRequestsFilters>(
     key: Key,
@@ -49,7 +49,7 @@ export const AuthorizationRequestsContainer = () => {
     <section className='space-y-5'>
       <Filters filters={filters} onFiltersChange={handleFiltersUpdate} />
       <AuthorizationRequestsTable
-        isLoading={isLoading}
+        isLoading={isFetching}
         data={data}
         paginationState={pagination}
         onPaginationChange={setPagination}

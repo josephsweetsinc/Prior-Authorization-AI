@@ -22,7 +22,7 @@ export const UserManagementContainer = () => {
     pageSize: 8,
   });
 
-  const { data, isLoading } = useGetUsersQuery({
+  const { data, isFetching } = useGetUsersQuery({
     page: pagination.pageIndex + 1,
     role: filters.role === 'all' ? undefined : filters.role,
     search: filters.searchQuery,
@@ -47,7 +47,7 @@ export const UserManagementContainer = () => {
         onFiltersChange={updateFilters}
       />
       <UsersTable
-        isLoading={isLoading}
+        isLoading={isFetching}
         data={data}
         onUpdateClick={handlers.openUpdate}
         onDeleteClick={handlers.openDelete}

@@ -17,7 +17,10 @@ export const RecentReports = ({
       <h2 className='text-brand-dark text-base font-bold md:text-lg lg:text-xl xl:text-2xl'>
         Recent Reports
       </h2>
-      <DataTable columns={reportsColumns} data={MOCK_RECENT_REPORTS} />
+      <DataTable columns={reportsColumns} data={MOCK_RECENT_REPORTS}>
+        <DataTable.Header />
+        <DataTable.Body />
+      </DataTable>
     </Window>
   );
 };

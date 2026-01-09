@@ -1,38 +1,63 @@
-import { type Table } from '@tanstack/react-table';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { type HTMLProps } from 'react';
 
 import { cn } from '@/shared/lib/utils';
 
-interface Props<TData> {
-  table: Table<TData>;
+import { useDataTableContext } from './context';
+import { useDataTablePagination } from './hooks';
+import { PageButton } from './page-button';
+
+type Props = {
   total: number;
-}
+  isLoading?: boolean;
+} & HTMLProps<HTMLDivElement>;
 
-export function DataTablePagination<TData>({ table, total }: Props<TData>) {
-  const { pageIndex, pageSize } = table.getState().pagination;
-
-  const start = total === 0 ? 0 : pageIndex * pageSize + 1;
-  const end = Math.min(start + pageSize - 1, total);
-  const pageCount = table.getPageCount();
-
-  const visiblePages = getVisiblePages(pageIndex + 1, pageCount);
+export const DataTablePagination = ({
+  isLoading,
+  total,
+  className,
+  ...props
+}: Props) => {
+  const { table } = useDataTableContext();
+  const {
+    start,
+    end,
+    total: totalItems,
+    currentPage,
+    visiblePages,
+    canPreviousPage,
+    canNextPage,
+  } = useDataTablePagination(table, total);
 
   return (
-    <div className='flex w-full items-center justify-between px-2 py-3'>
+    <div
+      className={cn(
+        'flex w-full items-center justify-between px-2 py-3',
+        className,
+      )}
+      {...props}
+    >
       <div className='text-muted-foreground flex-1 text-sm'>
-        Showing {end - start + 1} out of {total}
+        {totalItems === 0 ? (
+          'No results'
+        ) : (
+          <>
+            Showing <strong>{start}</strong>–<strong>{end}</strong> of{' '}
+            <strong>{totalItems}</strong>
+          </>
+        )}
       </div>
 
-      <div className='flex flex-1 items-center justify-center gap-1'>
+      <div className='flex w-max flex-1 items-center justify-center gap-1'>
         <PageButton
-          disabled={!table.getCanPreviousPage()}
+          disabled={isLoading || !canPreviousPage}
           onClick={() => table.previousPage()}
         >
           <ChevronLeft className='h-4 w-4' />
         </PageButton>
 
         {visiblePages.map((page, idx) =>
-          typeof page === 'string' ? (
+          page === '…' ? (
             <span
               key={`ellipsis-${idx}`}
               className='text-muted-foreground px-2'
@@ -42,7 +67,8 @@ export function DataTablePagination<TData>({ table, total }: Props<TData>) {
           ) : (
             <PageButton
               key={page}
-              active={page === pageIndex + 1}
+              active={page === currentPage}
+              disabled={isLoading}
               onClick={() => table.setPageIndex(page - 1)}
             >
               {page}
@@ -51,57 +77,14 @@ export function DataTablePagination<TData>({ table, total }: Props<TData>) {
         )}
 
         <PageButton
-          disabled={!table.getCanNextPage()}
+          disabled={isLoading || !canNextPage}
           onClick={() => table.nextPage()}
         >
           <ChevronRight className='h-4 w-4' />
         </PageButton>
       </div>
+
       <div className='flex-1' />
     </div>
   );
-}
-
-function PageButton({
-  children,
-  active,
-  disabled,
-  onClick,
-}: {
-  children: React.ReactNode;
-  active?: boolean;
-  disabled?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        'flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-sm transition-colors',
-        disabled && 'cursor-not-allowed opacity-40',
-        active
-          ? 'bg-accent-foreground text-primary-foreground'
-          : 'hover:bg-muted text-muted-foreground',
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-export function getVisiblePages(current: number, total: number) {
-  if (total <= 7) {
-    return Array.from({ length: total }, (_, i) => i + 1);
-  }
-
-  if (current <= 4) {
-    return [1, 2, 3, 4, 5, '…', total];
-  }
-
-  if (current >= total - 3) {
-    return [1, '…', total - 4, total - 3, total - 2, total - 1, total];
-  }
-
-  return [1, '…', current - 1, current, current + 1, '…', total];
-}
+};

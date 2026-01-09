@@ -1,7 +1,7 @@
 import { type PaginationState } from '@tanstack/react-table';
 
 import { type IRequestHistoryResponse } from '@/services/requests';
-import { DataTable, DataTableSkeleton } from '@/shared/components';
+import { DataTable } from '@/shared/components';
 
 import { useGetColumns, useRequestDetails } from '../hooks';
 
@@ -27,9 +27,6 @@ export const RequestsTable = ({
     onDetailsClick: handleDetailsClick,
   });
 
-  if (isLoading) {
-    return <DataTableSkeleton columnCount={6} />;
-  }
   return (
     <>
       <DataTable
@@ -41,7 +38,10 @@ export const RequestsTable = ({
         onPaginationChange={onPaginationChange}
         pageCount={data ? data.total_pages : 1}
         total={data ? data.total : pagination.pageSize}
-      />
+      >
+        <DataTable.Header />
+        <DataTable.Body isLoading={isLoading} />
+      </DataTable>
       {details.requestId && (
         <RequestDetails
           requestId={details.requestId!}

@@ -1,25 +1,19 @@
-'use client';
-
 import {
   type ColumnDef,
-  flexRender,
   getCoreRowModel,
-  useReactTable as createReactTable,
   getPaginationRowModel,
   type PaginationState,
+  useReactTable,
 } from '@tanstack/react-table';
+import { type HTMLProps } from 'react';
 
+import { DataTableContext } from './context';
+import { DataTableBody } from './data-table-body';
+import { DataTableHeader } from './data-table-header';
 import { DataTablePagination } from './pagination';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from './table';
+import { Table } from './table';
 
-interface DataTableProps<TData, TValue> {
+type Props<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pagination?: boolean;
@@ -27,22 +21,22 @@ interface DataTableProps<TData, TValue> {
   pageCount?: number;
   paginationState?: PaginationState;
   total?: number;
-  // eslint-disable-next-line no-unused-vars
-  onPaginationChange?: (state: PaginationState) => void;
-}
+  onPaginationChange?: (_state: PaginationState) => void;
+} & Omit<HTMLProps<HTMLDivElement>, 'data' | 'ref'>;
 
-export function DataTable<TData, TValue>({
+const DataTableRoot = <TData, TValue>({
   columns,
   data,
-  pagination = false,
+  pagination,
   manualPagination,
   pageCount,
   paginationState,
   onPaginationChange,
+  children,
   total,
-}: DataTableProps<TData, TValue>) {
+}: Props<TData, TValue>) => {
   // eslint-disable-next-line react-hooks/incompatible-library
-  const table = createReactTable({
+  const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
@@ -50,79 +44,34 @@ export function DataTable<TData, TValue>({
       !manualPagination && {
         getPaginationRowModel: getPaginationRowModel(),
       }),
-
     ...(manualPagination && {
       manualPagination: true,
       pageCount,
-      state: {
-        pagination: paginationState,
-      },
+      state: { pagination: paginationState },
       onPaginationChange: (updater) => {
         if (!paginationState || !onPaginationChange) {
           return;
         }
-
-        const nextState =
+        const next =
           typeof updater === 'function' ? updater(paginationState) : updater;
-
-        onPaginationChange(nextState);
+        onPaginationChange(next);
       },
     }),
   });
 
   return (
-    <div className='w-full'>
-      <div className='overflow-hidden rounded-md'>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead className='p-5' key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody className='bg-white'>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell className='p-5' key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className='h-24 text-center'
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+    <DataTableContext.Provider value={{ table, columnsLength: columns.length }}>
+      <div className='w-full'>
+        <div className='overflow-hidden rounded-md'>
+          <Table>{children}</Table>
+        </div>
+        {pagination && <DataTablePagination total={total ?? 0} />}
       </div>
-      {pagination && <DataTablePagination table={table} total={total ?? 0} />}
-    </div>
+    </DataTableContext.Provider>
   );
-}
+};
+
+export default Object.assign(DataTableRoot, {
+  Header: DataTableHeader,
+  Body: DataTableBody,
+});

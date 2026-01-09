@@ -11,7 +11,7 @@ export {
   type SensitiveMessageProps,
 } from './sensitiveMessage';
 export { Chip, type ChipProps } from './chip';
-export { DataTable, DataTableSkeleton, TableHeadCell } from './table';
+export { DataTable, TableHeadCell, getVisiblePages } from './table';
 export { Checkbox } from './checkbox';
 export { StatusTimeline } from './timeline';
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';

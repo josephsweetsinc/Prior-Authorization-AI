@@ -7,20 +7,17 @@ import {
   type IGetUsersResponse,
   type IUserEntry,
 } from '@/services/user-management';
-import { DataTable, DataTableSkeleton } from '@/shared/components';
+import { DataTable } from '@/shared/components';
 
 import { useGetColumns } from '../hooks/useGetColumns';
 
 type Props = {
   isLoading: boolean;
   data?: IGetUsersResponse;
-  // eslint-disable-next-line no-unused-vars
-  onUpdateClick: (user: IUserEntry) => void;
-  // eslint-disable-next-line no-unused-vars
-  onDeleteClick: (user: IUserEntry) => void;
+  onUpdateClick: (_user: IUserEntry) => void;
+  onDeleteClick: (_user: IUserEntry) => void;
   paginationState: PaginationState;
-  // eslint-disable-next-line no-unused-vars
-  onPaginationChange: (state: PaginationState) => void;
+  onPaginationChange: (_state: PaginationState) => void;
 } & Omit<HTMLProps<HTMLElement>, 'data'>;
 
 export const UsersTable = ({
@@ -38,10 +35,6 @@ export const UsersTable = ({
     onDelete: onDeleteClick,
   });
 
-  if (isLoading) {
-    return <DataTableSkeleton columnCount={6} {...props} />;
-  }
-
   return (
     <DataTable
       total={data ? data.total : paginationState.pageSize}
@@ -53,6 +46,9 @@ export const UsersTable = ({
       paginationState={paginationState}
       onPaginationChange={onPaginationChange}
       {...props}
-    />
+    >
+      <DataTable.Header />
+      <DataTable.Body isLoading={isLoading} />
+    </DataTable>
   );
 };

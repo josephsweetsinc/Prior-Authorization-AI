@@ -30,7 +30,7 @@ export const RequestsHistoryContainer = ({
     ...filters,
   });
 
-  const { data, isLoading } = useGetRequestsHistoryQuery(params);
+  const { data, isFetching } = useGetRequestsHistoryQuery(params);
 
   const updateFilters = <Key extends keyof IFilters>(
     key: Key,
@@ -48,7 +48,7 @@ export const RequestsHistoryContainer = ({
       <RequestsHeader filters={filters} onFiltersChange={updateFilters} />
       <RequestsTable
         data={data}
-        isLoading={isLoading}
+        isLoading={isFetching}
         pagination={pagination}
         onPaginationChange={setPagination}
       />

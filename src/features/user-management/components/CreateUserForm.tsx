@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { type HTMLProps } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -5,13 +6,13 @@ import { Input, Select } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
 import { ROLE_OPTIONS } from '../constants';
-import { type ICreateFormData, type IFormData } from '../types';
+import { type ICreateFormData } from '../types';
+import { createUserSchema } from '../validation';
 
 type Props = {
-  // eslint-disable-next-line no-unused-vars
-  onSubmit: (data: ICreateFormData) => void;
+  onSubmit: (_data: ICreateFormData) => void;
   onCancel: VoidFunction;
-  defaults: IFormData;
+  defaults: ICreateFormData;
 } & Omit<HTMLProps<HTMLFormElement>, 'onSubmit' | 'method'>;
 
 export const CreateUserForm = ({ onSubmit, className, ...props }: Props) => {
@@ -20,7 +21,7 @@ export const CreateUserForm = ({ onSubmit, className, ...props }: Props) => {
     register,
     control,
     formState: { errors },
-  } = useForm<ICreateFormData>();
+  } = useForm<ICreateFormData>({ resolver: zodResolver(createUserSchema) });
 
   return (
     <form
@@ -34,9 +35,7 @@ export const CreateUserForm = ({ onSubmit, className, ...props }: Props) => {
         labelVariant='static'
         error={errors['fullName'] ? errors['fullName'].message : null}
         placeholder='Enter Name'
-        {...register('fullName', {
-          required: 'Full name is required field',
-        })}
+        {...register('fullName')}
       />
       <Input
         type='email'
@@ -44,18 +43,11 @@ export const CreateUserForm = ({ onSubmit, className, ...props }: Props) => {
         labelVariant='static'
         error={errors['email'] ? errors['email'].message : null}
         placeholder='Enter Email'
-        {...register('email', {
-          required: 'Email is required field',
-          pattern: {
-            value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
-            message: 'Invalid email address',
-          },
-        })}
+        {...register('email')}
       />
       <Controller
         control={control}
         name='role'
-        rules={{ required: 'Role is required field' }}
         render={({ field }) => (
           <Select
             label='Role'
@@ -73,17 +65,7 @@ export const CreateUserForm = ({ onSubmit, className, ...props }: Props) => {
         labelVariant='static'
         error={errors['password'] ? errors['password'].message : null}
         placeholder='Enter password'
-        {...register('password', {
-          minLength: {
-            value: 8,
-            message: 'password should be at least 8 characters long',
-          },
-          maxLength: {
-            value: 16,
-            message: 'password should be at most 16 characters long',
-          },
-          required: 'Password is required field',
-        })}
+        {...register('password')}
       />
     </form>
   );
