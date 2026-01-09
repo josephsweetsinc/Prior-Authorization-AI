@@ -153,7 +153,7 @@ class UserService(BaseService):
             user_id: User ID.
 
         Returns:
-            UserResponseShema: User information with organization and avatar URL.
+            UserResponseShema: User information with organization.
 
         Raises:
             UserNotFoundByIdException: If user not found.
