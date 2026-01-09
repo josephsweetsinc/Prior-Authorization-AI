@@ -19,10 +19,7 @@ export const ProviderMetrics = ({ className, ...props }: Props) => {
   }
 
   return (
-    <section
-      className={cn('flex flex-wrap items-center gap-5', className)}
-      {...props}
-    >
+    <section className={cn('flex items-center gap-5', className)} {...props}>
       <MetricsCard className='flex shrink grow basis-[288px] items-center gap-4'>
         <OverlayIcon variant='FileChartColumnIncreasing' color='blue' />
         <MetricsCard.Group>

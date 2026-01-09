@@ -9,10 +9,7 @@ export const MetricsListSkeleton = ({
   ...props
 }: HTMLProps<HTMLElement>) => {
   return (
-    <section
-      className={cn('flex flex-wrap items-center gap-5', className)}
-      {...props}
-    >
+    <section className={cn('flex items-center gap-5', className)} {...props}>
       {Array.from({ length: 4 }).map((_, i) => (
         <MetricsCardSkeleton key={i} />
       ))}

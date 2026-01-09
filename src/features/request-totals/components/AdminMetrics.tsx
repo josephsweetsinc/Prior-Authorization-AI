@@ -20,10 +20,7 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
   }
 
   return (
-    <section
-      className={cn('flex flex-wrap items-stretch gap-5', className)}
-      {...props}
-    >
+    <section className={cn('flex items-stretch gap-5', className)} {...props}>
       <MetricsCard className='shrink grow basis-[288px] items-center space-y-3'>
         <MetricsCard.Group className='flex gap-3'>
           <OverlayIcon variant='FileChartColumnIncreasing' color='blue' />
