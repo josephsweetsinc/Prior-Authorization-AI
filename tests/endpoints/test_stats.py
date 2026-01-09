@@ -65,7 +65,7 @@ class TestStatsEndpoints:
             "services.stats.StatsService.get_provider_stats",
             new_callable=AsyncMock,
         ) as mock_get:
-            
+
             mock_get.return_value = ProviderStatsResponseSchema(
                 total_requests=10,
                 approved=5,
@@ -79,7 +79,7 @@ class TestStatsEndpoints:
             data = response.json()
             assert data["total_requests"] == 10
             assert data["approved"] == 5
-            
+
             mock_get.assert_awaited_once_with(user_id=mock_provider.id)
 
     @pytest.mark.asyncio
@@ -98,7 +98,7 @@ class TestStatsEndpoints:
             "services.stats.StatsService.get_admin_users",
             new_callable=AsyncMock,
         ) as mock_get:
-            
+
             mock_get.return_value = AdminUsersResponseSchema(
                 full_name="Admin User",
                 email=mock_admin.email,
@@ -111,7 +111,7 @@ class TestStatsEndpoints:
             data = response.json()
             assert data["email"] == mock_admin.email
             assert data["full_name"] == "Admin User"
-            
+
             mock_get.assert_awaited_once_with(admin_user_id=mock_admin.id)
 
     @pytest.mark.asyncio
@@ -131,18 +131,18 @@ class TestStatsEndpoints:
         # and we usually mock the dependency to return a user...
         # If we want to test the PERMISSION, we rely on FastAPI's dependency injection failure,
         # OR we assume the dependency works and here we test that the endpoint calls the service.
-        
+
         # However, to test "Forbidden", we should simulate the dependency failing.
         # But for integration/unit tests of endpoints where we mock Auth, we normally mocking success for Authorized cases.
         # For Unauthorized cases, we can simulate the dependency raising an error or returning None/False.
-        
+
         # Let's Skip explicit "dependency logic" testing here if we are mocking it,
         # UNLESS we use the REAL dependency with a mocked DB/User.
         # Given the previous tests (test_user.py) used mocking, I will stick to testing that the endpoint requires the specific dependency.
-        
+
         # Actually, let's just test that without the admin token it fails.
         app.dependency_overrides = {}
-        
+
         response = client.get("/Prod/api/v1/stats/admin/users")
         assert response.status_code in (401, 403)
 
@@ -153,6 +153,6 @@ class TestStatsEndpoints:
     ):
         """Test getting provider stats without authentication."""
         app.dependency_overrides = {}
-        
+
         response = client.get("/Prod/api/v1/stats/provider")
         assert response.status_code in (401, 403)

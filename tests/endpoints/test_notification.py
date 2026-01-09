@@ -55,7 +55,7 @@ class TestNotificationEndpoints:
             "services.notification.NotificationService.mark_notifications_as_read",
             new_callable=AsyncMock,
         ) as mock_mark:
-            
+
             # Mock notification object
             notification = MagicMock()
             notification.id = 101
@@ -81,9 +81,9 @@ class TestNotificationEndpoints:
             assert len(data["items"]) == 1
             assert data["items"][0]["id"] == 101
             assert data["total"] == 1
-            
+
             # Verify unread notifications were marked as read
-            mock_mark.assert_awaited_once_with([101])
+            mock_mark.assert_awaited_once_with([101], user_id=1)
 
     @pytest.mark.asyncio
     async def test_get_notifications_with_filters(
@@ -101,7 +101,7 @@ class TestNotificationEndpoints:
             "services.notification.NotificationService.get_user_notifications",
             new_callable=AsyncMock,
         ) as mock_get:
-            
+
             mock_get.return_value = ([], 0, 1, 1, 0)
 
             response = client.get(
@@ -114,7 +114,7 @@ class TestNotificationEndpoints:
             )
 
             assert response.status_code == 200
-            
+
             mock_get.assert_awaited_once()
             args, kwargs = mock_get.call_args
             assert kwargs["user_id"] == mock_user.id
@@ -130,6 +130,6 @@ class TestNotificationEndpoints:
         """Test getting notifications without authentication."""
         # Clear overrides to ensure no user is injected
         app.dependency_overrides = {}
-        
+
         response = client.get("/Prod/api/v1/notification/")
         assert response.status_code in (401, 403)

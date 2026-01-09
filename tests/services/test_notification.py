@@ -49,7 +49,7 @@ class TestNotificationService:
         limit = 10
         page = 2
         mock_items = [MagicMock(spec=Notification) for _ in range(limit)]
-        
+
         mock_notification_dao.count_by_user_id.return_value = total_items
         mock_notification_dao.get_by_user_id.return_value = mock_items
 
@@ -63,7 +63,7 @@ class TestNotificationService:
         assert current_page == page
         assert total_pages == 5
         assert showing == limit
-        
+
         # Verify DAO call offset
         mock_notification_dao.get_by_user_id.assert_awaited_once()
         args, kwargs = mock_notification_dao.get_by_user_id.call_args
@@ -79,14 +79,14 @@ class TestNotificationService:
         """Test batch marking notifications as read."""
         ids = [1, 2, 3]
         user_id = 99
-        
+
         # Mock get_by_id to return notifications belonging to user
         async def mock_get_by_id(nid):
             n = MagicMock(spec=Notification)
             n.id = nid
             n.user_id = user_id
             return n
-            
+
         mock_notification_dao.get_by_id.side_effect = mock_get_by_id
         mock_notification_dao.mark_multiple_as_read.return_value = [MagicMock(), MagicMock(), MagicMock()]
 
@@ -106,9 +106,9 @@ class TestNotificationService:
         """Test that only user's notifications are marked as read."""
         user_id = 1
         other_user_id = 2
-        
+
         ids = [101, 102] # 101 belongs to user, 102 to other
-        
+
         async def mock_get_by_id(nid):
             n = MagicMock(spec=Notification)
             n.id = nid
@@ -117,7 +117,7 @@ class TestNotificationService:
             else:
                 n.user_id = other_user_id
             return n
-            
+
         mock_notification_dao.get_by_id.side_effect = mock_get_by_id
         mock_notification_dao.mark_multiple_as_read.return_value = [MagicMock()] # Only 1 marked
 
@@ -139,7 +139,7 @@ class TestNotificationService:
         category = NotificationCategory.STATUS_UPDATE
         message = "Status changed"
         request_id = 100
-        
+
         notification = MagicMock(spec=Notification)
         mock_notification_dao.create.return_value = notification
 

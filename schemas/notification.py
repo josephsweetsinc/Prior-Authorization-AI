@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from models.notification import NotificationCategory
 
@@ -28,7 +28,6 @@ class NotificationResponseSchema(BaseModel):
     created_at: datetime = Field(description='Notification creation timestamp')
 
     model_config = ConfigDict(from_attributes=True)
-
 
 
 class NotificationsListResponseSchema(BaseModel):

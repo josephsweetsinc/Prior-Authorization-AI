@@ -719,12 +719,15 @@ class AmbulanceRequestService(BaseService):
         request = await self._request_dao.get_by_id(request_id=request_id)
         if not request:
             raise AmbulanceRequestNotFoundException
-        
-        if request.status not in (RequestStatus.SUBMITTED, RequestStatus.PENDING):
+
+        if request.status not in (
+            RequestStatus.SUBMITTED,
+            RequestStatus.PENDING,
+        ):
             raise AmbulanceRequestInvalidStatusException(  # noqa: TRY003
                 f'Cannot approve request in {request.status} status'
             )
-            
+
         request.status = RequestStatus.APPROVED
         request.reviewer_id = reviewer_id
         request.denial_reason = None

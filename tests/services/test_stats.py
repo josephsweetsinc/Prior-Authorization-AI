@@ -68,7 +68,7 @@ class TestStatsService:
         assert result.rejected == 2
         # Total = 5 + 3 + 2 = 10
         assert result.total_requests == 10
-        
+
         mock_dashboard_dao.get_request_counts_by_status.assert_awaited_once_with(
             user_id=user_id
         )
@@ -81,19 +81,19 @@ class TestStatsService:
     ):
         """Test getting admin users."""
         current_admin_id = 1
-        
+
         current_admin = MagicMock(spec=User)
         current_admin.id = 1
         current_admin.name = "My"
         current_admin.surname = "Admin"
         current_admin.email = "me@admin.com"
-        
+
         other_admin1 = MagicMock(spec=User)
         other_admin1.id = 2
         other_admin1.name = "Other"
         other_admin1.surname = "One"
         other_admin1.email = "one@admin.com"
-        
+
         mock_user_dao.get_by_id.return_value = current_admin
         # Return list including current admin to verify filtering
         mock_user_dao.get_recent_admins.return_value = [current_admin, other_admin1]
@@ -104,5 +104,5 @@ class TestStatsService:
         assert result.email == "me@admin.com"
         assert len(result.recent_admins) == 1
         assert result.recent_admins[0].full_name == "Other One"
-        
+
         mock_user_dao.get_by_id.assert_awaited_once_with(current_admin_id)

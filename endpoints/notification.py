@@ -106,7 +106,9 @@ async def get_user_notifications(
     # Mark unread notifications as read after response is forme
     if unread_notification_ids:
         try:
-            await service.mark_notifications_as_read(unread_notification_ids)
+            await service.mark_notifications_as_read(
+                unread_notification_ids, user_id=user.id
+            )
         except Exception:
             logger.exception(
                 'Failed to mark notifications as read: %s',

@@ -142,10 +142,10 @@ class TestAuthService:
         """Test token creation."""
         author_id = 1
         role = UserRole.PROVIDER
-        
+
         with patch("services.auth.TokenManager.generate_access_token", return_value="access"), \
              patch("services.auth.TokenManager.generate_refresh_token", return_value="refresh"):
-            
+
             result = await auth_service.create_token(author_id, role)
 
             assert isinstance(result, TokenSchemas)
@@ -163,15 +163,15 @@ class TestAuthService:
         """Test successful token refresh."""
         refresh_token = "valid_refresh_token"
         decoded_token = {"sub": "1", "jti": "unique_id", "exp": 1234567890}
-        
+
         with patch("services.auth.TokenManager.decode_refresh_token", return_value=decoded_token), \
              patch("services.auth.TokenManager.validate_refresh_token_expired"), \
              patch("services.auth.TokenManager.get_jti_from_token", return_value="unique_id"), \
              patch("services.auth.TokenManager.generate_access_token", return_value="new_access"), \
              patch("services.auth.TokenManager.generate_refresh_token", return_value="new_refresh"):
-             
+
              mock_blacklist_dao.is_blacklisted.return_value = False
-             
+
              user = MagicMock(spec=User)
              user.id = 1
              user.is_active = True
@@ -194,11 +194,11 @@ class TestAuthService:
         """Test that reusing a blacklisted token raises exception."""
         refresh_token = "reused_token"
         decoded_token = {"sub": "1", "jti": "jti", "exp": 1234567890}
-        
+
         with patch("services.auth.TokenManager.decode_refresh_token", return_value=decoded_token), \
              patch("services.auth.TokenManager.validate_refresh_token_expired"), \
              patch("services.auth.TokenManager.get_jti_from_token", return_value="jti"):
-             
+
              # Simulate token is already blacklisted
              mock_blacklist_dao.is_blacklisted.return_value = True
 
@@ -214,11 +214,11 @@ class TestAuthService:
         """Test refresh with blacklisted token."""
         refresh_token = "blacklisted"
         decoded_token = {"sub": 1, "jti": "jti"}
-        
+
         with patch("services.auth.TokenManager.decode_refresh_token", return_value=decoded_token), \
              patch("services.auth.TokenManager.validate_refresh_token_expired"), \
              patch("services.auth.TokenManager.get_jti_from_token", return_value="jti"):
-             
+
              mock_blacklist_dao.is_blacklisted.return_value = True
 
              with pytest.raises(RefreshTokenException):
@@ -234,11 +234,11 @@ class TestAuthService:
         """Test successful logout."""
         refresh_token = "token"
         decoded_token = {"sub": "1", "jti": "jti", "exp": 1234567890}
-        
+
         with patch("services.auth.TokenManager.decode_refresh_token", return_value=decoded_token), \
              patch("services.auth.TokenManager.validate_refresh_token_expired"), \
              patch("services.auth.TokenManager.get_jti_from_token", return_value="jti"):
-             
+
              mock_blacklist_dao.is_blacklisted.return_value = False
 
              await auth_service.logout_user(refresh_token)

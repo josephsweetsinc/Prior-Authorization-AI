@@ -318,7 +318,7 @@ class NotificationService(BaseService):
             notif = await self._notification_dao.get_by_id(n_id)
             if notif and notif.user_id == user_id:
                 notifications_to_mark.append(n_id)
-                
+
         if not notifications_to_mark:
             return []
 

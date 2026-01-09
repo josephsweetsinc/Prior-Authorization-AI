@@ -870,13 +870,13 @@ class TestAmbulanceRequestService:
         request.id = 1
         request.status = RequestStatus.DENIED
         request.user_id = 1
-        
+
         # Patch DAO
         service._request_dao = AsyncMock()
         service._request_dao.get_by_id.return_value = request
-        
+
         from exceptions import AmbulanceRequestInvalidStatusException
-        
+
         try:
             await service.approve_request(request_id=1, reviewer_id=2)
             # If we reach here, logic is missing!
@@ -886,7 +886,7 @@ class TestAmbulanceRequestService:
         except Exception as e:
             # Maybe it raises something else?
             if "fail" not in str(e): # allow pytest.fail to propagate
-                pass 
+                pass
 
 
     @pytest.mark.asyncio
@@ -898,7 +898,7 @@ class TestAmbulanceRequestService:
         """Test admin opening request doesn't duplicate PENDING entries."""
         admin = MagicMock()
         admin.role = UserRole.ADMIN
-        
+
         request = MagicMock()
         request.id = 1
         request.status = RequestStatus.PENDING
@@ -926,15 +926,15 @@ class TestAmbulanceRequestService:
         request.created_at = datetime.now(UTC)
         request.updated_at = datetime.now(UTC)
         request.reviewer_id = None
-        
+
         service._request_dao = AsyncMock()
         service._request_dao.get_by_id.return_value = request
         service._status_history_dao = AsyncMock()
         service._file_dao = AsyncMock()
         service._file_dao.get_by_request_id.return_value = []
-        
+
         # Action
         await service.get_request_by_id(user=admin, request_id=1)
-        
+
         # Assertion
         service._status_history_dao.create.assert_not_called()

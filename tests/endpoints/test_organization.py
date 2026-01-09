@@ -54,7 +54,7 @@ class TestOrganizationEndpoints:
             "services.organization.OrganizationService.update_organization_by_user_id",
             new_callable=AsyncMock,
         ) as mock_update:
-            
+
             mock_update.return_value = OrganizationResponseSchema(
                 id=1,
                 user_id=mock_user.id,
@@ -71,7 +71,7 @@ class TestOrganizationEndpoints:
             assert response.status_code == 200
             data = response.json()
             assert data["medic_name"] == update_data["medic_name"]
-            
+
             mock_update.assert_awaited_once()
             args, kwargs = mock_update.call_args
             assert kwargs["user_id"] == mock_user.id
@@ -89,17 +89,17 @@ class TestOrganizationEndpoints:
 
         app.dependency_overrides[get_provider_user_from_token] = get_user_override
 
-        # Endpoint validation requires at least one field? 
+        # Endpoint validation requires at least one field?
         # Check schemas/organization.py but relying on behavior that empty dict might be allowed or not depending on validators.
         # Assuming from description "At least one field..." usually implies validation but let's check Pydantic model behavior.
         # If 'UpdateOrganizationRequestSchema' has root validator, it would fail.
         # Based on file content read earlier, the description says "At least one field...", so we assume validation exists.
-        
+
         response = client.patch(
             "/Prod/api/v1/organization/me",
             json={}  # Empty body
         )
-        
+
         # Expecting 422 if validation fails for missing fields, or if body is required
         # But if all fields are optional in schema but logic requires one, it returns 422.
         # Let's assume standard Pydantic validation for now.
@@ -112,7 +112,7 @@ class TestOrganizationEndpoints:
     ):
         """Test updating organization without authentication."""
         app.dependency_overrides = {}
-        
+
         response = client.patch(
             "/Prod/api/v1/organization/me",
             json={"medic_name": "Test"}

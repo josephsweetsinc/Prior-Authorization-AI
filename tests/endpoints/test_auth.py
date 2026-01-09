@@ -81,7 +81,7 @@ class TestAuthEndpoints:
             "services.auth.AuthService.create_token",
             new_callable=AsyncMock,
         ) as mock_token:
-            
+
             mock_user = AsyncMock()
             mock_user.id = 1
             mock_user.role = UserRole.PROVIDER
@@ -103,7 +103,7 @@ class TestAuthEndpoints:
             data = response.json()
             assert data["access_token"] == "access_token"
             assert data["refresh_token"] == "refresh_token"
-            
+
             mock_auth.assert_awaited_once_with(
                 email=form_data["username"],
                 password=form_data["password"]
@@ -127,7 +127,7 @@ class TestAuthEndpoints:
                 "/Prod/api/v1/auth/login",
                 data={"username": "wrong@example.com", "password": "wrong"},
             )
-            
+
             assert response.status_code == 401
 
     @pytest.mark.asyncio
@@ -154,7 +154,7 @@ class TestAuthEndpoints:
             assert response.status_code == 200
             data = response.json()
             assert data["access_token"] == "new_access_token"
-            
+
             mock_refresh.assert_awaited_once_with(
                 refresh_token="valid_refresh_token"
             )
@@ -173,9 +173,9 @@ class TestAuthEndpoints:
                 "/Prod/api/v1/auth/refresh",
                 params={"refresh_token": "invalid_token"},
             )
-            
+
             assert response.status_code == 403
-    
+
     @pytest.mark.asyncio
     async def test_logout_user_success(
         self,
