@@ -44,8 +44,7 @@ async def signup_user(
         UserResponseShema: Schema representing the newly created user.
 
     """
-    new_user = await service.create_new_user(user_data=user_data)
-    return UserResponseShema.model_validate(new_user)
+    return await service.create_new_user(user_data=user_data)
 
 
 @auth_router.post(
