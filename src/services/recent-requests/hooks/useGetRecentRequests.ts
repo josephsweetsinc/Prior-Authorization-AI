@@ -10,10 +10,10 @@ type Params = {
 };
 
 export const useGetRecentRequests = ({ role }: Params) => {
-  const { data, isLoading, error, refetch } = useGetDashboardQuery();
+  const { data, isFetching, error, refetch } = useGetDashboardQuery();
 
   if (!role) {
-    return { requests: [], isLoading, error, refetch };
+    return { requests: [], isLoading: isFetching, error, refetch };
   }
 
   const dashboard =
@@ -23,7 +23,7 @@ export const useGetRecentRequests = ({ role }: Params) => {
 
   return {
     requests: dashboard?.recent_requests ?? [],
-    isLoading,
+    isLoading: isFetching,
     error,
     refetch,
   };

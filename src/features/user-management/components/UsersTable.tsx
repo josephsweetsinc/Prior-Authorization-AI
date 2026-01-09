@@ -7,7 +7,7 @@ import {
   type IGetUsersResponse,
   type IUserEntry,
 } from '@/services/user-management';
-import { DataTable, DataTableSkeleton } from '@/shared/components';
+import { DataTable } from '@/shared/components';
 
 import { useGetColumns } from '../hooks/useGetColumns';
 
@@ -38,10 +38,6 @@ export const UsersTable = ({
     onDelete: onDeleteClick,
   });
 
-  if (isLoading) {
-    return <DataTableSkeleton columnCount={6} {...props} />;
-  }
-
   return (
     <DataTable
       total={data ? data.total : paginationState.pageSize}
@@ -53,6 +49,9 @@ export const UsersTable = ({
       paginationState={paginationState}
       onPaginationChange={onPaginationChange}
       {...props}
-    />
+    >
+      <DataTable.Header />
+      <DataTable.Body isLoading={isLoading} />
+    </DataTable>
   );
 };
