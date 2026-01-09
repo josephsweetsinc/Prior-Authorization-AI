@@ -1,10 +1,10 @@
 'use client';
 
-import { CircleX } from 'lucide-react';
+import { CircleX, ClockFading } from 'lucide-react';
 
+import { type RequestStatus } from '@/services/dashboard';
 import { SuccessFilledIcon } from '@/shared/assets/icons';
 import { cn } from '@/shared/lib/utils';
-export type RequestStatus = 'approved' | 'pending' | 'processing' | 'denied';
 
 interface TimelineItem {
   title: string;
@@ -17,6 +17,18 @@ interface StatusTimelineProps {
   items: TimelineItem[];
 }
 
+const StatusTimelineIcon = ({ status }: { status: RequestStatus }) => {
+  if (status === 'denied') {
+    return <CircleX size={5} color='#FE5C73' strokeWidth={1.25} />;
+  }
+
+  if (status === 'pending') {
+    return <ClockFading size={5} color='#F59E0B' strokeWidth={1.25} />;
+  }
+
+  return <SuccessFilledIcon />;
+};
+
 export function StatusTimeline({ items }: StatusTimelineProps) {
   return (
     <div className='relative space-y-6'>
@@ -28,17 +40,12 @@ export function StatusTimeline({ items }: StatusTimelineProps) {
           <div
             className={cn(
               'flex h-7.5 w-7.5 items-center justify-center rounded-full',
-              item.status === 'approved' && 'bg-[#24B2001A]',
-              item.status === 'pending' && 'bg-[#24B2001A]',
-              item.status === 'processing' && 'bg-[#24B2001A]',
+              item.status === 'submitted' && 'bg-[#24B2001A]',
+              item.status === 'pending' && 'bg-[#FC9D001A]',
               item.status === 'denied' && 'bg-[#FC2A001A]',
             )}
           >
-            {item.status === 'denied' ? (
-              <CircleX size={20} color='#FE5C73' strokeWidth={1.25} />
-            ) : (
-              <SuccessFilledIcon />
-            )}
+            <StatusTimelineIcon status={item.status} />
           </div>
 
           <div className='flex flex-col gap-1 pb-4'>

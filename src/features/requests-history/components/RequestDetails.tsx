@@ -1,9 +1,11 @@
+import { format } from 'date-fns';
 import { type HTMLProps } from 'react';
 
 import { formatFileSize } from '@/services/media';
 import { useGetRequestDetailsQuery } from '@/services/requests';
 import {
   Modal,
+  StatusTimeline,
   StatusChip,
   Separator,
   TitleAndDesc,
@@ -11,11 +13,14 @@ import {
 import { AttachedDocument } from '@/shared/components/attached-document';
 import { cn } from '@/shared/lib/utils';
 
-import { getRequestDetailsBlocks } from '../utils';
+import { STATUS_TO_TIMELINE_STATUS } from '../constants';
+import {
+  getRequestDetailsBlocks,
+  transformStatusToTimelineTitle,
+} from '../utils';
 
 import { DataBlock } from './DataBlock';
 import { RequestDetailsSkeleton } from './skeletons/RequestDetailsSkeleton';
-import { StatusTimeline } from './StatusTimeline';
 
 type Props = {
   requestId: number;
@@ -33,6 +38,13 @@ export const RequestDetails = ({
   const { data, isLoading } = useGetRequestDetailsQuery(requestId);
 
   const details = getRequestDetailsBlocks(data);
+  const timelineItems =
+    data?.status_history.map((item) => ({
+      title: transformStatusToTimelineTitle(item.status),
+      date: format(new Date(item.created_at), "MMM d, yyyy 'at' h:mm a"),
+      description: item.notes ?? undefined,
+      status: STATUS_TO_TIMELINE_STATUS[item.status],
+    })) ?? [];
 
   if (isLoading) {
     return (
@@ -79,10 +91,15 @@ export const RequestDetails = ({
             />
           ))}
         </section>
-        {data.status_history.length > 0 && (
+        {timelineItems.length > 0 && (
           <>
             <Separator className='bg-gray-200' />
-            <StatusTimeline history={data.status_history} className='my-5' />
+            <div className='my-5 space-y-5'>
+              <h2 className='text-brand-dark text-base font-bold md:text-lg xl:text-xl'>
+                Activity Log
+              </h2>
+              <StatusTimeline items={timelineItems} />
+            </div>
           </>
         )}
         {data.documents.length > 0 && (
