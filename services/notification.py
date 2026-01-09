@@ -301,18 +301,29 @@ class NotificationService(BaseService):
     async def mark_notifications_as_read(
         self,
         notification_ids: list[int],
+        user_id: int,
     ) -> list[Notification]:
         """Mark multiple notifications as read.
 
         Args:
             notification_ids: List of notification IDs to mark as read.
+            user_id: ID of the user performing the action.
 
         Returns:
             list[Notification]: List of updated notification instances.
 
         """
+        notifications_to_mark = []
+        for n_id in notification_ids:
+            notif = await self._notification_dao.get_by_id(n_id)
+            if notif and notif.user_id == user_id:
+                notifications_to_mark.append(n_id)
+
+        if not notifications_to_mark:
+            return []
+
         notifications = await self._notification_dao.mark_multiple_as_read(
-            notification_ids
+            notifications_to_mark
         )
         if notifications:
             await self._session.commit()

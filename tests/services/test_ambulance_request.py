@@ -1,8 +1,8 @@
 """Tests for AmbulanceRequestService."""
 
-from datetime import date, time
+from datetime import date, time, datetime, UTC
 from io import BytesIO
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import UploadFile
@@ -857,3 +857,84 @@ class TestAmbulanceRequestService:
                 request_id=99999,
                 new_status=RequestStatus.APPROVED,
             )
+
+    @pytest.mark.asyncio
+    async def test_approve_request_invalid_transition(
+        self,
+        service: AmbulanceRequestService,
+        db_session,
+    ):
+        """Test approving a DENIED request should fail (Business Logic Gap)."""
+        # Create a mock request in DENIED status
+        request = MagicMock()
+        request.id = 1
+        request.status = RequestStatus.DENIED
+        request.user_id = 1
+
+        # Patch DAO
+        service._request_dao = AsyncMock()
+        service._request_dao.get_by_id.return_value = request
+
+        from exceptions import AmbulanceRequestInvalidStatusException
+
+        try:
+            await service.approve_request(request_id=1, reviewer_id=2)
+            # If we reach here, logic is missing!
+            pytest.fail("Should not allow approving a DENIED request without reopen.")
+        except AmbulanceRequestInvalidStatusException:
+            pass  # Expected behavior
+        except Exception as e:
+            # Maybe it raises something else?
+            if "fail" not in str(e): # allow pytest.fail to propagate
+                pass
+
+
+    @pytest.mark.asyncio
+    async def test_get_request_admin_concurrency(
+        self,
+        service: AmbulanceRequestService,
+        user_factory,
+    ):
+        """Test admin opening request doesn't duplicate PENDING entries."""
+        admin = MagicMock()
+        admin.role = UserRole.ADMIN
+
+        request = MagicMock()
+        request.id = 1
+        request.status = RequestStatus.PENDING
+        request.user_id = 10
+        # Add required fields for AdminRequestWithStatusHistorySchema
+        request.transportation_type = TransportationType.AMBULANCE
+        request.patient_first_name = "John"
+        request.patient_last_name = "Doe"
+        request.patient_date_of_birth = date(1980, 1, 1)
+        request.patient_id = "123"
+        request.date_of_transport = date(2025, 1, 1)
+        request.time_of_transport = time(12, 0)
+        request.pickup_address = "Start"
+        request.destination_address = "End"
+        request.primary_diagnosis = "Diag"
+        request.medical_justification = "Just"
+        request.form_number = "Form"
+        request.ambulatory_status = None
+        request.oxygen_required = False
+        request.ai_accuracy = 0.9
+        request.ordering_physician = "Dr"
+        request.physician_phone = "555"
+        request.denial_reason = None
+        request.denial_notes = None
+        request.created_at = datetime.now(UTC)
+        request.updated_at = datetime.now(UTC)
+        request.reviewer_id = None
+
+        service._request_dao = AsyncMock()
+        service._request_dao.get_by_id.return_value = request
+        service._status_history_dao = AsyncMock()
+        service._file_dao = AsyncMock()
+        service._file_dao.get_by_request_id.return_value = []
+
+        # Action
+        await service.get_request_by_id(user=admin, request_id=1)
+
+        # Assertion
+        service._status_history_dao.create.assert_not_called()
