@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { getVisiblePages } from '@/shared/components/table/pagination';
+import { getVisiblePages } from '@/shared/components/table';
 
 import { type UseNotificationsPaginationProps } from '../types';
 

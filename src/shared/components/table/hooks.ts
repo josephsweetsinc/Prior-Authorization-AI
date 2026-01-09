@@ -20,22 +20,18 @@ export function useDataTablePagination<TData>(
   const visiblePages = getVisiblePages(currentPage, pageCount);
 
   return {
-    // range info
     start,
     end,
     total,
 
-    // pagination state
     pageIndex,
     pageSize,
     currentPage,
     pageCount,
 
-    // navigation
     canPreviousPage: table.getCanPreviousPage(),
     canNextPage: table.getCanNextPage(),
 
-    // UI helpers
     visiblePages,
   };
 }
