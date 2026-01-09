@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+import {
+  emailSchema,
+  nameSchema,
+  passwordSchema,
+  surnameSchema,
+} from '@/shared/lib/validations/schemas';
+
 export const createUserSchema = z.object({
   fullName: z
     .string()
@@ -14,37 +21,16 @@ export const createUserSchema = z.object({
       'Please enter both first and last name',
     ),
 
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .refine(
-      (value) => /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/.test(value),
-      'Invalid email address',
-    ),
+  email: emailSchema,
 
   role: z.enum(['provider', 'admin'], 'Role is required'),
 
-  password: z
-    .string()
-    .min(8, 'Password should be at least 8 characters long')
-    .max(16, 'Password should be at most 16 characters long'),
+  password: passwordSchema,
 });
 
 export const updateUserSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'First name is required')
-    .refine(
-      (value) => /^[A-Za-z\s]+$/.test(value),
-      'First name cannot contain numbers or special characters',
-    ),
-  surname: z
-    .string()
-    .min(1, 'Last name is required')
-    .refine(
-      (value) => /^[A-Za-z\s]+$/.test(value),
-      'Last name cannot contain numbers or special characters',
-    ),
+  name: nameSchema,
+  surname: surnameSchema,
 
   email: z
     .string()

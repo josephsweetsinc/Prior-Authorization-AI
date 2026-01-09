@@ -9,10 +9,9 @@ import { StatusChip } from '../components';
 import { formatLastLogin } from '../utils';
 
 interface Params {
-  // eslint-disable-next-line no-unused-vars
-  onDelete: (user: IUserEntry) => void;
-  // eslint-disable-next-line no-unused-vars
-  onUpdate: (user: IUserEntry) => void;
+  onDelete: (_user: IUserEntry) => void;
+
+  onUpdate: (_user: IUserEntry) => void;
 }
 
 export const useGetColumns = ({ onUpdate, onDelete }: Params) => {

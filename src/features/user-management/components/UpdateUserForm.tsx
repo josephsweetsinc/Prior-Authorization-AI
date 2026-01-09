@@ -10,8 +10,7 @@ import { type IUpdateFormData } from '../types';
 import { updateUserSchema } from '../validation';
 
 type Props = {
-  // eslint-disable-next-line no-unused-vars
-  onSubmit: (data: IUpdateFormData) => void;
+  onSubmit: (_data: IUpdateFormData) => void;
   onCancel: VoidFunction;
   defaults: IUpdateFormData;
 } & Omit<HTMLProps<HTMLFormElement>, 'onSubmit' | 'method'>;
