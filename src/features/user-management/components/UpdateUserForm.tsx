@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, type HTMLProps } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -5,13 +6,14 @@ import { Input, Select } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
 import { ROLE_OPTIONS } from '../constants';
-import { type IFormData } from '../types';
+import { type IUpdateFormData } from '../types';
+import { updateUserSchema } from '../validation';
 
 type Props = {
   // eslint-disable-next-line no-unused-vars
-  onSubmit: (data: IFormData) => void;
+  onSubmit: (data: IUpdateFormData) => void;
   onCancel: VoidFunction;
-  defaults: IFormData;
+  defaults: IUpdateFormData;
 } & Omit<HTMLProps<HTMLFormElement>, 'onSubmit' | 'method'>;
 
 export const UpdateUserForm = ({
@@ -26,7 +28,10 @@ export const UpdateUserForm = ({
     control,
     formState: { errors },
     reset,
-  } = useForm<IFormData>({ defaultValues: defaults });
+  } = useForm<IUpdateFormData>({
+    defaultValues: defaults,
+    resolver: zodResolver(updateUserSchema),
+  });
 
   useEffect(() => {
     reset(defaults);
@@ -40,13 +45,20 @@ export const UpdateUserForm = ({
     >
       <Input
         type='text'
-        label='Full Name'
+        label='First name'
         labelVariant='static'
-        error={errors['fullName'] ? errors['fullName'].message : null}
+        error={errors['name'] ? errors['name'].message : null}
         placeholder='Enter Name'
-        {...register('fullName', {
-          required: 'Full name is required field',
-        })}
+        {...register('name')}
+      />
+
+      <Input
+        type='text'
+        label='Last surname'
+        labelVariant='static'
+        error={errors['surname'] ? errors['surname'].message : null}
+        placeholder='Enter Name'
+        {...register('surname')}
       />
       <Input
         type='email'
@@ -54,18 +66,11 @@ export const UpdateUserForm = ({
         labelVariant='static'
         error={errors['email'] ? errors['email'].message : null}
         placeholder='Enter Email'
-        {...register('email', {
-          required: 'Email is required field',
-          pattern: {
-            value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
-            message: 'Invalid email address',
-          },
-        })}
+        {...register('email')}
       />
       <Controller
         control={control}
         name='role'
-        rules={{ required: 'Role is required field' }}
         render={({ field }) => (
           <Select
             label='Role'

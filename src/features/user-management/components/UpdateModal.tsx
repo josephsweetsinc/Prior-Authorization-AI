@@ -7,10 +7,15 @@ import {
   type IUserEntry,
   useUpdateUserMutation,
 } from '@/services/user-management';
-import { Button, Modal, TitleAndDesc } from '@/shared/components';
-import { type ModalProps } from '@/shared/components/modal/Modal';
+import {
+  Button,
+  Modal,
+  TitleAndDesc,
+  type ModalProps,
+} from '@/shared/components';
 
-import { type IFormData } from '../types';
+import { type IUpdateFormData } from '../types';
+import { splitFullName } from '../utils';
 
 import { UpdateUserForm } from './UpdateUserForm';
 
@@ -22,13 +27,16 @@ export const UpdateModal = ({ user, ...props }: Props) => {
 
   const [updateUser, { isLoading }] = useUpdateUserMutation();
 
-  const handleUpdateUser = (data: IFormData) => {
-    const { fullName, ...newUserData } = data;
-    const [name, surname] = fullName.split(' ');
-
-    updateUser({ id: user!.id, data: { name, surname, ...newUserData } })
+  const handleUpdateUser = (data: IUpdateFormData) => {
+    updateUser({
+      id: user!.id,
+      data,
+    })
       .unwrap()
-      .then(() => toast.success(`User "${name}" was updated successfully.`))
+      .then((payload) => {
+        toast.success(`User "${payload.name}" was updated successfully.`);
+        props.onCloseAction();
+      })
       .catch((e) => {
         const parsedError = parseApiError(e);
 
@@ -36,19 +44,22 @@ export const UpdateModal = ({ user, ...props }: Props) => {
       });
   };
 
+  const [name, surname] = splitFullName(user?.full_name);
+
   const formDefaults = useMemo(
     () => ({
-      fullName: user ? user.full_name : '',
+      name: name ?? '',
+      surname: surname ?? '',
       role: user ? user.role : 'provider',
       email: user ? user.email : '',
     }),
-    [user],
+    [user, name, surname],
   );
 
   const triggerSubmit = () => formRef?.current?.requestSubmit();
 
   if (!user) {
-    return;
+    return null;
   }
 
   return (

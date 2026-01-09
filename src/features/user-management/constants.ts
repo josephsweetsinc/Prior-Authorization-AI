@@ -1,16 +1,13 @@
-import { type IFormData } from './types/types';
+import { type ICreateFormData } from './types';
 
-export const USER_FORM_DEFAULTS: IFormData = {
+export const USER_FORM_DEFAULTS: ICreateFormData = {
   fullName: '',
   email: '',
   role: 'admin',
+  password: '',
 };
 
 export const ROLE_OPTIONS = [
-  {
-    label: 'All roles',
-    value: 'all',
-  },
   {
     label: 'Provider',
     value: 'provider',

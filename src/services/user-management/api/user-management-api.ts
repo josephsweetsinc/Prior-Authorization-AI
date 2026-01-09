@@ -1,10 +1,10 @@
 import { api as baseApi } from '@/services/api/api';
+import { type IUser } from '@/services/auth';
 
 import {
   type IUpdateUserPayload,
   type ICreateUserPayload,
   type IGetUsersResponse,
-  type IUserEntry,
   type IGetUserParams,
 } from '../types';
 
@@ -29,7 +29,7 @@ const usersApi = baseApi.injectEndpoints({
           : [{ type: 'Users', id: 'LIST' }],
     }),
 
-    createUser: builder.mutation<IUserEntry, ICreateUserPayload>({
+    createUser: builder.mutation<IUser, ICreateUserPayload>({
       query: (body) => ({
         url: '/user/',
         method: 'POST',
@@ -39,7 +39,7 @@ const usersApi = baseApi.injectEndpoints({
     }),
 
     updateUser: builder.mutation<
-      IUserEntry,
+      IUser,
       { id: number; data: IUpdateUserPayload }
     >({
       query: ({ id, data }) => ({

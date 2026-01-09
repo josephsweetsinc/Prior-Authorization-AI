@@ -9,6 +9,7 @@ import { type ModalProps } from '@/shared/components/modal/Modal';
 
 import { USER_FORM_DEFAULTS } from '../constants';
 import { type ICreateFormData } from '../types';
+import { splitFullName } from '../utils';
 
 import { CreateUserForm } from './CreateUserForm';
 
@@ -19,11 +20,14 @@ export const CreateModal = (props: ModalProps) => {
 
   const handleCreateUser = (data: ICreateFormData) => {
     const { fullName, ...newUserData } = data;
-    const [name, surname] = fullName.split(' ');
+    const [name, surname] = splitFullName(fullName);
 
     createUser({ name, surname, ...newUserData })
       .unwrap()
-      .then(() => toast.success(`User "${name}" was added successfully.`))
+      .then((payload) => {
+        toast.success(`User "${payload.name}" was added successfully.`);
+        props.onCloseAction();
+      })
       .catch((e) => {
         const parsedError = parseApiError(e);
         toast.error(parsedError.message);
