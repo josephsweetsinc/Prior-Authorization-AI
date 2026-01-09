@@ -34,7 +34,10 @@ export const RequestsInProgress = ({ data, className, ...props }: Props) => {
         Requests in Progress
       </h2>
 
-      <DataTable columns={requestsInProgressColumns} data={data} />
+      <DataTable columns={requestsInProgressColumns} data={data}>
+        <DataTable.Header />
+        <DataTable.Body />
+      </DataTable>
     </Window>
   );
 };

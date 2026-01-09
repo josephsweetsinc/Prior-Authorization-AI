@@ -171,7 +171,10 @@ export default function DesignSystem() {
             </div>
           </div>
         </div>
-        <DataTable columns={columns} data={data} />
+        <DataTable columns={columns} data={data}>
+          <DataTable.Header />
+          <DataTable.Body />
+        </DataTable>
 
         <Checkbox label='text' />
 

@@ -24,3 +24,23 @@ export const toAbs = (path?: string): string => {
 
   return `${BASE_URL}${prefix}${path}`;
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function groupByX<T extends Record<string, any>>(
+  data: T[],
+  xKey: keyof T,
+  valueKey: keyof T,
+) {
+  const map = new Map<string, number>();
+
+  data.forEach((item) => {
+    const x = String(item[xKey]);
+    const value = Number(item[valueKey]) || 0;
+    map.set(x, (map.get(x) ?? 0) + value);
+  });
+
+  return Array.from(map.entries()).map(([x, value]) => ({
+    [xKey]: x,
+    [valueKey]: value,
+  })) as T[];
+}
