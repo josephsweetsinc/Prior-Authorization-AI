@@ -140,6 +140,7 @@ export const api = createApi({
     'RequestDetails',
     'Users',
     'Settings',
+    'Notifications',
   ],
   endpoints: () => ({}),
 });
