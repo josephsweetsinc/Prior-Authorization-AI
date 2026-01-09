@@ -333,6 +333,14 @@ class AmbulanceRequestResponseSchema(BaseModel):
             examples=['1EG4-TE5-MK72'],
         ),
     ]
+    form_number: Annotated[
+        str | None,
+        Field(
+            default=None,
+            description='CMS form number (e.g., CMS-10344)',
+            examples=['CMS-10344'],
+        ),
+    ]
     created_at: datetime
     updated_at: datetime
 
