@@ -12,6 +12,14 @@ import {
   type INotificationFilters,
   type NotificationCategory,
 } from '../types/types';
+import {
+  apiCategory,
+  filteredNotifications,
+  unreadCount,
+  statusUpdatesCount,
+  documentsCount,
+  requirementsCount,
+} from '../utils/filters';
 
 import { FilterTabs } from './FilterTabs';
 import { NotificationsFeed } from './NotificationsFeed';
@@ -26,28 +34,31 @@ export const NotificationsContainer = () => {
     pageSize: DEFAULT_PAGE_SIZE,
   });
 
-  const apiCategory =
-    filters.category === 'unread' || filters.category === 'all'
-      ? undefined
-      : filters.category;
+  const apiCategoryValue = apiCategory(filters.category);
 
   const { data, isLoading } = useGetNotificationsQuery({
     page: pagination.pageIndex + 1,
-    category: apiCategory,
+    category: apiCategoryValue,
   });
 
-  const filteredNotifications =
-    filters.category === 'unread'
-      ? data?.items.filter((n) => !n.is_read) || []
-      : data?.items || [];
+  const { data: allNotificationsData } = useGetNotificationsQuery({
+    page: 1,
+    category: undefined,
+  });
 
-  const unreadCount = data?.items.filter((n) => !n.is_read).length || 0;
-  const statusUpdatesCount =
-    data?.items.filter((n) => n.category === 'status_updates').length || 0;
-  const documentsCount =
-    data?.items.filter((n) => n.category === 'documents').length || 0;
-  const requirementsCount =
-    data?.items.filter((n) => n.category === 'requirements').length || 0;
+  const filteredNotificationsList = filteredNotifications(
+    data?.items || [],
+    filters.category,
+  );
+
+  const unreadCountValue = unreadCount(allNotificationsData?.items || []);
+  const statusUpdatesCountValue = statusUpdatesCount(
+    allNotificationsData?.items || [],
+  );
+  const documentsCountValue = documentsCount(allNotificationsData?.items || []);
+  const requirementsCountValue = requirementsCount(
+    allNotificationsData?.items || [],
+  );
 
   const handleFilterChange = (category: NotificationCategory) => {
     handleFiltersChange('category', category);
@@ -67,15 +78,15 @@ export const NotificationsContainer = () => {
         activeCategory={filters.category}
         onCategoryChange={handleFilterChange}
         categoryCounts={{
-          unread: unreadCount,
-          status_updates: statusUpdatesCount,
-          documents: documentsCount,
-          requirements: requirementsCount,
+          unread: unreadCountValue,
+          status_updates: statusUpdatesCountValue,
+          documents: documentsCountValue,
+          requirements: requirementsCountValue,
         }}
       />
 
       <NotificationsFeed
-        notifications={filteredNotifications}
+        notifications={filteredNotificationsList}
         isLoading={isLoading}
       />
 

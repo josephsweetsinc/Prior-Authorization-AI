@@ -90,7 +90,7 @@ function PageButton({
   );
 }
 
-function getVisiblePages(current: number, total: number) {
+export function getVisiblePages(current: number, total: number) {
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1);
   }

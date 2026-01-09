@@ -61,7 +61,7 @@ export const AppHeader = () => {
                   <Settings className='text-status-info size-5' />
                 </Link>
               </Button>
-              <Button variant='ghost' size='icon' asChild>
+              <Button variant='ghost' size='icon'>
                 <Link href='/notifications'>
                   <BellDot className='text-status-destructive size-5' />
                 </Link>

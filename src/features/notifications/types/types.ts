@@ -1,3 +1,6 @@
+import { type PaginationState } from '@tanstack/react-table';
+import { type HTMLAttributes } from 'react';
+
 export type NotificationCategory =
   | 'all'
   | 'unread'
@@ -35,4 +38,26 @@ export interface NotificationsFeedProps {
   notifications: INotification[];
   isLoading?: boolean;
   onNotificationClick?: (_notificationId: number) => void;
+}
+
+export interface NotificationFeedItemProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'onClick'
+> {
+  notification: INotification;
+  onClick?: (_id: number) => void;
+}
+
+export interface NotificationsPaginationProps {
+  pagination: PaginationState;
+  onPaginationChange: (_state: PaginationState) => void;
+  total: number;
+  totalPages: number;
+}
+
+export interface UseNotificationsPaginationProps {
+  pagination: PaginationState;
+  onPaginationChange: (_pagination: PaginationState) => void;
+  total: number;
+  totalPages: number;
 }
