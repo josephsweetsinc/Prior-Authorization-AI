@@ -10,7 +10,7 @@ import { TitleAndDesc } from '@/shared/components';
 export const Dashboard = () => {
   return (
     <main className='space-y-5'>
-      <div className='flex items-center justify-between gap-6'>
+      <div className='flex flex-wrap items-center justify-between gap-6'>
         <TitleAndDesc
           title='Main Dashboard'
           subtitle='Welcome back, manage your authorization requests'

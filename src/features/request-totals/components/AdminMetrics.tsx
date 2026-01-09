@@ -20,8 +20,11 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
   }
 
   return (
-    <section className={cn('flex items-stretch gap-5', className)} {...props}>
-      <MetricsCard className='shrink grow basis-[288px] items-center space-y-3'>
+    <section
+      className={cn('grid grid-cols-2 gap-5 xl:grid-cols-4', className)}
+      {...props}
+    >
+      <MetricsCard className='items-center space-y-3'>
         <MetricsCard.Group className='flex gap-3'>
           <OverlayIcon variant='FileChartColumnIncreasing' color='blue' />
           <MetricsCard.Group>
@@ -46,7 +49,7 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
           <span>{kpi.approved_requests_change_percent}% from last month</span>
         </MetricsCard.Description>
       </MetricsCard>
-      <MetricsCard className='shrink grow basis-[288px] items-center space-y-3'>
+      <MetricsCard className='items-center space-y-3'>
         <MetricsCard.Group className='flex gap-3'>
           <OverlayIcon variant='ClockFading' color='indigo' />
           <MetricsCard.Group>
@@ -59,7 +62,7 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
           Avg. wait time: {kpi.pending_avg_wait_time_hours} hours
         </MetricsCard.Description>
       </MetricsCard>
-      <MetricsCard className='shrink grow basis-[288px] items-center space-y-3'>
+      <MetricsCard className='items-center space-y-3'>
         <MetricsCard.Group className='flex gap-3'>
           <OverlayIcon variant='CircleX' color='red' />
           <MetricsCard.Group>
@@ -72,7 +75,7 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
           {kpi.denial_rate_percent}% denial rate
         </MetricsCard.Description>
       </MetricsCard>
-      <MetricsCard className='shrink grow basis-[288px] items-center space-y-3'>
+      <MetricsCard className='items-center space-y-3'>
         <MetricsCard.Group className='flex gap-3'>
           <OverlayIcon variant='BrainCircuit' color='blue' />
           <MetricsCard.Group>

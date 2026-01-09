@@ -19,29 +19,32 @@ export const ProviderMetrics = ({ className, ...props }: Props) => {
   }
 
   return (
-    <section className={cn('flex items-center gap-5', className)} {...props}>
-      <MetricsCard className='flex shrink grow basis-[288px] items-center gap-4'>
+    <section
+      className={cn('grid grid-cols-2 gap-5 xl:grid-cols-4', className)}
+      {...props}
+    >
+      <MetricsCard className='flex items-center gap-4'>
         <OverlayIcon variant='FileChartColumnIncreasing' color='blue' />
         <MetricsCard.Group>
           <MetricsCard.Label>Total Requests</MetricsCard.Label>
           <MetricsCard.Value>{summary.total_requests}</MetricsCard.Value>
         </MetricsCard.Group>
       </MetricsCard>
-      <MetricsCard className='flex shrink grow basis-[288px] items-center gap-4'>
+      <MetricsCard className='flex items-center gap-4'>
         <OverlayIcon variant='ClockFading' color='indigo' />
         <MetricsCard.Group>
           <MetricsCard.Label>Submitted </MetricsCard.Label>
           <MetricsCard.Value>{summary.pending_review}</MetricsCard.Value>
         </MetricsCard.Group>
       </MetricsCard>
-      <MetricsCard className='flex shrink grow basis-[288px] items-center gap-4'>
+      <MetricsCard className='flex items-center gap-4'>
         <OverlayIcon variant='HeartPulse' color='green' />
         <MetricsCard.Group>
           <MetricsCard.Label>Approved</MetricsCard.Label>
           <MetricsCard.Value>{summary.approved}</MetricsCard.Value>
         </MetricsCard.Group>
       </MetricsCard>
-      <MetricsCard className='flex shrink grow basis-[288px] items-center gap-4'>
+      <MetricsCard className='flex items-center gap-4'>
         <OverlayIcon variant='ChartNoAxesCombined' color='orange' />
         <MetricsCard.Group>
           <MetricsCard.Label>Approval rate</MetricsCard.Label>
