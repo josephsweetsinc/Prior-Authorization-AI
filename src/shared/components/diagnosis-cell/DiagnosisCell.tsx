@@ -2,7 +2,7 @@ import { type HTMLProps } from 'react';
 
 import { cn } from '@/shared/lib/utils';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip';
 
 type Props = {
   diagnosis: string;
@@ -15,6 +15,14 @@ export const DiagnosisCell = ({
   className,
   ...props
 }: Props) => {
+  if (!diagnosis || diagnosis.length === 0) {
+    return (
+      <span className={cn('text-base text-black', className)} {...props}>
+        -
+      </span>
+    );
+  }
+
   return (
     <Tooltip>
       <TooltipTrigger>
