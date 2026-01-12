@@ -21,13 +21,19 @@ export const DiagnosisCell = ({
         -
       </span>
     );
+  } else if (diagnosis.length > limit) {
+    return (
+      <span className={cn('text-base text-black', className)} {...props}>
+        {diagnosis}
+      </span>
+    );
   }
 
   return (
     <Tooltip>
       <TooltipTrigger>
         <span className={cn('text-base text-black', className)} {...props}>
-          {diagnosis?.length >= limit
+          {diagnosis.length >= limit
             ? `${diagnosis.substring(0, limit)}...`
             : diagnosis}
         </span>

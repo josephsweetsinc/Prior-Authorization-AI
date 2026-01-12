@@ -22,8 +22,8 @@ import {
 import { cn } from '@/shared/lib/utils';
 
 type AppHeaderProps = {
-  isSearchOpen?: boolean;
-  onSearchOpenChange?: (_open: boolean) => void;
+  isSearchOpen: boolean;
+  onSearchOpenChange: (_open: boolean) => void;
 };
 
 export const AppHeader = ({
