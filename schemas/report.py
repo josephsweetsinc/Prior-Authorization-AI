@@ -40,7 +40,7 @@ class GenerateReportResponseSchema(BaseModel):
     """Response schema for report generation."""
 
     report_id: Annotated[int, Field(description='ID of the generated report')]
-    message: Annotated[str, Field(description='Success message')]
+    download_url: Annotated[str, Field(description='Presigned URL for downloading the report file')]
 
 
 class ReportStatisticsSchema(BaseModel):

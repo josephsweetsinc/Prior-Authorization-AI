@@ -327,9 +327,12 @@ class ReportService(BaseService):
         )
         await self._session.commit()
 
+        # Generate presigned URL for download
+        download_url = self._s3_actions.get_presigned_url(key=s3_key)
+
         return GenerateReportResponseSchema(
             report_id=report.id,
-            message='Report generated successfully',
+            download_url=download_url,
         )
 
     async def get_latest_reports_with_statistics(
