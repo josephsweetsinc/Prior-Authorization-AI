@@ -1,6 +1,7 @@
 'use client';
 
 import { type PaginationState } from '@tanstack/react-table';
+import { useSearchParams } from 'next/navigation';
 import { useState, type HTMLProps } from 'react';
 
 import { useGetRequestsHistoryQuery } from '@/services/requests';
@@ -20,6 +21,7 @@ export const RequestsHistoryContainer = ({
 }: HTMLProps<HTMLElement>) => {
   const { filters, handleFiltersChange } =
     useFilters<IFilters>(DEFAULT_FILTERS);
+  const searchParams = useSearchParams();
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -31,6 +33,10 @@ export const RequestsHistoryContainer = ({
   });
 
   const { data, isFetching } = useGetRequestsHistoryQuery(params);
+  const initialRequestId = (() => {
+    const parsedRequestId = Number(searchParams.get('requestId'));
+    return Number.isFinite(parsedRequestId) ? parsedRequestId : undefined;
+  })();
 
   const updateFilters = <Key extends keyof IFilters>(
     key: Key,
@@ -51,6 +57,7 @@ export const RequestsHistoryContainer = ({
         isLoading={isFetching}
         pagination={pagination}
         onPaginationChange={setPagination}
+        initialRequestId={initialRequestId}
       />
     </section>
   );

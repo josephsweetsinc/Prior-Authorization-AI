@@ -12,6 +12,7 @@ type Props = {
   pagination: PaginationState;
   onPaginationChange: (_state: PaginationState) => void;
   isLoading?: boolean;
+  initialRequestId?: number;
 };
 
 export const RequestsTable = ({
@@ -19,9 +20,10 @@ export const RequestsTable = ({
   isLoading,
   pagination,
   onPaginationChange,
+  initialRequestId,
 }: Props) => {
   const { details, handleDetailsClick, handleDetailsClose } =
-    useRequestDetails();
+    useRequestDetails(initialRequestId);
 
   const columns = useGetColumns({
     onDetailsClick: handleDetailsClick,

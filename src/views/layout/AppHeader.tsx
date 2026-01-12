@@ -19,8 +19,17 @@ import {
   HeaderProfile,
   type ProfileAction,
 } from '@/shared/components';
+import { cn } from '@/shared/lib/utils';
 
-export const AppHeader = () => {
+type AppHeaderProps = {
+  isSearchOpen?: boolean;
+  onSearchOpenChange?: (_open: boolean) => void;
+};
+
+export const AppHeader = ({
+  isSearchOpen,
+  onSearchOpenChange,
+}: AppHeaderProps) => {
   const { isOpen, isLoading, open, close, confirm } = useLogoutModal();
   const { data: currentUser, isLoading: isUserLoading } =
     useGetCurrentUserQuery();
@@ -46,36 +55,43 @@ export const AppHeader = () => {
 
   return (
     <>
-      <Header className='row-span-1 mx-10 mt-9'>
+      <Header
+        className={cn('relative z-20 row-span-1 mx-10 mt-9', {
+          'z-30': isSearchOpen,
+        })}
+      >
         <GlobalSearch
           size='medium'
           placeholder='Search patients or requests'
-          disabled
+          isOpen={isSearchOpen}
+          onOpenChange={onSearchOpenChange}
         />
 
-        <HeaderGroup separate>
-          {currentUser?.role !== 'admin' && (
-            <HeaderActions>
-              <Button variant='ghost' size='icon' asChild>
-                <Link href='/settings'>
-                  <Settings className='text-status-info size-5' />
-                </Link>
-              </Button>
-              <Button variant='ghost' size='icon'>
-                <Link href='/notifications'>
-                  <BellDot className='text-status-destructive size-5' />
-                </Link>
-              </Button>
-            </HeaderActions>
-          )}
-          <HeaderProfile
-            src={avatarSrc}
-            name={displayName}
-            role={profileRole}
-            actions={profileActions}
-            isLoading={isUserLoading}
-          />
-        </HeaderGroup>
+        {!isSearchOpen ? (
+          <HeaderGroup separate>
+            {currentUser?.role !== 'admin' && (
+              <HeaderActions>
+                <Button variant='ghost' size='icon' asChild>
+                  <Link href='/settings'>
+                    <Settings className='text-status-info size-5' />
+                  </Link>
+                </Button>
+                <Button variant='ghost' size='icon'>
+                  <Link href='/notifications'>
+                    <BellDot className='text-status-destructive size-5' />
+                  </Link>
+                </Button>
+              </HeaderActions>
+            )}
+            <HeaderProfile
+              src={avatarSrc}
+              name={displayName}
+              role={profileRole}
+              actions={profileActions}
+              isLoading={isUserLoading}
+            />
+          </HeaderGroup>
+        ) : null}
       </Header>
       <LogoutModal
         isOpen={isOpen}
