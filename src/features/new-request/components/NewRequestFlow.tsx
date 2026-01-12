@@ -18,6 +18,7 @@ import {
   getErrorMessage,
   useCreateRequest,
 } from '@/services/new-request';
+import { useGetRequestDetailsQuery } from '@/services/requests';
 import { TitleAndDesc, Window } from '@/shared/components';
 import { Stepper } from '@/shared/components/stepper/stepper';
 import { InfoStep } from '@/views/new-request/info-step';
@@ -25,12 +26,28 @@ import { ReviewStep } from '@/views/new-request/review-step';
 import { UploadStep } from '@/views/new-request/upload-step';
 
 import { TOTAL_STEPS } from '../constants';
+import { useHydrateDraft } from '../hooks/useHydrateDraft';
 import { useNewRequestFlow } from '../hooks/useNewRequestFlow';
 
-export function NewRequestFlow() {
+import { InfoStepSkeleton } from './InfoStepSkeleton';
+
+interface Props {
+  draftId?: number;
+}
+
+export function NewRequestFlow({ draftId }: Props) {
+  const {
+    data: draft,
+    isSuccess,
+    isLoading,
+  } = useGetRequestDetailsQuery(draftId!, {
+    skip: !draftId,
+  });
   const stored = useSelector(selectNewRequest);
 
   const dispatch = useDispatch();
+
+  useHydrateDraft({ draftId: draftId, draft, isSuccess });
 
   const handleExtractionReady = (data: IUploadAndExtractionResult) =>
     dispatch(setExtractionResult(data));
@@ -47,6 +64,7 @@ export function NewRequestFlow() {
     isExtractionComplete,
   } = useNewRequestFlow({
     totalSteps: TOTAL_STEPS,
+    initialStep: draftId ? 2 : 1,
     initialExtractedData: stored.extractedData,
     initialExtractionResult: stored.extractionResult,
     onExtractionReady: handleExtractionReady,
@@ -100,12 +118,17 @@ export function NewRequestFlow() {
     }
 
     if (step === 2) {
+      if (draftId && isLoading) {
+        return <InfoStepSkeleton />;
+      }
+
       return (
         <InfoStep
           onBack={prev}
           onNext={handleInfoNext}
           initialValues={extractedData}
           isComplete={Boolean(extractionResult?.is_complete)}
+          hideBackButton={isSuccess ? true : false}
         />
       );
     }

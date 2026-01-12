@@ -10,6 +10,7 @@ import type { MediaItem } from '@/shared/components/upload/Uploader';
 
 interface Params {
   totalSteps: number;
+  initialStep?: number;
   initialExtractedData?: Partial<IExtractedData> | null;
   initialExtractionResult?: IUploadAndExtractionResult | null;
   // eslint-disable-next-line no-unused-vars
@@ -17,12 +18,13 @@ interface Params {
 }
 
 export const useNewRequestFlow = ({
+  initialStep = 1,
   totalSteps,
   initialExtractedData = null,
   initialExtractionResult = null,
   onExtractionReady,
 }: Params) => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(initialStep);
   const [isReviewEditing, setIsReviewEditing] = useState(false);
   const [extractedData, setExtractedData] = useState(initialExtractedData);
 
