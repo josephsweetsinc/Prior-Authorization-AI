@@ -7,6 +7,7 @@ export type RequestStatus =
 
 export interface RecentRequest {
   id: number;
+  patient_id: string;
   patient_full_name: string;
   diagnosis: string;
   status: RequestStatus;

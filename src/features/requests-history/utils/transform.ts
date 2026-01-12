@@ -44,11 +44,6 @@ export const getRequestDetailsBlocks = (data?: IRequestDetails): IDetail[] => {
       className: 'shrink grow basis-[288px]',
     },
     {
-      label: 'Patient ID',
-      value: data.patient_id.toString(),
-      className: 'shrink grow basis-[288px]',
-    },
-    {
       label: 'Pickup Address',
       value: data.pickup_address,
       className: 'shrink grow basis-[288px]',
