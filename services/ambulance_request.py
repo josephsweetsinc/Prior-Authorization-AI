@@ -662,6 +662,27 @@ class AmbulanceRequestService(BaseService):
             for entry in history
         ]
 
+    async def search_by_patient_id_and_name(
+        self,
+        *,
+        patient_id: str | None = None,
+        patient_name: str | None = None,
+    ) -> list[int]:
+        """Search request IDs by patient ID and/or name.
+
+        Args:
+            patient_id: Optional patient ID to search for.
+            patient_name: Optional patient name to search for.
+
+        Returns:
+            List of request IDs matching the criteria.
+
+        """
+        return await self._request_dao.search_by_patient_id_and_name(
+            patient_id=patient_id,
+            patient_name=patient_name,
+        )
+
     async def update_request_status(
         self,
         request_id: int,
