@@ -158,7 +158,7 @@ async def create_request(
 )
 @exception_handler
 async def search_requests(
-    user: Annotated[User, Security(get_admin_user_from_token)],
+    user: Annotated[User, Security(get_current_user)],
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
