@@ -86,6 +86,7 @@ class DashboardService(BaseService):
         recent_requests = [
             RecentRequestItemSchema(
                 id=request.id,
+                patient_id=request.patient_id,
                 patient_full_name=request.patient_full_name,
                 diagnosis=request.primary_diagnosis,
                 status=request.status,
@@ -273,6 +274,7 @@ class DashboardService(BaseService):
         recent_requests = [
             RecentRequestItemSchema(
                 id=request.id,
+                patient_id=request.patient_id,
                 patient_full_name=request.patient_full_name,
                 diagnosis=request.primary_diagnosis,
                 status=request.status,
