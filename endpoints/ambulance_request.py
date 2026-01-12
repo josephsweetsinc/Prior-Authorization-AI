@@ -1,7 +1,15 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
 from fastapi.params import Security
 
 from core import exception_handler, get_service, timing_handler
@@ -181,14 +189,11 @@ async def search_requests(
         SearchRequestsResponseSchema: List of request IDs.
 
     Raises:
-        HTTPException: If both parameters are None.
+        AmbulanceRequestSearchParametersMissingException: If both parameters are None.
 
     """
     if patient_id is None and patient_name is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='At least one of patient_id or patient_name must be provided',
-        )
+        raise AmbulanceRequestSearchParametersMissingException()
 
     request_ids = await service.search_by_patient_id_and_name(
         patient_id=patient_id,

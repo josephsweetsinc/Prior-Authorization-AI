@@ -330,7 +330,9 @@ class AmbulanceRequestDAO(BaseDAO):
         )
 
         if patient_id is not None:
-            stmt = stmt.where(AmbulanceRequest.patient_id.ilike(f'%{patient_id}%'))
+            stmt = stmt.where(
+                AmbulanceRequest.patient_id.ilike(f'%{patient_id}%')
+            )
 
         if patient_name is not None:
             search_pattern = f'%{patient_name}%'

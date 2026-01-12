@@ -116,3 +116,14 @@ class AmbulanceRequestInvalidStatusException(AmbulanceRequestException):
             status_code=400,
             detail=detail,
         )
+
+
+class AmbulanceRequestSearchParametersMissingException(AmbulanceRequestException):
+    """Exception raised when search parameters are missing."""
+
+    def __init__(self) -> None:
+        """Initialize AmbulanceRequestSearchParametersMissingException."""
+        super().__init__(
+            status_code=400,
+            detail='At least one of patient_id or patient_name must be provided',
+        )
