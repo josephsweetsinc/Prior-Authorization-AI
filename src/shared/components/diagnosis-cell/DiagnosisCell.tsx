@@ -2,6 +2,8 @@ import { type HTMLProps } from 'react';
 
 import { cn } from '@/shared/lib/utils';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip/tooltip';
+
 type Props = {
   diagnosis: string;
   limit?: number;
@@ -14,10 +16,15 @@ export const DiagnosisCell = ({
   ...props
 }: Props) => {
   return (
-    <span className={cn('text-base text-black', className)} {...props}>
-      {diagnosis?.length >= limit
-        ? `${diagnosis.substring(0, limit)}...`
-        : diagnosis}
-    </span>
+    <Tooltip>
+      <TooltipTrigger>
+        <span className={cn('text-base text-black', className)} {...props}>
+          {diagnosis?.length >= limit
+            ? `${diagnosis.substring(0, limit)}...`
+            : diagnosis}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>{diagnosis}</TooltipContent>
+    </Tooltip>
   );
 };
