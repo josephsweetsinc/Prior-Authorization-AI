@@ -12,6 +12,7 @@ from endpoints import (
     organization_router,
     stats_router,
     user_router,
+    report_router,
 )
 
 settings = Settings.load()
@@ -55,5 +56,10 @@ def initialize_routers() -> APIRouter:
         stats_router,
         prefix='/stats',
         tags=['stats'],
+    )
+    main_api_router.include_router(
+        report_router,
+        prefix='/report',
+        tags=['report'],
     )
     return main_api_router

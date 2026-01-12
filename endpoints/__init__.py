@@ -6,6 +6,7 @@ from .notification import notification_router
 from .organization import organization_router
 from .stats import stats_router
 from .user import user_router
+from .reports import report_router
 
 __all__ = [
     'ambulance_request_router',
@@ -16,4 +17,5 @@ __all__ = [
     'organization_router',
     'stats_router',
     'user_router',
+    'report_router',
 ]
