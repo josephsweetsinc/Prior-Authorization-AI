@@ -1,5 +1,4 @@
 import { type PaginationState } from '@tanstack/react-table';
-import { useEffect, useRef } from 'react';
 
 import { type IRequestHistoryResponse } from '@/services/requests';
 import { DataTable } from '@/shared/components';
@@ -24,17 +23,7 @@ export const RequestsTable = ({
   initialRequestId,
 }: Props) => {
   const { details, handleDetailsClick, handleDetailsClose } =
-    useRequestDetails();
-  const lastOpenedRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!initialRequestId || lastOpenedRef.current === initialRequestId) {
-      return;
-    }
-
-    handleDetailsClick(initialRequestId);
-    lastOpenedRef.current = initialRequestId;
-  }, [handleDetailsClick, initialRequestId]);
+    useRequestDetails(initialRequestId);
 
   const columns = useGetColumns({
     onDetailsClick: handleDetailsClick,

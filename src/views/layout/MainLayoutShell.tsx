@@ -20,13 +20,13 @@ export const MainLayoutShell = ({ children }: MainLayoutShellProps) => {
           onSearchOpenChange={setIsSearchOpen}
         />
         <main className='max-h-dvh overflow-y-auto p-10'>{children}</main>
-        {isSearchOpen ? (
+        {isSearchOpen && (
           <div
             className='absolute inset-0 z-10 bg-[#D5D5D51A] backdrop-blur-xs'
             onClick={() => setIsSearchOpen(false)}
             aria-hidden='true'
           />
-        ) : null}
+        )}
       </div>
     </div>
   );

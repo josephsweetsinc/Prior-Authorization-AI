@@ -2,8 +2,14 @@
 
 import { cva, type VariantProps } from 'class-variance-authority';
 import { useRouter } from 'next/navigation';
-import * as React from 'react';
-import { forwardRef } from 'react';
+import {
+  forwardRef,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { useIsAdmin, useSearchRequestsByPatientQuery } from '@/services';
 import { cn } from '@/shared/lib/utils';
@@ -11,7 +17,17 @@ import { cn } from '@/shared/lib/utils';
 import { Input } from '../inputs';
 
 import { fallbackResults } from './constants';
-import type { GlobalSearchResultGroup, GlobalSearchResultItem } from './types';
+import type {
+  GlobalSearchControlProps,
+  GlobalSearchResultGroup,
+  GlobalSearchResultItem,
+  SearchResultsPanelProps,
+} from './types';
+import {
+  buildSearchPayload,
+  buildSearchResults,
+  DEBOUNCE_DELAY_MS,
+} from './utils';
 
 const globalSearchVariants = cva('min-w-[288px] w-full', {
   variants: {
@@ -26,13 +42,86 @@ const globalSearchVariants = cva('min-w-[288px] w-full', {
   },
 });
 
+const SearchResultsPanel = ({
+  isOpen,
+  isSearching,
+  trimmedValue,
+  hasResults,
+  displayResults,
+  onItemClick,
+}: SearchResultsPanelProps) => {
+  if (!isOpen) {
+    return null;
+  }
+
+  let content: ReactNode = (
+    <div className='space-y-2'>
+      {displayResults.map((group, groupIndex) => (
+        <div key={group.title ?? `group-${groupIndex}`}>
+          {group.title ? (
+            <p className='px-3 py-2 text-xs font-semibold tracking-wide text-slate-400 uppercase'>
+              {group.title}
+            </p>
+          ) : null}
+          <div className='space-y-1'>
+            {group.items.map((item) => (
+              <button
+                key={item.id}
+                type='button'
+                onClick={() => onItemClick(item)}
+                className='flex w-full flex-col gap-1 rounded-xl px-3 py-2 text-left transition hover:bg-[#EAF7FE]'
+              >
+                <span className='text-sm font-medium text-slate-800'>
+                  {item.title}
+                </span>
+                {item.subtitle ? (
+                  <span className='text-xs text-slate-500'>
+                    {item.subtitle}
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (isSearching) {
+    content = (
+      <div className='px-4 py-6 text-center text-sm text-slate-500'>
+        Searching...
+      </div>
+    );
+  } else if (trimmedValue.length === 0) {
+    content = (
+      <div className='px-4 py-6 text-center text-sm text-slate-500'>
+        Start typing to search patients or requests.
+      </div>
+    );
+  } else if (!hasResults) {
+    content = (
+      <div className='px-4 py-6 text-center text-sm text-slate-500'>
+        No matches yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className='absolute top-full right-0 left-0 z-40 mt-3 rounded-2xl border border-slate-100 bg-white p-2 shadow-[0_20px_60px_rgba(15,23,42,0.16)]'>
+      <div className='custom-scrollbar max-h-[360px] overflow-y-auto px-1 py-1'>
+        {content}
+      </div>
+    </div>
+  );
+};
+
 export type GlobalSearchProps = Omit<
   React.ComponentPropsWithoutRef<typeof Input>,
   'size'
 > &
-  VariantProps<typeof globalSearchVariants> & {
-    isOpen?: boolean;
-    onOpenChange?: (_open: boolean) => void;
+  VariantProps<typeof globalSearchVariants> &
+  GlobalSearchControlProps & {
     results?: GlobalSearchResultGroup[];
     isLoading?: boolean;
   };
@@ -42,10 +131,10 @@ const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(
     {
       className,
       size,
-      isOpen: controlledOpen,
+      isOpen,
       onOpenChange,
       results,
-      isLoading,
+      isLoading: _isLoading,
       value,
       onChange,
       onFocus,
@@ -55,27 +144,22 @@ const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(
     },
     ref,
   ) => {
-    const [internalValue, setInternalValue] = React.useState('');
-    const [debouncedValue, setDebouncedValue] = React.useState('');
-    const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
-    const rootRef = React.useRef<HTMLDivElement>(null);
+    const [internalValue, setInternalValue] = useState('');
+    const [debouncedValue, setDebouncedValue] = useState('');
+    const rootRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
     const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
-    const isOpen = controlledOpen ?? uncontrolledOpen;
     const inputValue = value ?? internalValue;
     const shouldUseQuery = results === undefined;
 
-    const setOpen = React.useCallback(
+    const setOpen = useCallback(
       (nextOpen: boolean) => {
-        if (controlledOpen === undefined) {
-          setUncontrolledOpen(nextOpen);
-        }
-        onOpenChange?.(nextOpen);
+        onOpenChange(nextOpen);
       },
-      [controlledOpen, onOpenChange],
+      [onOpenChange],
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
       if (!isOpen) {
         return;
       }
@@ -116,60 +200,36 @@ const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(
 
     const trimmedValue = `${inputValue ?? ''}`.trim();
 
-    React.useEffect(() => {
+    useEffect(() => {
       const handler = window.setTimeout(() => {
         setDebouncedValue(trimmedValue);
-      }, 250);
+      }, DEBOUNCE_DELAY_MS);
 
       return () => {
         window.clearTimeout(handler);
       };
     }, [trimmedValue]);
 
-    const numericQuery = debouncedValue.length
-      ? /^[0-9]+$/.test(debouncedValue)
-      : false;
+    const shouldSkipSearch = !shouldUseQuery || debouncedValue.length === 0;
 
     const { data: searchData, isFetching } = useSearchRequestsByPatientQuery(
-      debouncedValue
-        ? {
-            patient_id: numericQuery ? debouncedValue : undefined,
-            patient_name: numericQuery ? undefined : debouncedValue,
-          }
-        : undefined,
+      buildSearchPayload(debouncedValue),
       {
-        skip: !shouldUseQuery || debouncedValue.length === 0,
+        skip: shouldSkipSearch,
       },
     );
 
-    const fetchedResults: GlobalSearchResultGroup[] | undefined = searchData
-      ?.request_ids?.length
-      ? [
-          {
-            title: 'Requests',
-            items: searchData.request_ids.map((id) => ({
-              id: `request-${id}`,
-              requestId: id,
-              title: `Request #${id}`,
-              subtitle: 'Patient match',
-            })),
-          },
-        ]
-      : [];
+    const fetchedResults = buildSearchResults(searchData?.request_ids);
 
     const displayResults =
       results ??
       (shouldUseQuery ? fetchedResults : undefined) ??
       fallbackResults;
     const hasResults = displayResults.some((group) => group.items.length > 0);
-    const isSearching = isLoading ?? isFetching;
+    const isSearching = isFetching;
 
     const handleResultClick = (item: GlobalSearchResultItem) => {
-      if (!item.requestId) {
-        return;
-      }
-
-      if (isAdminLoading) {
+      if (!item.requestId || isAdminLoading) {
         return;
       }
 
@@ -211,56 +271,14 @@ const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(
           {...props}
         />
 
-        {isOpen && (
-          <div className='absolute top-full right-0 left-0 z-40 mt-3 rounded-2xl border border-slate-100 bg-white p-2 shadow-[0_20px_60px_rgba(15,23,42,0.16)]'>
-            <div className='custom-scrollbar max-h-[360px] overflow-y-auto px-1 py-1'>
-              {isSearching ? (
-                <div className='px-4 py-6 text-center text-sm text-slate-500'>
-                  Searching...
-                </div>
-              ) : trimmedValue.length === 0 ? (
-                <div className='px-4 py-6 text-center text-sm text-slate-500'>
-                  Start typing to search patients or requests.
-                </div>
-              ) : !hasResults ? (
-                <div className='px-4 py-6 text-center text-sm text-slate-500'>
-                  No matches yet.
-                </div>
-              ) : (
-                <div className='space-y-2'>
-                  {displayResults.map((group, groupIndex) => (
-                    <div key={group.title ?? `group-${groupIndex}`}>
-                      {group.title ? (
-                        <p className='px-3 py-2 text-xs font-semibold tracking-wide text-slate-400 uppercase'>
-                          {group.title}
-                        </p>
-                      ) : null}
-                      <div className='space-y-1'>
-                        {group.items.map((item) => (
-                          <button
-                            key={item.id}
-                            type='button'
-                            onClick={() => handleResultClick(item)}
-                            className='flex w-full flex-col gap-1 rounded-xl px-3 py-2 text-left transition hover:bg-[#EAF7FE]'
-                          >
-                            <span className='text-sm font-medium text-slate-800'>
-                              {item.title}
-                            </span>
-                            {item.subtitle ? (
-                              <span className='text-xs text-slate-500'>
-                                {item.subtitle}
-                              </span>
-                            ) : null}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        <SearchResultsPanel
+          isOpen={isOpen}
+          isSearching={isSearching}
+          trimmedValue={trimmedValue}
+          hasResults={hasResults}
+          displayResults={displayResults}
+          onItemClick={handleResultClick}
+        />
       </div>
     );
   },

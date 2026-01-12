@@ -33,11 +33,10 @@ export const RequestsHistoryContainer = ({
   });
 
   const { data, isFetching } = useGetRequestsHistoryQuery(params);
-  const requestIdParam = searchParams.get('requestId');
-  const parsedRequestId = requestIdParam ? Number(requestIdParam) : undefined;
-  const initialRequestId = Number.isFinite(parsedRequestId)
-    ? parsedRequestId
-    : undefined;
+  const initialRequestId = (() => {
+    const parsedRequestId = Number(searchParams.get('requestId'));
+    return Number.isFinite(parsedRequestId) ? parsedRequestId : undefined;
+  })();
 
   const updateFilters = <Key extends keyof IFilters>(
     key: Key,
