@@ -3,6 +3,7 @@
 import io
 import logging
 from datetime import date
+from typing import Any
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font
@@ -79,7 +80,7 @@ class ReportService(BaseService):
 
         """
         if start_date > end_date:
-            raise ValueError('start_date must be <= end_date')
+            raise ValueError('start_date must be <= end_date')  # noqa: TRY003
 
     async def _get_current_statistics(self) -> RequestCountDTO:
         """Get current statistics for all requests.
@@ -96,12 +97,12 @@ class ReportService(BaseService):
         )
 
     def _generate_report_name(
-        self, format: ReportFormat, period_start: date, period_end: date
+        self, file_format: ReportFormat, period_start: date, period_end: date
     ) -> str:
         """Generate report name.
 
         Args:
-            format: Report format.
+            file_format: Report format.
             period_start: Period start date.
             period_end: Period end date.
 
@@ -109,8 +110,8 @@ class ReportService(BaseService):
             Report name string.
 
         """
-        date_str = f'{period_start.strftime("%Y-%m-%d")}_to_{period_end.strftime("%Y-%m-%d")}'
-        return f'Report_{date_str}.{format.value}'
+        date_str = f'{period_start.strftime("%Y-%m-%d")}_to_{period_end.strftime("%Y-%m-%d")}'  # noqa: E501
+        return f'Report_{date_str}.{file_format.value}'
 
     def _generate_pdf_report(
         self,
@@ -131,7 +132,7 @@ class ReportService(BaseService):
         """
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
-        story = []
+        story: list[Any] = []
         styles = getSampleStyleSheet()
 
         # Title
@@ -193,6 +194,9 @@ class ReportService(BaseService):
         """
         wb = Workbook()
         ws = wb.active
+        if ws is None:
+            raise RuntimeError('Failed to get active worksheet')  # noqa: TRY003
+
         ws.title = 'Report'
 
         # Title
@@ -209,7 +213,7 @@ class ReportService(BaseService):
             cell.font = Font(bold=True)
             cell.alignment = Alignment(horizontal='left')
 
-        data = [
+        data: list[list[str | int | float]] = [
             ['Total Requests', statistics.total_requests],
             ['Approved Requests', statistics.approved_all],
             ['Denied Requests', statistics.denied_all],
@@ -233,7 +237,7 @@ class ReportService(BaseService):
     async def generate_report(
         self,
         *,
-        format: ReportFormat,
+        file_format: ReportFormat,
         start_date: date,
         end_date: date,
         created_by_id: int,
@@ -241,7 +245,7 @@ class ReportService(BaseService):
         """Generate a report.
 
         Args:
-            format: Report format (PDF or Excel).
+            file_format: Report format (PDF or Excel).
             start_date: Start date for report period.
             end_date: End date for report period.
             created_by_id: ID of the user creating the report.
@@ -259,18 +263,22 @@ class ReportService(BaseService):
         statistics = await self._get_current_statistics()
 
         # Generate report file
-        if format == ReportFormat.PDF:
+        if file_format == ReportFormat.PDF:
             file_bytes = self._generate_pdf_report(
                 start_date, end_date, statistics
             )
-            file_name = self._generate_report_name(format, start_date, end_date)
+            file_name = self._generate_report_name(
+                file_format, start_date, end_date
+            )
             content_type = 'application/pdf'
         else:  # Excel
             file_bytes = self._generate_excel_report(
                 start_date, end_date, statistics
             )
-            file_name = self._generate_report_name(format, start_date, end_date)
-            content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            file_name = self._generate_report_name(
+                file_format, start_date, end_date
+            )
+            content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # noqa: E501
 
         # Upload to S3
         file_obj = io.BytesIO(file_bytes)
@@ -283,10 +291,12 @@ class ReportService(BaseService):
         )
 
         # Create report record
-        report_name = self._generate_report_name(format, start_date, end_date)
+        report_name = self._generate_report_name(
+            file_format, start_date, end_date
+        )
         report = await self._report_dao.create(
             name=report_name,
-            format=format.value,
+            file_format=file_format.value,
             s3_key=s3_key,
             created_by_id=created_by_id,
             period_start=start_date,
@@ -373,7 +383,8 @@ class ReportService(BaseService):
                 name=report.name,
                 format=ReportFormat(report.format),
                 created_at=report.created_at,
-                created_by_full_name=f'{report.created_by.name} {report.created_by.surname}',
+                created_by_full_name=f'{report.created_by.name} '
+                f'{report.created_by.surname}',
                 s3_key=report.s3_key,
             )
             for report in reports

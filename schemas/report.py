@@ -42,7 +42,8 @@ class ReportStatisticsSchema(BaseModel):
     total_requests_change: Annotated[
         float,
         Field(
-            description='Change in total requests compared to previous report (%)'
+            description='Change in total requests '
+            'compared to previous report (%)'
         ),
     ]
     approved_requests: Annotated[
@@ -52,7 +53,8 @@ class ReportStatisticsSchema(BaseModel):
     approved_requests_change: Annotated[
         float,
         Field(
-            description='Change in approved requests compared to previous report (%)'
+            description='Change in approved requests'
+            ' compared to previous report (%)'
         ),
     ]
     denied_requests: Annotated[
@@ -62,7 +64,8 @@ class ReportStatisticsSchema(BaseModel):
     denied_requests_change: Annotated[
         float,
         Field(
-            description='Change in denied requests compared to previous report (%)'
+            description='Change in denied requests'
+            ' compared to previous report (%)'
         ),
     ]
     pending_requests: Annotated[
@@ -72,7 +75,8 @@ class ReportStatisticsSchema(BaseModel):
     pending_requests_change: Annotated[
         float,
         Field(
-            description='Change in pending requests compared to previous report (%)'
+            description='Change in pending requests'
+            ' compared to previous report (%)'
         ),
     ]
 

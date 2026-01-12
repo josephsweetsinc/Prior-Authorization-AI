@@ -38,7 +38,9 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
     "ruff>=0.14.6",
+    "types-openpyxl>=3.1.0",
     "types-python-jose>=3.5.0.20250531",
+    "types-reportlab>=1.0.0",
 ]
 
 [tool.mypy]

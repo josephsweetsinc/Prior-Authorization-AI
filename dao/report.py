@@ -14,7 +14,7 @@ class ReportDAO(BaseDAO):
         self,
         *,
         name: str,
-        format: str,
+        file_format: str,
         s3_key: str,
         created_by_id: int,
         period_start: date,
@@ -28,7 +28,7 @@ class ReportDAO(BaseDAO):
 
         Args:
             name: Report name.
-            format: Report format (pdf or excel).
+            file_format: Report format (pdf or excel).
             s3_key: S3 key for the report file.
             created_by_id: ID of the user who created the report.
             period_start: Start date of the report period.
@@ -44,7 +44,7 @@ class ReportDAO(BaseDAO):
         """
         report = Report(
             name=name,
-            format=format,
+            format=file_format,
             s3_key=s3_key,
             created_by_id=created_by_id,
             period_start=period_start,

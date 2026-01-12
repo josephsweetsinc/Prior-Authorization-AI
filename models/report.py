@@ -31,7 +31,8 @@ class Report(BaseIdMixin, BaseTimeStampMixin):
     - total_requests: Total number of requests at report creation time.
     - approved_requests: Number of approved requests at report creation time.
     - denied_requests: Number of denied requests at report creation time.
-    - pending_requests: Number of pending/submitted requests at report creation time.
+    - pending_requests: Number of pending/submitted
+     requests at report creation time.
     """
 
     __tablename__ = 'reports'
