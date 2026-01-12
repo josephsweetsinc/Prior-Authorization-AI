@@ -76,7 +76,7 @@ export const RequestDetails = ({
           subtitleClassName='text-xs md:text-sm lg:text-base xl:text-lg'
         />
         <section className='my-5 flex flex-wrap items-end justify-between gap-8'>
-          <DataBlock label='MRN' value={data.id.toString()} />
+          <DataBlock label='MRN' value={data.patient_id.toString()} />
           <StatusChip status={data.status} />
         </section>
         <Separator className='bg-gray-200' />
