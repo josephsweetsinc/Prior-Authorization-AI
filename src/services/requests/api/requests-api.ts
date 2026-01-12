@@ -145,8 +145,10 @@ export const {
   useGetAuthorizationRequestsQuery,
   useGetRequestsHistoryQuery,
   useGetRequestDetailsQuery,
-  useSearchRequestsByPatientQuery,
   useApproveRequestMutation,
   useDenyRequestMutation,
   useUpdateRequestMutation,
 } = requestsApi;
+
+export const useSearchRequestsByPatientQuery =
+  requestsApi.endpoints.searchRequestsByPatient.useQuery;

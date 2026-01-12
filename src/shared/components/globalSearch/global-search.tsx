@@ -4,7 +4,6 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { forwardRef } from 'react';
-import { toast } from 'react-toastify';
 
 import { useIsAdmin, useSearchRequestsByPatientQuery } from '@/services';
 import { cn } from '@/shared/lib/utils';
@@ -214,7 +213,7 @@ const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(
       if (isAdmin) {
         router.push(`/requests/${item.requestId}`);
       } else {
-        toast.info('Provider view will be added soon.');
+        router.push(`/requests-history?requestId=${item.requestId}`);
       }
 
       setOpen(false);
