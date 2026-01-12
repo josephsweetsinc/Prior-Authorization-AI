@@ -42,7 +42,7 @@ export type GlobalSearchProps = Omit<
 > &
   VariantProps<typeof globalSearchVariants> & {
     isOpen?: boolean;
-    onOpenChange?: (open: boolean) => void;
+    onOpenChange?: (_open: boolean) => void;
     results?: GlobalSearchResultGroup[];
     isLoading?: boolean;
   };
