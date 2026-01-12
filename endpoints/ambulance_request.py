@@ -5,10 +5,8 @@ from fastapi import (
     APIRouter,
     Depends,
     File,
-    HTTPException,
     Query,
     UploadFile,
-    status,
 )
 from fastapi.params import Security
 
@@ -18,6 +16,7 @@ from dependencies import (
     get_current_user,
     get_provider_user_from_token,
 )
+from exceptions import AmbulanceRequestSearchParametersMissingException
 from models import RequestStatus, User
 from schemas.ambulance_request import (
     AdminRequestWithStatusHistorySchema,
@@ -170,7 +169,7 @@ async def search_requests(
     ),
     patient_name: str | None = Query(
         None,
-        description='Patient name to search for (matches first name, last name, or full name combination)',
+        description='Patient name to search for (matches first name',
         examples=['John', 'Doe', 'John Doe'],
     ),
 ) -> SearchRequestsResponseSchema:
@@ -189,11 +188,12 @@ async def search_requests(
         SearchRequestsResponseSchema: List of request IDs.
 
     Raises:
-        AmbulanceRequestSearchParametersMissingException: If both parameters are None.
+        AmbulanceRequestSearchParametersMissingException: If both parameters
+         are None.
 
     """
     if patient_id is None and patient_name is None:
-        raise AmbulanceRequestSearchParametersMissingException()
+        raise AmbulanceRequestSearchParametersMissingException
 
     request_ids = await service.search_by_patient_id_and_name(
         patient_id=patient_id,

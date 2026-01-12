@@ -319,7 +319,7 @@ class AmbulanceRequestDAO(BaseDAO):
 
         Args:
             patient_id: Optional patient ID to search for.
-            patient_name: Optional patient name to search for (matches first or last name).
+            patient_name: Optional patient name to search for (matches name).
 
         Returns:
             List of request IDs matching the criteria.
