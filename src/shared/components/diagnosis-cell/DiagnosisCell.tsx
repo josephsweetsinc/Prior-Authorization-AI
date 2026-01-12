@@ -21,7 +21,7 @@ export const DiagnosisCell = ({
         -
       </span>
     );
-  } else if (diagnosis.length > limit) {
+  } else if (diagnosis.length < limit) {
     return (
       <span className={cn('text-base text-black', className)} {...props}>
         {diagnosis}
