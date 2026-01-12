@@ -42,6 +42,15 @@ export interface AuthorizationRequestsParams {
   days?: number;
 }
 
+export interface SearchRequestsByPatientParams {
+  patient_id?: string | null;
+  patient_name?: string | null;
+}
+
+export interface SearchRequestsByPatientResponse {
+  request_ids: number[];
+}
+
 export type TransportationType =
   | 'ambulance'
   | 'wheelchair'
