@@ -23,7 +23,7 @@ export const useGetColumns = ({
       header: () => <TableHeadCell>Patient</TableHeadCell>,
     },
     {
-      accessorKey: 'id',
+      accessorKey: 'patient_id',
       header: () => <TableHeadCell>MRN</TableHeadCell>,
       cell: ({ getValue }) => (
         <span className='font-bold text-black'>{getValue<string>()}</span>
