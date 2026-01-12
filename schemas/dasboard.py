@@ -47,6 +47,13 @@ class RecentRequestItemSchema(BaseModel):
         int,
         Field(description='Unique identifier of the ambulance request.'),
     ]
+    patient_id: Annotated[
+        str,
+        Field(
+            description='Patient ID.',
+            examples=['1EG4-TE5-MK72'],
+        ),
+    ]
     patient_full_name: Annotated[
         str,
         Field(
