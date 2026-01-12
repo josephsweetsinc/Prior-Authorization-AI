@@ -66,3 +66,4 @@ export {
 export { DiagnosisCell } from './diagnosis-cell';
 export { SearchFilter } from './search-filter';
 export { RequestAction } from './request-action';
+export * from './tooltip';
