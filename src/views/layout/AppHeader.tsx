@@ -22,8 +22,8 @@ import {
 import { cn } from '@/shared/lib/utils';
 
 type AppHeaderProps = {
-  isSearchOpen?: boolean;
-  onSearchOpenChange?: (_open: boolean) => void;
+  isSearchOpen: boolean;
+  onSearchOpenChange: (_open: boolean) => void;
 };
 
 export const AppHeader = ({
@@ -36,6 +36,7 @@ export const AppHeader = ({
   const displayName = getDisplayName(currentUser);
   const profileRole = getProfileRole(currentUser);
   const avatarSrc = currentUser?.avatar_url || null;
+  const searchOpen = Boolean(isSearchOpen);
 
   const profileActions: ProfileAction[] = [
     {
@@ -57,17 +58,17 @@ export const AppHeader = ({
     <>
       <Header
         className={cn('relative z-20 row-span-1 mx-10 mt-9', {
-          'z-30': isSearchOpen,
+          'z-30': searchOpen,
         })}
       >
         <GlobalSearch
           size='medium'
           placeholder='Search patients or requests'
-          isOpen={isSearchOpen}
+          isOpen={searchOpen}
           onOpenChange={onSearchOpenChange}
         />
 
-        {!isSearchOpen ? (
+        {!searchOpen ? (
           <HeaderGroup separate>
             {currentUser?.role !== 'admin' && (
               <HeaderActions>
