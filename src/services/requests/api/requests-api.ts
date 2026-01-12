@@ -8,6 +8,8 @@ import type {
   IRequestHistoryParams,
   IRequestHistoryResponse,
   RequestUpdatePayload,
+  SearchRequestsByPatientParams,
+  SearchRequestsByPatientResponse,
 } from '../types';
 
 export const requestsApi = baseApi.injectEndpoints({
@@ -67,6 +69,22 @@ export const requestsApi = baseApi.injectEndpoints({
       query: (id) => `/ambulance-request/${id}`,
       keepUnusedDataFor: 300,
       providesTags: (result) => [{ type: 'RequestDetails', id: result?.id }],
+    }),
+    searchRequestsByPatient: builder.query<
+      SearchRequestsByPatientResponse,
+      SearchRequestsByPatientParams | void
+    >({
+      query: (params) => {
+        const { patient_id, patient_name } = params ?? {};
+
+        return {
+          url: '/ambulance-request/search',
+          params: {
+            patient_id,
+            patient_name,
+          },
+        };
+      },
     }),
     approveRequest: builder.mutation<IRequest, number>({
       query: (id) => ({
@@ -131,3 +149,6 @@ export const {
   useDenyRequestMutation,
   useUpdateRequestMutation,
 } = requestsApi;
+
+export const useSearchRequestsByPatientQuery =
+  requestsApi.endpoints.searchRequestsByPatient.useQuery;
