@@ -28,6 +28,7 @@ from models import (  # noqa: F401
     AmbulanceRequest,
     BlacklistToken,
     PasswordResetCode,
+    Report,
     RequestFile,
     RequestStatusHistory,
     User,

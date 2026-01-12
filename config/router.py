@@ -10,6 +10,7 @@ from endpoints import (
     main_router,
     notification_router,
     organization_router,
+    report_router,
     stats_router,
     user_router,
 )
@@ -55,5 +56,10 @@ def initialize_routers() -> APIRouter:
         stats_router,
         prefix='/stats',
         tags=['stats'],
+    )
+    main_api_router.include_router(
+        report_router,
+        prefix='/report',
+        tags=['report'],
     )
     return main_api_router
