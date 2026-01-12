@@ -10,17 +10,8 @@ import { cn } from '@/shared/lib/utils';
 
 import { Input } from '../inputs';
 
-export type GlobalSearchResultItem = {
-  id: string;
-  title: string;
-  subtitle?: string;
-  requestId?: number;
-};
-
-export type GlobalSearchResultGroup = {
-  title?: string;
-  items: GlobalSearchResultItem[];
-};
+import { fallbackResults } from './constants';
+import type { GlobalSearchResultGroup, GlobalSearchResultItem } from './types';
 
 const globalSearchVariants = cva('min-w-[288px] w-full', {
   variants: {
@@ -45,34 +36,6 @@ export type GlobalSearchProps = Omit<
     results?: GlobalSearchResultGroup[];
     isLoading?: boolean;
   };
-
-const fallbackResults: GlobalSearchResultGroup[] = [
-  {
-    title: 'Conditions',
-    items: [
-      {
-        id: 'condition-1',
-        title: "Chronic Parkinson's disease",
-        subtitle: 'James Willson',
-      },
-      {
-        id: 'condition-2',
-        title: 'Chronic COPD with oxygen dependence',
-        subtitle: 'Robert Martinez',
-      },
-    ],
-  },
-  {
-    title: 'Requests',
-    items: [
-      {
-        id: 'request-1',
-        title: 'Chronic heart failure, mobility impaired',
-        subtitle: 'Mary Thompson',
-      },
-    ],
-  },
-];
 
 const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(
   (
