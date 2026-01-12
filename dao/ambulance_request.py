@@ -309,6 +309,51 @@ class AmbulanceRequestDAO(BaseDAO):
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
+    async def search_by_patient_id_and_name(
+        self,
+        *,
+        patient_id: str | None = None,
+        patient_name: str | None = None,
+    ) -> list[int]:
+        """Search request IDs by patient ID and/or name.
+
+        Args:
+            patient_id: Optional patient ID to search for.
+            patient_name: Optional patient name to search for (matches name).
+
+        Returns:
+            List of request IDs matching the criteria.
+
+        """
+        stmt = select(AmbulanceRequest.id).where(
+            AmbulanceRequest.is_active == True  # noqa: E712
+        )
+
+        if patient_id is not None:
+            stmt = stmt.where(
+                AmbulanceRequest.patient_id.ilike(f'%{patient_id}%')
+            )
+
+        if patient_name is not None:
+            search_pattern = f'%{patient_name}%'
+            stmt = stmt.where(
+                or_(
+                    AmbulanceRequest.patient_first_name.ilike(search_pattern),
+                    AmbulanceRequest.patient_last_name.ilike(search_pattern),
+                    func.concat(
+                        AmbulanceRequest.patient_first_name,
+                        ' ',
+                        AmbulanceRequest.patient_last_name,
+                    ).ilike(search_pattern),
+                )
+            )
+
+        stmt = stmt.order_by(
+            AmbulanceRequest.created_at.desc(), AmbulanceRequest.id.desc()
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
 
 class RequestStatusHistoryDAO(BaseDAO):
     """DAO for RequestStatusHistory model."""

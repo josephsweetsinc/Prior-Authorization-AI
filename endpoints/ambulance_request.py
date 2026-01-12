@@ -1,7 +1,13 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Query,
+    UploadFile,
+)
 from fastapi.params import Security
 
 from core import exception_handler, get_service, timing_handler
@@ -10,6 +16,7 @@ from dependencies import (
     get_current_user,
     get_provider_user_from_token,
 )
+from exceptions import AmbulanceRequestSearchParametersMissingException
 from models import RequestStatus, User
 from schemas.ambulance_request import (
     AdminRequestWithStatusHistorySchema,
@@ -24,6 +31,7 @@ from schemas.ambulance_request import (
     FileUploadWithExtractionResponseSchema,
     RequestWithStatusHistorySchema,
 )
+from schemas.search import SearchRequestsResponseSchema
 from services import AmbulanceRequestService
 
 logger = logging.getLogger(__name__)
@@ -140,6 +148,58 @@ async def create_request(
     return await service.create_request(
         user_id=user.id, request_data=request_data
     )
+
+
+@ambulance_request_router.get(
+    '/search',
+    description='Search requests by patient ID and/or name',
+    summary='Search requests by patient',
+    response_model=SearchRequestsResponseSchema,
+)
+@exception_handler
+async def search_requests(
+    user: Annotated[User, Security(get_admin_user_from_token)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+    patient_id: str | None = Query(
+        None,
+        description='Patient ID to search for',
+        examples=['1EG4-TE5-MK72'],
+    ),
+    patient_name: str | None = Query(
+        None,
+        description='Patient name to search for (matches first name',
+        examples=['John', 'Doe', 'John Doe'],
+    ),
+) -> SearchRequestsResponseSchema:
+    """Search requests by patient ID and/or name.
+
+    Returns list of request IDs matching the search criteria.
+    At least one parameter (patient_id or patient_name) must be provided.
+
+    Args:
+        user: Current authenticated admin user.
+        service: Ambulance request service.
+        patient_id: Optional patient ID to search for.
+        patient_name: Optional patient name to search for.
+
+    Returns:
+        SearchRequestsResponseSchema: List of request IDs.
+
+    Raises:
+        AmbulanceRequestSearchParametersMissingException: If both parameters
+         are None.
+
+    """
+    if patient_id is None and patient_name is None:
+        raise AmbulanceRequestSearchParametersMissingException
+
+    request_ids = await service.search_by_patient_id_and_name(
+        patient_id=patient_id,
+        patient_name=patient_name,
+    )
+    return SearchRequestsResponseSchema(request_ids=request_ids)
 
 
 @ambulance_request_router.get(

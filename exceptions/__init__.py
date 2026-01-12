@@ -8,6 +8,7 @@ from .ambulance_request import (
     AmbulanceRequestNoDocumentsUploadedException,
     AmbulanceRequestNotFoundException,
     AmbulanceRequestPermissionException,
+    AmbulanceRequestSearchParametersMissingException,
 )
 from .auth import (
     AccessTokenExpiredException,
@@ -46,6 +47,7 @@ __all__ = [
     'AmbulanceRequestNoDocumentsUploadedException',
     'AmbulanceRequestNotFoundException',
     'AmbulanceRequestPermissionException',
+    'AmbulanceRequestSearchParametersMissingException',
     'BadPasswordSchemaException',
     'EmailAlreadyRegisteredException',
     'IncorrectFileSizeException',
