@@ -2,8 +2,7 @@
 
 import io
 import logging
-from datetime import UTC, date, datetime, timedelta
-from enum import StrEnum
+from datetime import date
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font
@@ -31,14 +30,6 @@ from services.dashboard_metrics.metrics_calculator import DashboardMetricsCalcul
 logger = logging.getLogger(__name__)
 
 
-class ReportPeriodType(StrEnum):
-    """Report period type enum."""
-
-    WEEK = 'week'
-    MONTH = 'month'
-    HALF_YEAR = 'half_year'
-
-
 class ReportService(BaseService):
     """Service for report generation and management."""
 
@@ -63,56 +54,22 @@ class ReportService(BaseService):
         self._dashboard_dao = dashboard_dao or DashboardDAO(db_session)
         self._s3_actions = s3_actions or S3Actions()
 
-    def _calculate_period_dates(
+    def _validate_period_dates(
         self,
-        period_type: str | None,
-        start_date: date | None,
-        end_date: date | None,
-    ) -> tuple[date, date]:
-        """Calculate period start and end dates.
+        start_date: date,
+        end_date: date,
+    ) -> None:
+        """Validate period start and end dates.
 
         Args:
-            period_type: Period type (week, month, half_year).
-            start_date: Custom start date.
-            end_date: Custom end date.
-
-        Returns:
-            Tuple of (start_date, end_date).
+            start_date: Start date.
+            end_date: End date.
 
         Raises:
             ValueError: If period parameters are invalid.
         """
-        if period_type:
-            today = datetime.now(UTC).date()
-            match period_type:
-                case 'week':
-                    end_date = today
-                    start_date = end_date - timedelta(days=6)
-                case 'month':
-                    end_date = today
-                    start_date = end_date.replace(day=1)
-                    # If today is first day of month, use previous month
-                    if start_date == today:
-                        start_date = (today - timedelta(days=1)).replace(day=1)
-                        end_date = today - timedelta(days=1)
-                case 'half_year':
-                    end_date = today
-                    # Calculate 6 months ago
-                    if today.month > 6:
-                        start_date = date(today.year, today.month - 6, 1)
-                    else:
-                        start_date = date(today.year - 1, today.month + 6, 1)
-                case _:
-                    raise ValueError(f'Invalid period_type: {period_type}')
-        elif start_date and end_date:
-            if start_date > end_date:
-                raise ValueError('start_date must be <= end_date')
-        else:
-            raise ValueError(
-                'Either period_type or both start_date and end_date must be provided'
-            )
-
-        return start_date, end_date
+        if start_date > end_date:
+            raise ValueError('start_date must be <= end_date')
 
     async def _get_current_statistics(self) -> RequestCountDTO:
         """Get current statistics for all requests.
@@ -263,26 +220,25 @@ class ReportService(BaseService):
         self,
         *,
         format: ReportFormat,
-        period_type: str | None = None,
-        start_date: date | None = None,
-        end_date: date | None = None,
+        start_date: date,
+        end_date: date,
         created_by_id: int,
     ) -> GenerateReportResponseSchema:
         """Generate a report.
 
         Args:
             format: Report format (PDF or Excel).
-            period_type: Period type (week, month, half_year).
-            start_date: Custom start date.
-            end_date: Custom end date.
+            start_date: Start date for report period.
+            end_date: End date for report period.
             created_by_id: ID of the user creating the report.
 
         Returns:
-            GenerateReportResponseSchema with report ID.
+            GenerateReportResponseSchema with report ID and download URL.
+
+        Raises:
+            ValueError: If start_date > end_date.
         """
-        period_start, period_end = self._calculate_period_dates(
-            period_type, start_date, end_date
-        )
+        self._validate_period_dates(start_date, end_date)
 
         # Get current statistics
         statistics = await self._get_current_statistics()
@@ -290,15 +246,15 @@ class ReportService(BaseService):
         # Generate report file
         if format == ReportFormat.PDF:
             file_bytes = self._generate_pdf_report(
-                period_start, period_end, statistics
+                start_date, end_date, statistics
             )
-            file_name = self._generate_report_name(format, period_start, period_end)
+            file_name = self._generate_report_name(format, start_date, end_date)
             content_type = 'application/pdf'
         else:  # Excel
             file_bytes = self._generate_excel_report(
-                period_start, period_end, statistics
+                start_date, end_date, statistics
             )
-            file_name = self._generate_report_name(format, period_start, period_end)
+            file_name = self._generate_report_name(format, start_date, end_date)
             content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
         # Upload to S3
@@ -312,14 +268,14 @@ class ReportService(BaseService):
         )
 
         # Create report record
-        report_name = self._generate_report_name(format, period_start, period_end)
+        report_name = self._generate_report_name(format, start_date, end_date)
         report = await self._report_dao.create(
             name=report_name,
             format=format.value,
             s3_key=s3_key,
             created_by_id=created_by_id,
-            period_start=period_start,
-            period_end=period_end,
+            period_start=start_date,
+            period_end=end_date,
             total_requests=statistics.total_requests,
             approved_requests=statistics.approved_all,
             denied_requests=statistics.denied_all,

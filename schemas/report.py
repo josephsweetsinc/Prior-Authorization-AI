@@ -13,26 +13,13 @@ class GenerateReportRequestSchema(BaseModel):
         ReportFormat,
         Field(description='Report format (PDF or Excel)'),
     ]
-    period_type: Annotated[
-        str | None,
-        Field(
-            default=None,
-            description='Period type: week, month, or half_year. If not provided, start_date and end_date must be provided.',
-        ),
-    ]
     start_date: Annotated[
-        date | None,
-        Field(
-            default=None,
-            description='Start date for custom period. Required if period_type is not provided.',
-        ),
+        date,
+        Field(description='Start date for report period'),
     ]
     end_date: Annotated[
-        date | None,
-        Field(
-            default=None,
-            description='End date for custom period. Required if period_type is not provided.',
-        ),
+        date,
+        Field(description='End date for report period'),
     ]
 
 
