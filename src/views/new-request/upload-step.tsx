@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, LoaderCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
@@ -59,8 +59,17 @@ export const UploadStep = ({ onNext }: UploadStepProps) => {
           className='w-fit px-10! py-3! font-medium'
           disabled={isLoading}
         >
-          Next
-          <ChevronRight className='text-white' strokeWidth={1.5} />
+          {isLoading ? (
+            <>
+              <span>Processing...</span>
+              <LoaderCircle className='size-5 animate-spin text-white' />
+            </>
+          ) : (
+            <>
+              Next
+              <ChevronRight className='text-white' strokeWidth={1.5} />
+            </>
+          )}
         </Button>
       </div>
     </div>
