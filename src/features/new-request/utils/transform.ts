@@ -1,8 +1,8 @@
 import type {
-  IRequest,
-  IExtractionResponse,
   IExtractedData,
   IDocument,
+  IRequestDetails,
+  IUploadAndExtractionResult,
 } from '@/services';
 import { type MediaItem } from '@/shared/components';
 
@@ -25,8 +25,8 @@ export function isExtractionComplete(
 }
 
 export function transformRequestToExtraction(
-  request?: IRequest | null,
-): IExtractionResponse | null {
+  request?: IRequestDetails | null,
+): IUploadAndExtractionResult | null {
   if (!request) {
     return null;
   }
@@ -55,6 +55,7 @@ export function transformRequestToExtraction(
     request_id: request.id,
     extracted_data,
     is_complete: isExtractionComplete(extracted_data),
+    files: transformDocumentsToMediaItems(request.documents),
   };
 }
 

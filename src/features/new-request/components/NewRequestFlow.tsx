@@ -28,6 +28,7 @@ import { UploadStep } from '@/views/new-request/upload-step';
 import { TOTAL_STEPS } from '../constants';
 import { useHydrateDraft } from '../hooks/useHydrateDraft';
 import { useNewRequestFlow } from '../hooks/useNewRequestFlow';
+import { transformRequestToExtraction } from '../utils/transform';
 
 import { InfoStepSkeleton } from './InfoStepSkeleton';
 
@@ -47,7 +48,9 @@ export function NewRequestFlow({ draftId }: Props) {
 
   const dispatch = useDispatch();
 
-  useHydrateDraft({ draftId: draftId, draft, isSuccess });
+  const draftExtractionResult = transformRequestToExtraction(draft);
+
+  useHydrateDraft({ draft: draftExtractionResult, isSuccess });
 
   const handleExtractionReady = (data: IUploadAndExtractionResult) =>
     dispatch(setExtractionResult(data));
@@ -126,7 +129,11 @@ export function NewRequestFlow({ draftId }: Props) {
         <InfoStep
           onBack={prev}
           onNext={handleInfoNext}
-          initialValues={extractedData}
+          initialValues={
+            draftExtractionResult
+              ? draftExtractionResult.extracted_data
+              : extractedData
+          }
           isComplete={Boolean(extractionResult?.is_complete)}
           hideBackButton={isSuccess ? true : false}
         />

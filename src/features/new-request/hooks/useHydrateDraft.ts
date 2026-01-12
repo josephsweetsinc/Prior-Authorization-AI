@@ -1,43 +1,34 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { extractedToForm, type IRequestDetails } from '@/services';
+import { extractedToForm, type IUploadAndExtractionResult } from '@/services';
 
-import { setExtractionResult, setForm } from '../store/slice';
-import {
-  transformDocumentsToMediaItems,
-  transformRequestToExtraction,
-} from '../utils/transform';
+import { clear, setExtractionResult, setForm } from '../store/slice';
 
 interface Params {
-  draftId?: number;
-  draft?: IRequestDetails | null;
+  draft?: IUploadAndExtractionResult | null;
   isSuccess?: boolean;
 }
 
-export const useHydrateDraft = ({ draftId, draft, isSuccess }: Params) => {
+export const useHydrateDraft = ({ draft, isSuccess }: Params) => {
   const hasHydratedDraft = useRef(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!draftId || !draft || !isSuccess || hasHydratedDraft.current) {
+    if (!draft || !isSuccess || hasHydratedDraft.current) {
       return;
     }
 
-    const extraction = transformRequestToExtraction(draft);
-    const files = transformDocumentsToMediaItems(draft.documents);
+    dispatch(clear());
 
-    if (!extraction || !files) {
-      return;
-    }
+    dispatch(setExtractionResult(draft));
 
-    dispatch(setExtractionResult({ ...extraction, files }));
+    const form = extractedToForm(draft.extracted_data);
 
-    const form = extractedToForm(extraction.extracted_data);
     if (form) {
       dispatch(setForm(form));
     }
 
     hasHydratedDraft.current = true;
-  }, [draftId, draft, isSuccess, dispatch]);
+  }, [draft, isSuccess, dispatch]);
 };

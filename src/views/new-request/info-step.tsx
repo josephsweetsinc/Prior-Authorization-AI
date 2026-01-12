@@ -1,11 +1,12 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect } from 'react';
 
 import {
   type FormState,
   InfoFormFields,
   useInfoForm,
 } from '@/features/new-request';
-import { type IExtractedData } from '@/services';
+import { extractedToForm, type IExtractedData } from '@/services';
 import { Button, SensitiveMessage } from '@/shared/components';
 
 interface InfoStepProps {
@@ -26,7 +27,19 @@ export const InfoStep = ({
   mode = 'default',
   hideBackButton = false,
 }: InfoStepProps) => {
-  const { form, setForm, errors, isFormComplete } = useInfoForm(initialValues);
+  const { form, setForm, errors, isFormComplete } = useInfoForm();
+
+  useEffect(() => {
+    if (initialValues) {
+      const formData = extractedToForm(initialValues);
+
+      if (!formData) {
+        return;
+      }
+
+      setForm(formData);
+    }
+  }, [initialValues, setForm]);
 
   const isReviewEdit = mode === 'review-edit';
 

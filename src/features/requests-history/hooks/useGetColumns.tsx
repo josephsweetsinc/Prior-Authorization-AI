@@ -1,10 +1,14 @@
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { ArrowUpRight } from 'lucide-react';
 
 import { type RequestStatus } from '@/services/dashboard';
 import { type IRequest } from '@/services/requests';
-import { DiagnosisCell, TableHeadCell, StatusChip } from '@/shared/components';
+import {
+  DiagnosisCell,
+  TableHeadCell,
+  StatusChip,
+  RequestAction,
+} from '@/shared/components';
 
 interface Params {
   // eslint-disable-next-line no-unused-vars
@@ -53,14 +57,12 @@ export const useGetColumns = ({
       id: 'actions',
       accessorKey: 'id',
       header: () => <TableHeadCell>Actions</TableHeadCell>,
-      cell: ({ getValue }) => (
-        <button
-          className='text-accent-foreground flex items-center gap-2'
-          onClick={() => onDetailsClick(getValue<number>())}
-        >
-          <span>More Details</span>
-          <ArrowUpRight className='text-status-info size-5' />
-        </button>
+      cell: ({ row, getValue }) => (
+        <RequestAction
+          status={row.original.status}
+          id={getValue<number>()}
+          onClick={onDetailsClick}
+        />
       ),
     },
   ];

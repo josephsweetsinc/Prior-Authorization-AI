@@ -1,14 +1,20 @@
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { ArrowUpRight } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import { type RequestStatus } from '@/services/dashboard';
 import { type AuthorizationRequest } from '@/services/requests';
-import { DiagnosisCell, StatusChip, TableHeadCell } from '@/shared/components';
+import {
+  DiagnosisCell,
+  RequestAction,
+  StatusChip,
+  TableHeadCell,
+} from '@/shared/components';
 
 export const useAuthorizationRequestsColumns =
   (): ColumnDef<AuthorizationRequest>[] => {
+    const router = useRouter();
+
     return [
       {
         accessorKey: 'id',
@@ -55,14 +61,13 @@ export const useAuthorizationRequestsColumns =
         id: 'actions',
         accessorKey: 'id',
         header: () => <TableHeadCell>Action</TableHeadCell>,
-        cell: ({ getValue }) => (
-          <Link
-            href={`/requests/${getValue<number>()}`}
-            className='text-status-info flex items-center gap-2 font-medium'
-          >
-            <span>More Details</span>
-            <ArrowUpRight className='text-status-info size-4' />
-          </Link>
+        cell: ({ row, getValue }) => (
+          <RequestAction
+            status={row.original.status}
+            id={getValue<number>()}
+            onClick={(id: number) => router.push(`/requests/${id}`)}
+            className='text-status-info font-medium'
+          />
         ),
       },
     ];
