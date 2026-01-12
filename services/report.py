@@ -10,7 +10,13 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import (
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.service import BaseService
@@ -25,7 +31,9 @@ from schemas.report import (
     ReportStatisticsSchema,
 )
 from services.aws.actions import S3Actions
-from services.dashboard_metrics.metrics_calculator import DashboardMetricsCalculator
+from services.dashboard_metrics.metrics_calculator import (
+    DashboardMetricsCalculator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +56,7 @@ class ReportService(BaseService):
             report_dao: Optional ReportDAO instance.
             dashboard_dao: Optional DashboardDAO instance.
             s3_actions: Optional S3Actions instance.
+
         """
         super().__init__(db_session)
         self._report_dao = report_dao or ReportDAO(db_session)
@@ -67,6 +76,7 @@ class ReportService(BaseService):
 
         Raises:
             ValueError: If period parameters are invalid.
+
         """
         if start_date > end_date:
             raise ValueError('start_date must be <= end_date')
@@ -76,6 +86,7 @@ class ReportService(BaseService):
 
         Returns:
             RequestCountDTO with current statistics.
+
         """
         counts = await self._dashboard_dao.get_request_counts_by_status()
         return RequestCountDTO(
@@ -96,6 +107,7 @@ class ReportService(BaseService):
 
         Returns:
             Report name string.
+
         """
         date_str = f'{period_start.strftime("%Y-%m-%d")}_to_{period_end.strftime("%Y-%m-%d")}'
         return f'Report_{date_str}.{format.value}'
@@ -115,6 +127,7 @@ class ReportService(BaseService):
 
         Returns:
             PDF file bytes.
+
         """
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -176,6 +189,7 @@ class ReportService(BaseService):
 
         Returns:
             Excel file bytes.
+
         """
         wb = Workbook()
         ws = wb.active
@@ -237,6 +251,7 @@ class ReportService(BaseService):
 
         Raises:
             ValueError: If start_date > end_date.
+
         """
         self._validate_period_dates(start_date, end_date)
 
@@ -298,6 +313,7 @@ class ReportService(BaseService):
 
         Returns:
             LatestReportsResponseSchema with reports and statistics.
+
         """
         # Get latest reports
         reports = await self._report_dao.get_latest_reports(limit=3)
@@ -310,21 +326,29 @@ class ReportService(BaseService):
 
         # Calculate changes
         if latest_report:
-            change_total = DashboardMetricsCalculator.calculate_percentage_change(
-                current_value=current_stats.total_requests,
-                previous_value=latest_report.total_requests,
+            change_total = (
+                DashboardMetricsCalculator.calculate_percentage_change(
+                    current_value=current_stats.total_requests,
+                    previous_value=latest_report.total_requests,
+                )
             )
-            change_approved = DashboardMetricsCalculator.calculate_percentage_change(
-                current_value=current_stats.approved_all,
-                previous_value=latest_report.approved_requests,
+            change_approved = (
+                DashboardMetricsCalculator.calculate_percentage_change(
+                    current_value=current_stats.approved_all,
+                    previous_value=latest_report.approved_requests,
+                )
             )
-            change_denied = DashboardMetricsCalculator.calculate_percentage_change(
-                current_value=current_stats.denied_all,
-                previous_value=latest_report.denied_requests,
+            change_denied = (
+                DashboardMetricsCalculator.calculate_percentage_change(
+                    current_value=current_stats.denied_all,
+                    previous_value=latest_report.denied_requests,
+                )
             )
-            change_pending = DashboardMetricsCalculator.calculate_percentage_change(
-                current_value=current_stats.pending_all,
-                previous_value=latest_report.pending_requests,
+            change_pending = (
+                DashboardMetricsCalculator.calculate_percentage_change(
+                    current_value=current_stats.pending_all,
+                    previous_value=latest_report.pending_requests,
+                )
             )
         else:
             change_total = 0.0

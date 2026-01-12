@@ -10,9 +10,9 @@ from endpoints import (
     main_router,
     notification_router,
     organization_router,
+    report_router,
     stats_router,
     user_router,
-    report_router,
 )
 
 settings = Settings.load()
