@@ -1,7 +1,7 @@
 from datetime import date, datetime, time
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_serializer
 
 from models.ambulance_request import (
     AmbulatoryStatus,
@@ -15,6 +15,38 @@ from schemas.ai_extraction import ExtractedTransportationData
 DENIAL_NOTES_REQUIRED_MSG = (
     'denial_notes is required when denial_reason is OTHER_REASON'
 )
+
+
+def get_denial_reason_display_name(reason: DenialReason) -> str:
+    """Get human-readable display name for denial reason.
+
+    Args:
+        reason: Denial reason enum value.
+
+    Returns:
+        Human-readable display name.
+
+    """
+    mapping = {
+        DenialReason.DUPLICATE_REQUEST: 'Duplicate Request',
+        DenialReason.INVALID_REQUEST_TYPE: 'Invalid Request Type',
+        DenialReason.INVALID_DIAGNOSIS_CODE: 'Invalid Diagnosis Code',
+        DenialReason.MISSING_PHYSICIAN_SIGNATURE: 'Missing Physician Signature',
+        DenialReason.TRANSPORT_LEVEL_NOT_MEDICALLY_NECESSARY: (
+            'Transport Level Not Medically Necessary'
+        ),
+        DenialReason.INCOMPLETE_MEDICAL_DOCUMENTATION: (
+            'Incomplete Medical Documentation'
+        ),
+        DenialReason.OUTDATED_OR_EXPIRED_DOCUMENTS: (
+            'Outdated or Expired Documents'
+        ),
+        DenialReason.INCORRECT_OR_INCONSISTENT_PATIENT_INFORMATION: (
+            'Incorrect or Inconsistent Patient Information'
+        ),
+        DenialReason.OTHER_REASON: 'Other Reason',
+    }
+    return mapping.get(reason, reason.value.replace('_', ' ').title())
 
 
 class AmbulanceRequestsListResponseSchema(BaseModel):
@@ -458,6 +490,25 @@ class AdminRequestWithStatusHistorySchema(BaseModel):
         default_factory=list,
         description='List of documents attached to the request',
     )
+
+    @field_serializer('denial_reason')
+    def serialize_denial_reason(
+        self, value: DenialReason | None, _info
+    ) -> str | None:
+        """Serialize denial_reason to human-readable display name.
+
+        Args:
+            value: Denial reason enum value or None.
+            _info: Serialization info (unused).
+
+        Returns:
+            Human-readable denial reason name or None.
+
+        """
+        if value is None:
+            return None
+        return get_denial_reason_display_name(value)
+
     model_config = ConfigDict(from_attributes=True)
 
 
