@@ -50,7 +50,7 @@ export function LoginForm() {
       );
 
       router.push('/');
-    } catch (err: unknown) {
+    } catch (err) {
       handleError(err);
     }
   };
