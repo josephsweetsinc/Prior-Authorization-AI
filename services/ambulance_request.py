@@ -599,7 +599,7 @@ class AmbulanceRequestService(BaseService):
 
         match user.role:
             case UserRole.ADMIN:
-                # Admin can see all requests
+                # Admin can see all requests except DRAFT
                 total = await self._request_dao.count_all(
                     search=search, status=status, days=days
                 )
