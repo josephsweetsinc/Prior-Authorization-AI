@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from models import User
+from schemas.websocket import WebSocketInfoResponse
 from services import UserService
 from services.auth import AuthService
 from services.websocket_manager import websocket_manager
@@ -10,6 +11,71 @@ from services.websocket_manager import websocket_manager
 logger = logging.getLogger(__name__)
 
 websocket_router = APIRouter()
+
+
+@websocket_router.get(
+    '/notifications/info',
+    summary='WebSocket connection information',
+    description='Get information about WebSocket endpoint for real-time notifications',
+    response_model=WebSocketInfoResponse,
+    tags=['websocket'],
+)
+async def get_websocket_info() -> WebSocketInfoResponse:
+    """Get information about WebSocket endpoint for real-time notifications.
+
+    **Note:** WebSocket connections cannot be tested in Swagger UI.
+    Use a WebSocket client (Postman, wscat, or browser WebSocket API) to connect.
+
+    **Connection details:**
+    - URL: `ws://localhost:8000/Prod/api/v1/websocket/notifications`
+    - Authentication: `Authorization: Bearer <your_jwt_token>` header
+    - Protocol: WebSocket (ws:// or wss://)
+
+    **Example message format:**
+    ```json
+    {
+      "type": "notification",
+      "data": {
+        "id": 123,
+        "user_id": 9,
+        "category": "status_update",
+        "title": "Request #12 Status Update",
+        "message": "Request #12 has been approved",
+        "request_id": 12,
+        "is_read": false,
+        "created_at": "2026-01-13T16:34:38Z"
+      }
+    }
+    ```
+
+    Returns:
+        WebSocketInfoResponse: Information about WebSocket endpoint.
+
+    """
+    return WebSocketInfoResponse(
+        websocket_url='ws://localhost:8000/Prod/api/v1/websocket/notifications',
+        authentication='Authorization: Bearer <your_jwt_token>',
+        description=(
+            'WebSocket endpoint for receiving real-time notifications. '
+            'All authenticated users (admins and providers) can connect. '
+            'Notifications are sent immediately when created. '
+            'If user is not connected, notifications are saved in database '
+            'and can be retrieved via GET /api/v1/notification/ endpoint.'
+        ),
+        example_message={
+            'type': 'notification',
+            'data': {
+                'id': 123,
+                'user_id': 9,
+                'category': 'status_update',
+                'title': 'Request #12 Status Update',
+                'message': 'Request #12 has been approved',
+                'request_id': 12,
+                'is_read': False,
+                'created_at': '2026-01-13T16:34:38Z',
+            },
+        },
+    )
 
 
 def _extract_token_from_header(authorization: str | None) -> str | None:
