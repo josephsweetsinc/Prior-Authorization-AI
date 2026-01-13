@@ -1,7 +1,13 @@
 from datetime import date, datetime, time
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field, field_serializer
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    computed_field,
+    field_serializer,
+)
 
 from models.ambulance_request import (
     AmbulatoryStatus,
@@ -493,7 +499,7 @@ class AdminRequestWithStatusHistorySchema(BaseModel):
 
     @field_serializer('denial_reason')
     def serialize_denial_reason(
-        self, value: DenialReason | None, _info
+        self, value: DenialReason | None, _info: object
     ) -> str | None:
         """Serialize denial_reason to human-readable display name.
 
