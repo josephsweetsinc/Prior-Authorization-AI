@@ -8,11 +8,70 @@ on:
 env:
   ENVIRONMENT: dev
 jobs:
+  code_quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Run mypy
+        run: uv run mypy --config-file pyproject.toml .
+
+      - name: Run pytest
+        run: uv run pytest
+
+      - name: Run ruff (lint)
+        run: uv run ruff check .
+
+      - name: Run ruff (format check)
+        run: uv run ruff format --check .
+
+      - name: Check YAML syntax
+        run: |
+          find . -type f \( -name "*.yaml" -o -name "*.yml" \) -print0 | \
+            xargs -0 -I {} uv run python -c "import sys, yaml; yaml.safe_load(open('{}', 'r'))"
+
+      - name: Check for trailing whitespace
+        run: |
+          if grep -rIn --exclude-dir={.git,.venv,venv,__pycache__} '\s$' .; then
+            echo "Trailing whitespace found"
+            exit 1
+          fi
+
+      - name: Check for missing newline at end of file
+        run: |
+          if find . -type f -not -path "*/\.*" | xargs -I {} bash -c 'tail -c1 "{}" | od -An -t x1 | grep -qv "0a" && echo "{} missing newline"'; then
+            echo "Missing newline at end of file found"
+            exit 1
+          fi
+
+      - name: Check for debug statements
+        run: |
+          if grep -rInE '\bprint\s*\(|\bpdb\.set_trace\b' . --exclude-dir={.git,.venv,venv,__pycache__,.mypy_cache,tests,scripts,.github,terraform} 2>/dev/null; then
+            echo "Debug statements found in source code"
+            exit 1
+          fi
+
   deploy-to-server:
     runs-on: ubuntu-latest
+    needs: code_quality
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -49,9 +108,7 @@ jobs:
         git checkout main
         git pull
         echo "${{ secrets.ENV }}" > .env
-        docker compose down 
-        docker system prune -af && docker builder prune --all --force 
+        docker compose down
+        docker system prune -af && docker builder prune --all --force
         docker compose up -d --build
         EOF
-        
-        

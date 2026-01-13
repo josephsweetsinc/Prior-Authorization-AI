@@ -86,7 +86,7 @@ module "ec2_instance" {
     sudo systemctl enable docker.service
     sudo systemctl enable containerd.service
     sudo systemctl start docker
-        
+
     # Set up ssh access to git account
 
     cd /home/ubuntu/
@@ -95,17 +95,17 @@ module "ec2_instance" {
     echo "${var.SSH_KEY_PUB}" > ./.ssh/id_rsa.pub
     sudo chmod 600 ./.ssh/id_rsa
     sudo  chown -R ubuntu:ubuntu ./.ssh
-    
+
     echo 'Host github.com
       HostName github.com
       User git
       IdentityFile ~/.ssh/id_rsa
-      IdentitiesOnly yes' > ./.ssh/config 
+      IdentitiesOnly yes' > ./.ssh/config
 
     sudo -u ubuntu ssh -o StrictHostKeyChecking=no -T git@github.com
 
     # Pull project repo
-    
+
     sudo -u ubuntu git clone git@github.com:${var.FULL_REPO_NAME}
     cd ./${var.REPO_NAME}
     # sudo -u ubuntu git checkout main

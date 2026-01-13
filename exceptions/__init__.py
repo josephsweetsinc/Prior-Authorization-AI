@@ -2,10 +2,13 @@ from .ambulance_request import (
     AmbulanceRequestAllFilesUploadFailedException,
     AmbulanceRequestEmptyDocumentEmtpyException,
     AmbulanceRequestEmptyDocumentFileNameException,
+    AmbulanceRequestFilesAlreadyLinkedException,
     AmbulanceRequestInvalidFileIdsException,
+    AmbulanceRequestInvalidStatusException,
     AmbulanceRequestNoDocumentsUploadedException,
     AmbulanceRequestNotFoundException,
     AmbulanceRequestPermissionException,
+    AmbulanceRequestSearchParametersMissingException,
 )
 from .auth import (
     AccessTokenExpiredException,
@@ -15,6 +18,10 @@ from .auth import (
     WrongCredentialsException,
 )
 from .file import IncorrectFileSizeException, UnknownFiletypeException
+from .notification import (
+    NotificationMissingRequestException,
+    NotificationSystemCategoryException,
+)
 from .password_reset import (
     InvalidResetCodeException,
     ResetCodeExpiredException,
@@ -23,6 +30,7 @@ from .password_reset import (
 )
 from .user import (
     BadPasswordSchemaException,
+    EmailAlreadyRegisteredException,
     UserHasNoPermissionPermission,
     UserIsNotActiveException,
     UserNotFoundByIdException,
@@ -33,15 +41,21 @@ __all__ = [
     'AmbulanceRequestAllFilesUploadFailedException',
     'AmbulanceRequestEmptyDocumentEmtpyException',
     'AmbulanceRequestEmptyDocumentFileNameException',
+    'AmbulanceRequestFilesAlreadyLinkedException',
     'AmbulanceRequestInvalidFileIdsException',
+    'AmbulanceRequestInvalidStatusException',
     'AmbulanceRequestNoDocumentsUploadedException',
     'AmbulanceRequestNotFoundException',
     'AmbulanceRequestPermissionException',
+    'AmbulanceRequestSearchParametersMissingException',
     'BadPasswordSchemaException',
+    'EmailAlreadyRegisteredException',
     'IncorrectFileSizeException',
     'InvalidResetCodeException',
     'NoFiltersException',
     'NoUpdateDataException',
+    'NotificationMissingRequestException',
+    'NotificationSystemCategoryException',
     'RefreshTokenException',
     'ResetCodeExpiredException',
     'ResetCodeUsedException',

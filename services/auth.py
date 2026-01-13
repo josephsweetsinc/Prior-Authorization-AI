@@ -74,6 +74,10 @@ class AuthService(BaseService):
         if not user.is_active:
             raise UserIsNotActiveException
         self._verify_user_password(user.password, password)
+        # Update last login timestamp
+        await self._user_dao.update_last_login(user.id)
+        await self._session.commit()
+        await self._session.refresh(user)
         return user
 
     async def create_token(
@@ -134,6 +138,16 @@ class AuthService(BaseService):
         new_refresh_token: str = TokenManager.generate_refresh_token(
             author_id=user_id
         )
+
+        # Blacklist old refresh token to prevent reuse
+        expires_at = int(decoded.get('exp', 0))
+        if expires_at:
+            await self._blacklist_token_dao.create(
+                jti=jti,
+                user_id=user_id,
+                expires_at=expires_at,
+            )
+            await self._session.commit()
 
         return TokenSchemas(
             access_token=access_token,

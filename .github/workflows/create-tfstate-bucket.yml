@@ -6,14 +6,14 @@ on:
           required: true
         AWS_SECRET_ACCESS_KEY:
           required: true
-        AWS_REGION: 
+        AWS_REGION:
           required: true
 
   workflow_dispatch:
 
 jobs:
   create-bucket:
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
     steps:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1

@@ -1,9 +1,14 @@
+from datetime import datetime
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
-from sqlalchemy import Enum, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, Enum, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.models import BaseIdMixin, BaseTimeStampMixin, SoftDelete
+
+if TYPE_CHECKING:
+    from models import Organization
 
 
 class UserRole(StrEnum):
@@ -62,6 +67,23 @@ class User(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
     )
     place_of_work: Mapped[str | None] = mapped_column(
         String(128), nullable=True, comment='Place of work of the user'
+    )
+    last_login: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment='Date and time of last login',
+    )
+    avatar_key: Mapped[str | None] = mapped_column(
+        String(512),
+        nullable=True,
+        comment='S3 key for user avatar image',
+    )
+
+    # Relationships
+    organization: Mapped['Organization | None'] = relationship(
+        'Organization',
+        back_populates='user',
+        uselist=False,
     )
 
     def __repr__(self) -> str:

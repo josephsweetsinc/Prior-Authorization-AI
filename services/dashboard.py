@@ -68,7 +68,7 @@ class DashboardService(BaseService):
         )
         requests_count: RequestCountDTO = RequestCountDTO(
             approved_all=counts.get(RequestStatus.APPROVED, 0),
-            pending_all=counts.get(RequestStatus.PENDING, 0),
+            pending_all=counts.get(RequestStatus.SUBMITTED, 0),
             denied_all=counts.get(RequestStatus.DENIED, 0),
         )
         approval_rate = DashboardMetricsCalculator.calculate_approval_rate(
@@ -88,6 +88,7 @@ class DashboardService(BaseService):
         recent_requests = [
             RecentRequestItemSchema(
                 id=request.id,
+                patient_id=request.patient_id,
                 patient_full_name=request.patient_full_name,
                 diagnosis=request.primary_diagnosis,
                 status=request.status,
@@ -96,7 +97,7 @@ class DashboardService(BaseService):
             for request in recent_requests_models
         ]
 
-        # Get in-progress requests (PENDING + PROCESSING) for provider
+        # Get in-progress requests (PENDING + SUBMITTED) for provider
         in_progress_requests = (
             await self._dashboard_dao.get_in_progress_requests(
                 user_id=user_id,
@@ -176,7 +177,7 @@ class DashboardService(BaseService):
         ] = await self._dashboard_dao.get_request_counts_by_status()
         requests_count: RequestCountDTO = RequestCountDTO(
             approved_all=counts.get(RequestStatus.APPROVED, 0),
-            pending_all=counts.get(RequestStatus.PENDING, 0),
+            pending_all=counts.get(RequestStatus.SUBMITTED, 0),
             denied_all=counts.get(RequestStatus.DENIED, 0),
         )
         today = datetime.now(tz=UTC).date()
@@ -276,6 +277,7 @@ class DashboardService(BaseService):
         recent_requests = [
             RecentRequestItemSchema(
                 id=request.id,
+                patient_id=request.patient_id,
                 patient_full_name=request.patient_full_name,
                 diagnosis=request.primary_diagnosis,
                 status=request.status,

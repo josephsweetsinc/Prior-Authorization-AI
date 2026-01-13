@@ -5,9 +5,14 @@ from .ai_extraction import (
     ExtractedTransportationData,
 )
 from .ambulance_request import (
+    AdminRequestWithStatusHistorySchema,
+    AdminUpdateRequestSchema,
     AmbulanceRequestResponseSchema,
     AmbulanceRequestsListResponseSchema,
+    ApproveRequestSchema,
+    CreateAmbulanceRequestParseSchema,
     CreateAmbulanceRequestSchema,
+    DenyRequestSchema,
     FileUploadResponseSchema,
     FileUploadWithExtractionResponseSchema,
     RequestDocumentSchema,
@@ -24,34 +29,70 @@ from .auth import (
 )
 from .dasboard import DashboardResponseSchema
 from .main import HealthCheckResponseSchema
+from .notification import (
+    NotificationResponseSchema,
+    NotificationsListResponseSchema,
+)
+from .organization import (
+    OrganizationResponseSchema,
+    UpdateOrganizationRequestSchema,
+)
+from .stats import (
+    AdminUserItemSchema,
+    AdminUsersResponseSchema,
+    ProviderStatsResponseSchema,
+)
 from .user import (
     CreateUserByAdminRequestSchema,
     CreateUserRequestSchema,
+    UpdateMeRequestSchema,
     UpdateUserRequestSchema,
+    UserListItemSchema,
     UserResponseShema,
+    UsersListResponseSchema,
 )
+from .websocket import WebSocketInfoResponse
 
 __all__ = [
     'AIExtractionResponse',
+    'AdminRequestWithStatusHistorySchema',
+    'AdminUpdateRequestSchema',
+    'AdminUserItemSchema',
+    'AdminUsersResponseSchema',
     'AmbulanceRequestResponseSchema',
     'AmbulanceRequestsListResponseSchema',
+    'ApproveRequestSchema',
+    'CreateAmbulanceRequestParseSchema',
     'CreateAmbulanceRequestSchema',
     'CreateUserByAdminRequestSchema',
     'CreateUserRequestSchema',
     'DashboardResponseSchema',
+    'DenyRequestSchema',
     'ExtractedTransportationData',
     'FileUploadResponseSchema',
     'FileUploadWithExtractionResponseSchema',
     'HealthCheckResponseSchema',
+    'NotificationResponseSchema',
+    'NotificationsListResponseSchema',
+    'OrganizationResponseSchema',
     'PasswordChangeRequestSchema',
     'PasswordResetConfirmSchema',
     'PasswordResetRequestSchema',
     'PasswordResetVerifySchema',
+    'ProviderStatsResponseSchema',
     'RefreshTokenRequestSchema',
     'RequestDocumentSchema',
     'RequestStatusHistoryResponseSchema',
     'RequestWithStatusHistorySchema',
     'TokenSchemas',
+    'UpdateMeRequestSchema',
+    'UpdateOrganizationRequestSchema',
     'UpdateUserRequestSchema',
+    'UserListItemSchema',
     'UserResponseShema',
+    'UsersListResponseSchema',
+    'WebSocketInfoResponse',
 ]
+
+# Rebuild models to resolve forward references
+UserResponseShema.model_rebuild()

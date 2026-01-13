@@ -24,6 +24,10 @@ Your task is to carefully analyze the provided medical document images and extra
    - Extract primary diagnosis (include ICD-10 codes if present).
    - Find medical justification/necessity statement.
    - Look for form numbers (e.g., CMS-13614 or 10279 A 7/99).
+   - Determine ambulatory status: "ambulatory" if patient can walk independently or with minor assistance, "non-ambulatory" if patient cannot walk or requires full assistance (bedbound, wheelchair-bound, stretcher-bound).
+   - Check if oxygen is required during transport (look for mentions of oxygen therapy, O2 requirements, or respiratory support). If oxygen requirement is not mentioned or unclear, set to `false` (not `null`).
+   - Extract ordering physician name (may appear as "Ordering Physician", "Physician Name", "MD Name", etc.).
+   - Extract physician phone number (may appear near physician name or in contact information section).
 
 ## Confidence Score Calculation:
 Provide a `confidence_score` as an integer between 0 and 100 based on the following:

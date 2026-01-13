@@ -81,7 +81,18 @@ class AmbulanceRequestInvalidFileIdsException(AmbulanceRequestException):
         super().__init__(
             status_code=400,
             detail=f'Invalid file IDs provided: {file_ids_str}.'
-            f' Files not found.',
+            f' Files not found. Or already attached to a different request',
+        )
+
+
+class AmbulanceRequestFilesAlreadyLinkedException(AmbulanceRequestException):
+    """Exception raised when files are already linked to a request."""
+
+    def __init__(self) -> None:
+        """Initialize AmbulanceRequestFilesAlreadyLinkedException."""
+        super().__init__(
+            status_code=400,
+            detail='Files are already linked to a request.',
         )
 
 
@@ -93,4 +104,29 @@ class AmbulanceRequestPermissionException(AmbulanceRequestException):
         super().__init__(
             status_code=403,
             detail='Current user cannot access this ambulance request',
+        )
+
+
+class AmbulanceRequestInvalidStatusException(AmbulanceRequestException):
+    """Exception raised when request has invalid status for operation."""
+
+    def __init__(self, detail: str) -> None:
+        """Initialize AmbulanceRequestInvalidStatusException."""
+        super().__init__(
+            status_code=400,
+            detail=detail,
+        )
+
+
+class AmbulanceRequestSearchParametersMissingException(
+    AmbulanceRequestException
+):
+    """Exception raised when search parameters are missing."""
+
+    def __init__(self) -> None:
+        """Initialize AmbulanceRequestSearchParametersMissingException."""
+        super().__init__(
+            status_code=400,
+            detail='At least one of patient_id or patient_name'
+            ' must be provided',
         )

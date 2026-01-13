@@ -8,7 +8,12 @@ from endpoints import (
     auth_router,
     dashboard_router,
     main_router,
+    notification_router,
+    organization_router,
+    report_router,
+    stats_router,
     user_router,
+    websocket_router,
 )
 
 settings = Settings.load()
@@ -37,5 +42,30 @@ def initialize_routers() -> APIRouter:
         dashboard_router,
         prefix='/dashboard_metrics',
         tags=['dashboard_metrics'],
+    )
+    main_api_router.include_router(
+        organization_router,
+        prefix='/organization',
+        tags=['organization'],
+    )
+    main_api_router.include_router(
+        notification_router,
+        prefix='/notification',
+        tags=['notification'],
+    )
+    main_api_router.include_router(
+        stats_router,
+        prefix='/stats',
+        tags=['stats'],
+    )
+    main_api_router.include_router(
+        report_router,
+        prefix='/report',
+        tags=['report'],
+    )
+    main_api_router.include_router(
+        websocket_router,
+        prefix='/websocket',
+        tags=['websocket'],
     )
     return main_api_router

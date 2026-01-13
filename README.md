@@ -18,7 +18,7 @@ Resources are named by the GitHub repository name. Information about the current
 
 _For additional details look through_ https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template
 
-> Note: Please use only lowercase letters, numbers or dash (-) for repository name. 
+> Note: Please use only lowercase letters, numbers or dash (-) for repository name.
 
 
 ### Step 2: Put your code into a new repository.
@@ -34,7 +34,7 @@ ssh-keygen -t rsa -b 4096 -C "id_rsa" -f id_rsa2 -N ""
 For Windows:
 
 ```sh
-cmd /c 'ssh-keygen -t rsa -b 4096 -C "id_rsa" -f id_rsa2 -N ""'  
+cmd /c 'ssh-keygen -t rsa -b 4096 -C "id_rsa" -f id_rsa2 -N ""'
 ```
 
 ### Step 4. Add the `Deploy key` to your repository and paste the content of ssh public key *.pub there.

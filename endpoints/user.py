@@ -1,15 +1,18 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 
-from core import get_service
+from core import exception_handler, get_service
 from dependencies import get_admin_user_from_token, get_current_user
 from models import User
+from models.user import UserRole
 from schemas import (
     CreateUserByAdminRequestSchema,
+    UpdateMeRequestSchema,
     UpdateUserRequestSchema,
     UserResponseShema,
+    UsersListResponseSchema,
 )
 from services import UserService
 
@@ -41,10 +44,68 @@ async def create_user(
      UserResponseShema: Schema representing the user.
 
     """
-    new_user = await service.create_new_user(
+    return await service.create_new_user(
         user_data=user_data, user_role=user_data.role
     )
-    return UserResponseShema.model_validate(new_user)
+
+
+@user_router.get(
+    path='/me',
+    summary='Get current user profile',
+    description=(
+        "Retrieve the current authenticated user's profile information "
+        'including organization data if available.'
+    ),
+    tags=['me'],
+)
+async def get_me(
+    user: Annotated[User, Depends(get_current_user)],
+    service: Annotated[UserService, Depends(get_service(UserService))],
+) -> UserResponseShema:
+    """Get information about current user.
+
+    Args:
+        user (User): Current authenticated user from token.
+        service: User service.
+
+    Returns:
+        UserResponseShema: Schema representing the user with organization data.
+
+    """
+    return await service.get_me(user_id=user.id)
+
+
+@user_router.patch(
+    path='/me',
+    summary='Update current user profile',
+    description=(
+        "Update the current authenticated user's profile information. "
+        'At least one field (phone, position, or place_of_work) must be.'
+    ),
+    response_model=UserResponseShema,
+    tags=['me'],
+)
+async def update_me(
+    user_data: UpdateMeRequestSchema,
+    user: Annotated[User, Depends(get_current_user)],
+    service: Annotated[UserService, Depends(get_service(UserService))],
+) -> UserResponseShema:
+    """Update the current authenticated user's profile.
+
+    Args:
+        user_data (UpdateMeRequestSchema): Schema with user data to update
+            (phone, position, place_of_work).
+        user (User): Current authenticated user from token.
+        service (UserService): Service for user-related operations.
+
+    Returns:
+        UserResponseShema: Schema representing the updated user.
+
+    """
+    return await service.update_me_profile(
+        user_id=user.id,
+        user_data=user_data,
+    )
 
 
 @user_router.delete(
@@ -69,10 +130,9 @@ async def delete_user(
     Returns: 201 status code.
 
     """
-    new_user = await service.delete_user_by_id(
+    return await service.delete_user_by_id(
         current_user=admin_user, user_id=user_id
     )
-    return UserResponseShema.model_validate(new_user)
 
 
 @user_router.patch(
@@ -108,59 +168,34 @@ async def update_user(
     )
 
 
-@user_router.get(
-    path='/me',
-    summary='Get current user profile',
+@user_router.post(
+    path='/me/avatar',
+    summary='Upload user avatar',
     description=(
-        "Retrieve the current authenticated user's profile information."
-    ),
-    tags=['me'],
-)
-async def get_me(
-    user: Annotated[User, Depends(get_current_user)],
-) -> UserResponseShema:
-    """Get information about current user.
-
-    Args:
-        user (User): Current authenticated user from token.
-
-    Returns:
-        UserResponseShema: Schema representing the user.
-
-    """
-    return UserResponseShema.model_validate(user)
-
-
-@user_router.patch(
-    path='/me',
-    summary='Update current user profile',
-    description=(
-        "Update the current authenticated user's profile information. "
-        'At least one field (name, surname, or email) must be provided.'
+        'Upload avatar image for the current authenticated user. '
+        'Supports JPEG and PNG formats, maximum size 5MB.'
     ),
     response_model=UserResponseShema,
     tags=['me'],
 )
-async def update_me(
-    user_data: UpdateUserRequestSchema,
+@exception_handler
+async def upload_avatar(
+    file: Annotated[UploadFile, File()],
     user: Annotated[User, Depends(get_current_user)],
     service: Annotated[UserService, Depends(get_service(UserService))],
 ) -> UserResponseShema:
-    """Update the current authenticated user's profile.
+    """Upload avatar image for the current authenticated user.
 
     Args:
-        user_data (UpdateUserRequestSchema): Schema with user data to update.
-        user (User): Current authenticated user from token.
-        service (UserService): Service for user-related operations.
+        file: Avatar image file (JPEG or PNG, max 5MB).
+        user: Current authenticated user from token.
+        service: User service.
 
     Returns:
-        UserResponseShema: Schema representing the updated user.
+        UserResponseShema: Schema representing the updated user with avatar.
 
     """
-    return await service.update_user_by_id(
-        user_id=user.id,
-        user_data=user_data,
-    )
+    return await service.upload_avatar(user_id=user.id, file=file)
 
 
 @user_router.delete(
@@ -186,3 +221,65 @@ async def delete_me(
 
     """
     return await service.delete_user_by_id(current_user=user, user_id=user.id)
+
+
+@user_router.get(
+    '/',
+    description='Get all users with pagination (admin only)',
+    response_model=UsersListResponseSchema,
+    dependencies=[Depends(get_admin_user_from_token)],
+    tags=['admin'],
+)
+@exception_handler
+async def get_all_users(
+    service: Annotated[UserService, Depends(get_service(UserService))],
+    page: int = Query(
+        1,
+        ge=1,
+        description='Page number (1-based)',
+        examples=[1],
+    ),
+    search: str | None = Query(
+        None,
+        description='Search by user name, surname, or email',
+        examples=['John'],
+    ),
+    role: list[UserRole] | None = Query(  # noqa: B008
+        None,
+        description='Filter by user roles. Can specify multiple roles.',
+        examples=[['admin'], ['provider'], ['admin', 'provider']],
+    ),
+) -> UsersListResponseSchema:
+    """Get all users with pagination.
+
+    Only admin users can access this endpoint.
+
+    Args:
+        page: Page number (1-based).
+        search: Search term for user name, surname, or email.
+        role: List of user roles to filter by.
+        service: User service.
+
+    Returns:
+        UsersListResponseSchema: Paginated list of users.
+
+    """
+    (
+        items,
+        total,
+        current_page,
+        total_pages,
+        showing,
+    ) = await service.get_all_users(
+        page=page,
+        limit=8,
+        search=search,
+        roles=role,
+    )
+    return UsersListResponseSchema(
+        items=items,
+        page=current_page,
+        total=total,
+        showing=showing,
+        total_pages=total_pages,
+    )

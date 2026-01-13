@@ -8,7 +8,7 @@ locals {
     ManagedBy   = "terraform"
     Environment = var.environment
   }
-  
+
   # Common naming convention
   name_prefix = "${var.REPO_NAME}-${var.environment}"
 }

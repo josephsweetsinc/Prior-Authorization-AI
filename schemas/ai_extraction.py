@@ -4,7 +4,7 @@ from datetime import date, time
 
 from pydantic import BaseModel, Field
 
-from models.ambulance_request import TransportationType
+from models.ambulance_request import AmbulatoryStatus, TransportationType
 
 
 class ExtractedTransportationData(BaseModel):
@@ -95,6 +95,30 @@ class ExtractedTransportationData(BaseModel):
         default=None,
         examples=['CMS-10344'],
         description='CMS form number if present (e.g., CMS-10344)',
+    )
+    ambulatory_status: AmbulatoryStatus | None = Field(
+        default=None,
+        examples=[AmbulatoryStatus.AMBULATORY],
+        description=(
+            'Patient ambulatory status. '
+            'Options: "ambulatory" - patient can walk, '
+            '"non-ambulatory" - patient cannot walk or requires assistance'
+        ),
+    )
+    oxygen_required: bool = Field(
+        default=False,
+        examples=[False],
+        description='Whether oxygen is required for the patient during transport',  # noqa: E501
+    )
+    ordering_physician: str | None = Field(
+        default=None,
+        examples=['Dr. John Smith'],
+        description='Name of the physician who ordered the transport',
+    )
+    physician_phone: str | None = Field(
+        default=None,
+        examples=['555-123-4567'],
+        description='Phone number of the ordering physician',
     )
     confidence_score: float | None = Field(
         default=None,

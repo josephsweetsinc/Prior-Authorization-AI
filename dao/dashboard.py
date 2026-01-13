@@ -53,6 +53,7 @@ class DashboardDAO(BaseDAO):
         Args:
             limit: Maximum number of requests to return.
             user_id: Optional user ID to filter by creator.
+                If None (admin view), DRAFT requests are excluded.
 
         Returns:
             List of recent AmbulanceRequest instances.
@@ -63,6 +64,9 @@ class DashboardDAO(BaseDAO):
         )
         if user_id is not None:
             stmt = stmt.where(AmbulanceRequest.user_id == user_id)
+        else:
+            # Admin view: exclude DRAFT requests
+            stmt = stmt.where(AmbulanceRequest.status != RequestStatus.DRAFT)
 
         stmt = stmt.order_by(
             AmbulanceRequest.created_at.desc(),
@@ -236,13 +240,13 @@ class DashboardDAO(BaseDAO):
         *,
         user_id: int,
     ) -> list[AmbulanceRequest]:
-        """Get all in-progress requests (PENDING + PROCESSING) for a provider.
+        """Get all in-progress requests (PENDING + SUBMITTED) for a provider.
 
         Args:
             user_id: Provider user ID.
 
         Returns:
-            List of AmbulanceRequest instances in PENDING or PROCESSING status.
+            List of AmbulanceRequest instances in PENDING or SUBMITTED status.
 
         """
         stmt = (
@@ -251,7 +255,7 @@ class DashboardDAO(BaseDAO):
                 AmbulanceRequest.is_active == True,  # noqa: E712
                 AmbulanceRequest.user_id == user_id,
                 AmbulanceRequest.status.in_(
-                    [RequestStatus.PENDING, RequestStatus.PROCESSING]
+                    [RequestStatus.PENDING, RequestStatus.SUBMITTED]
                 ),
             )
             .order_by(

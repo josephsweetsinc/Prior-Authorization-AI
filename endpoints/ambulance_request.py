@@ -1,19 +1,37 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Query,
+    UploadFile,
+)
 from fastapi.params import Security
 
 from core import exception_handler, get_service, timing_handler
-from dependencies import get_current_user, get_provider_user_from_token
-from models import User
+from dependencies import (
+    get_admin_user_from_token,
+    get_current_user,
+    get_provider_user_from_token,
+)
+from exceptions import AmbulanceRequestSearchParametersMissingException
+from models import RequestStatus, User
 from schemas.ambulance_request import (
+    AdminRequestWithStatusHistorySchema,
+    AdminUpdateRequestSchema,
     AmbulanceRequestResponseSchema,
     AmbulanceRequestsListResponseSchema,
+    ApproveRequestSchema,
+    CreateAmbulanceRequestParseSchema,
     CreateAmbulanceRequestSchema,
+    DenyRequestSchema,
+    FileUploadResponseSchema,
     FileUploadWithExtractionResponseSchema,
     RequestWithStatusHistorySchema,
 )
+from schemas.search import SearchRequestsResponseSchema
 from services import AmbulanceRequestService
 
 logger = logging.getLogger(__name__)
@@ -22,9 +40,10 @@ ambulance_request_router = APIRouter()
 
 
 @ambulance_request_router.post(
-    '/upload',
-    description='Step 1: Upload medical documents and extract data with AI',
-    response_model=FileUploadWithExtractionResponseSchema,
+    '/files',
+    description='Upload medical documents from user.',
+    summary='Upload medical documents.',
+    response_model=list[FileUploadResponseSchema],
 )
 @timing_handler
 @exception_handler
@@ -34,14 +53,13 @@ async def upload_files(
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
-) -> FileUploadWithExtractionResponseSchema:
-    """Upload medical document files and extract data using AI.
+) -> list[FileUploadResponseSchema]:
+    """Upload medical document files to S3.
 
     This endpoint:
     1. Uploads files to S3
     2. Creates file records in database
-    3. Calls AI service to extract structured data from documents
-    4. Returns uploaded files info + extracted data for form pre-filling
+    3. Returns uploaded files info
 
     Args:
         files: List of files (PDF, DOC, DOCX, XLS, XLSX, max 10MB each).
@@ -49,7 +67,7 @@ async def upload_files(
         service: Ambulance request service.
 
     Returns:
-        FileUploadWithExtractionResponseSchema: Uploaded files and AI data.
+        list[FileUploadResponseSchema]: List of uploaded files info.
 
     Raises:
         HTTPException: If file upload fails.
@@ -59,9 +77,47 @@ async def upload_files(
 
 
 @ambulance_request_router.post(
+    '/extraction',
+    description='Step 2: Parse medical documents and get info from AI.',
+    summary='Get info from documents by AI.',
+    response_model=FileUploadWithExtractionResponseSchema,
+)
+@timing_handler
+@exception_handler
+async def create_request_with_extraction(
+    request_data: CreateAmbulanceRequestParseSchema,
+    user: Annotated[User, Security(get_provider_user_from_token)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+) -> FileUploadWithExtractionResponseSchema:
+    """Triggers AI extraction of medical data and creates draft request.
+
+    This endpoint acts as the second step in the request workflow.
+    It takes a list of file IDs (uploaded in Step 1), validates them, and
+    sends the documents to an AI service to parse medical details.
+    A draft request is created with status DRAFT and its ID is returned.
+
+    Args:
+        request_data (CreateAmbulanceRequestParseSchema): The input payload
+            containing the list of file IDs to be analyzed.
+        user (User): The currently authenticated provider user.
+        service (AmbulanceRequestService): The injected service instance.
+
+    Returns:
+        FileUploadWithExtractionResponseSchema: The structured data
+            extracted from the medical documents and the created request ID.
+
+    """
+    return await service.create_request_with_extraction(
+        request_data=request_data, user_id=user.id
+    )
+
+
+@ambulance_request_router.post(
     '/create',
-    description='Step 2 & 3: Create ambulance request'
-    ' with transportation info and review data',
+    description='Create ambulance request with info verified by provider.',
+    summary='Create ambulance request.',
     response_model=AmbulanceRequestResponseSchema,
 )
 @exception_handler
@@ -72,21 +128,21 @@ async def create_request(
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
 ) -> AmbulanceRequestResponseSchema:
-    """Create a new ambulance request.
+    """Update draft request and submit it.
 
-    This endpoint combines step 2 (transportation info) and step 3 (review).
-    The request is created with status PROCESSING.
+    This endpoint updates an existing draft request with verified data
+    and changes its status to SUBMITTED.
 
     Args:
-        request_data: Request data with transportation info and review data.
+        request_data: Request data with request_id and verified information.
         user: Current authenticated user.
         service: Ambulance request service.
 
     Returns:
-        AmbulanceRequestResponseSchema: Created request.
+        AmbulanceRequestResponseSchema: Updated and submitted request.
 
     Raises:
-        HTTPException: If request creation fails.
+        HTTPException: If request update fails.
 
     """
     return await service.create_request(
@@ -95,9 +151,62 @@ async def create_request(
 
 
 @ambulance_request_router.get(
+    '/search',
+    description='Search requests by patient ID and/or name',
+    summary='Search requests by patient',
+    response_model=SearchRequestsResponseSchema,
+)
+@exception_handler
+async def search_requests(
+    user: Annotated[User, Security(get_current_user)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+    patient_id: str | None = Query(
+        None,
+        description='Patient ID to search for',
+        examples=['1EG4-TE5-MK72'],
+    ),
+    patient_name: str | None = Query(
+        None,
+        description='Patient name to search for (matches first name',
+        examples=['John', 'Doe', 'John Doe'],
+    ),
+) -> SearchRequestsResponseSchema:
+    """Search requests by patient ID and/or name.
+
+    Returns list of request IDs matching the search criteria.
+    At least one parameter (patient_id or patient_name) must be provided.
+
+    Args:
+        user: Current authenticated admin user.
+        service: Ambulance request service.
+        patient_id: Optional patient ID to search for.
+        patient_name: Optional patient name to search for.
+
+    Returns:
+        SearchRequestsResponseSchema: List of request IDs.
+
+    Raises:
+        AmbulanceRequestSearchParametersMissingException: If both parameters
+         are None.
+
+    """
+    if patient_id is None and patient_name is None:
+        raise AmbulanceRequestSearchParametersMissingException
+
+    request_ids = await service.search_by_patient_id_and_name(
+        patient_id=patient_id,
+        patient_name=patient_name,
+    )
+    return SearchRequestsResponseSchema(request_ids=request_ids)
+
+
+@ambulance_request_router.get(
     '/{request_id}',
     description='Get ambulance request by ID',
-    response_model=RequestWithStatusHistorySchema,
+    response_model=RequestWithStatusHistorySchema
+    | AdminRequestWithStatusHistorySchema,
 )
 @exception_handler
 async def get_request(
@@ -106,7 +215,7 @@ async def get_request(
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
-) -> RequestWithStatusHistorySchema:
+) -> RequestWithStatusHistorySchema | AdminRequestWithStatusHistorySchema:
     """Get ambulance request by ID with status history.
 
     Args:
@@ -129,7 +238,7 @@ async def get_request(
 
 @ambulance_request_router.get(
     '/',
-    description='Get all ambulance requests with cursor pagination',
+    description='Get all ambulance requests with pagination',
     response_model=AmbulanceRequestsListResponseSchema,
 )
 @exception_handler
@@ -138,28 +247,39 @@ async def get_user_requests(
     service: Annotated[
         AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
     ],
-    cursor: int | None = Query(
-        None,
-        description='Cursor for pagination (request ID to start from)',
-        examples=[10],
-    ),
-    limit: int = Query(
-        20,
+    page: int = Query(
+        1,
         ge=1,
-        le=100,
-        description='Maximum number of items to return',
-        examples=[20],
+        description='Page number (1-based)',
+        examples=[1],
+    ),
+    search: str | None = Query(
+        None,
+        description='Search by patient first name, last name, or patient ID',
+        examples=['John'],
+    ),
+    status: str | None = Query(
+        None,
+        description='Filter by request status',
+        examples=['pending'],
+    ),
+    days: int | None = Query(
+        None,
+        description='Filter by number of days (0=today, 7, 30, 90, 365)',
+        examples=[7],
     ),
 ) -> AmbulanceRequestsListResponseSchema:
-    """Get all ambulance requests with cursor pagination.
+    """Get all ambulance requests with pagination.
 
     Admin users see all requests in the system.
     Provider users see only their own requests.
     Status history is always included.
 
     Args:
-        cursor: Cursor for pagination (request ID to start from).
-        limit: Maximum number of items to return.
+        page: Page number (1-based).
+        search: Search term for patient name or ID.
+        status: Request status to filter by.
+        days: Number of days to filter by (0=today, 7, 30, 90, 365).
         user: Current authenticated user.
         service: Ambulance request service.
 
@@ -167,13 +287,149 @@ async def get_user_requests(
         AmbulanceRequestsListResponseSchema: Paginated list of requests.
 
     """
-    items, next_cursor, has_more = await service.get_all_requests(
+    status_enum: RequestStatus | None = None
+    if status:
+        try:
+            status_enum = RequestStatus(status.lower())
+        except ValueError:
+            status_enum = None
+
+    (
+        items,
+        total,
+        current_page,
+        total_pages,
+        showing,
+    ) = await service.get_all_requests(
         user=user,
-        cursor=cursor,
-        limit=limit,
+        page=page,
+        limit=8,
+        search=search,
+        status=status_enum,
+        days=days,
     )
     return AmbulanceRequestsListResponseSchema(
         items=items,
-        next_cursor=next_cursor,
-        has_more=has_more,
+        page=current_page,
+        total=total,
+        showing=showing,
+        total_pages=total_pages,
+    )
+
+
+@ambulance_request_router.post(
+    '/{request_id}/approve',
+    description='Approve an ambulance request (admin only)',
+    summary='Approve request',
+    response_model=AmbulanceRequestResponseSchema,
+)
+@exception_handler
+async def approve_request(
+    request_id: int,
+    request_data: ApproveRequestSchema,
+    user: Annotated[User, Security(get_admin_user_from_token)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+) -> AmbulanceRequestResponseSchema:
+    """Approve an ambulance request.
+
+    Only admin users can approve requests.
+
+    Args:
+        request_id: Request ID to approve.
+        request_data: Approval data (empty schema).
+        user: Current authenticated user (must be admin).
+        service: Ambulance request service.
+
+    Returns:
+        AmbulanceRequestResponseSchema: Approved request.
+
+    Raises:
+        HTTPException: If user is not admin, request not found, or approval.
+
+    """
+    return await service.approve_request(
+        request_id=request_id,
+        reviewer_id=user.id,
+    )
+
+
+@ambulance_request_router.post(
+    '/{request_id}/deny',
+    description='Deny an ambulance request (admin only)',
+    summary='Deny request',
+    response_model=AmbulanceRequestResponseSchema,
+)
+@exception_handler
+async def deny_request(
+    request_id: int,
+    request_data: DenyRequestSchema,
+    user: Annotated[User, Security(get_admin_user_from_token)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+) -> AmbulanceRequestResponseSchema:
+    """Deny an ambulance request.
+
+    Only admin users can deny requests.
+    If denial_reason is OTHER_REASON, denial_notes is required.
+
+    Args:
+        request_id: Request ID to deny.
+        request_data: Denial data with reason and optional notes.
+        user: Current authenticated user (must be admin).
+        service: Ambulance request service.
+
+    Returns:
+        AmbulanceRequestResponseSchema: Denied request.
+
+    Raises:
+        HTTPException: If user is not admin, request not found, or denial fails.
+
+    """
+    return await service.deny_request(
+        request_id=request_id,
+        reviewer_id=user.id,
+        denial_reason=request_data.denial_reason,
+        denial_notes=request_data.denial_notes,
+    )
+
+
+@ambulance_request_router.patch(
+    '/{request_id}',
+    description='Update ambulance request fields (admin only)',
+    summary='Update request by admin',
+    response_model=AdminRequestWithStatusHistorySchema,
+)
+@exception_handler
+async def update_request_by_admin(
+    request_id: int,
+    update_data: AdminUpdateRequestSchema,
+    user: Annotated[User, Security(get_admin_user_from_token)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+) -> AdminRequestWithStatusHistorySchema:
+    """Update ambulance request fields by admin.
+
+    Admin can update all fields except ai_accuracy and status.
+    Only admin users can update requests.
+
+    Args:
+        request_id: Request ID to update.
+        update_data: Data to update (all fields optional).
+        user: Current authenticated user (must be admin).
+        service: Ambulance request service.
+
+    Returns:
+        AdminRequestWithStatusHistorySchema: Updated request with all fields.
+
+    Raises:
+        HTTPException: If user is not admin, request not found, or update fails.
+
+    """
+    return await service.update_request_by_admin(
+        request_id=request_id,
+        update_data=update_data,
     )
