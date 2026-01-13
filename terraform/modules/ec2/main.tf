@@ -113,12 +113,12 @@ module "ec2_instance" {
 
     # Download the certificates
 
-    # sudo systemctl stop nginx; sudo  certbot certonly --standalone -d ${var.domain} --staple-ocsp -m example@gmail.com --agree-tos; sudo systemctl restart nginx
+    sudo systemctl stop nginx; sudo  certbot certonly --standalone -d ${var.domain} --staple-ocsp -m example@gmail.com --agree-tos; sudo systemctl restart nginx
 
 
     # Add cronjob for certificates renewal
 
-    # echo "0 12 * * * sudo systemctl stop nginx; /usr/bin/certbot renew --quiet; sudo systemctl restart nginx" | crontab -
+    echo "0 12 * * * sudo systemctl stop nginx; /usr/bin/certbot renew --quiet; sudo systemctl restart nginx" | crontab -
 
     # Add nginx .conf files for api
 
@@ -129,14 +129,14 @@ module "ec2_instance" {
     echo 'server {
     listen 80 default_server;
     server_name localhost;
-    # return 301 https://$host$request_uri;
-    # }
+    return 301 https://$host$request_uri;
+    }
 
-    # server {
-    #   listen 443 ssl;
-    #   server_name ${var.domain};
-    #   ssl_certificate /etc/letsencrypt/live/${var.domain}/fullchain.pem;
-    #   ssl_certificate_key /etc/letsencrypt/live/${var.domain}/privkey.pem;
+    server {
+      listen 443 ssl;
+      server_name ${var.domain};
+      ssl_certificate /etc/letsencrypt/live/${var.domain}/fullchain.pem;
+      ssl_certificate_key /etc/letsencrypt/live/${var.domain}/privkey.pem;
 
       types_hash_max_size 10240;
       client_max_body_size 10M;
@@ -162,6 +162,22 @@ module "ec2_instance" {
           proxy_no_cache $cookie_session;
           proxy_buffers 32 4k;
         }
+        location /ws {
+              proxy_pass http://127.0.0.1:3100/ws;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "upgrade";
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              proxy_set_header Authorization $http_authorization;
+
+              # WebSocket specific timeouts
+              proxy_read_timeout 86400;
+              proxy_send_timeout 86400;
+              proxy_connect_timeout 86400;
+          }
       }' > /etc/nginx/conf.d/app-api.conf
 
     sudo systemctl restart nginx
