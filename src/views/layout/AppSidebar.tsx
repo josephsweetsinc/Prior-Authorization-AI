@@ -10,10 +10,38 @@ import {
   SidebarGroup,
   SidebarHeader,
   SidebarItem,
+  SidebarSkeleton,
 } from '@/shared/components';
 
 export const AppSidebar = () => {
   const { isAdmin, isLoading } = useIsAdmin();
+
+  if (isLoading) {
+    return <SidebarSkeleton />;
+  }
+
+  if (isAdmin) {
+    return (
+      <Sidebar className='row-span-2'>
+        <SidebarHeader className='flex items-center'>
+          <LogoIcon />
+        </SidebarHeader>
+
+        <SidebarContent>
+          <SidebarGroup aria-label='Main Navigation'>
+            <SidebarItem icon='LayoutDashboard' label='Dashboard' to='/' />
+            <SidebarItem icon='FileText' label='Requests' to='/requests' />
+            <SidebarItem
+              icon='Users'
+              label='User Management'
+              to='/user-management'
+            />
+            <SidebarItem icon='FileChartLine' label='Reports' to='/reports' />
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
 
   return (
     <Sidebar className='row-span-2'>
@@ -24,30 +52,17 @@ export const AppSidebar = () => {
       <SidebarContent>
         <SidebarGroup aria-label='Main Navigation'>
           <SidebarItem icon='LayoutDashboard' label='Dashboard' to='/' />
-          {isLoading ? null : isAdmin ? (
-            <>
-              <SidebarItem icon='FileText' label='Requests' to='/requests' />
-              <SidebarItem
-                icon='Users'
-                label='User Management'
-                to='/user-management'
-              />
-              <SidebarItem icon='FileChartLine' label='Reports' to='/reports' />
-            </>
-          ) : (
-            <>
-              <SidebarItem
-                icon='FileChartColumnIncreasing'
-                label='New Request'
-                to='/new-request'
-              />
-              <SidebarItem
-                icon='ClockFading'
-                label='Requests History'
-                to='/requests-history'
-              />
-            </>
-          )}
+
+          <SidebarItem
+            icon='FileChartColumnIncreasing'
+            label='New Request'
+            to='/new-request'
+          />
+          <SidebarItem
+            icon='ClockFading'
+            label='Requests History'
+            to='/requests-history'
+          />
         </SidebarGroup>
       </SidebarContent>
 

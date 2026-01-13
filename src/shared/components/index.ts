@@ -27,6 +27,7 @@ export {
   Sidebar,
   SidebarHeader,
   SidebarItem,
+  SidebarSkeleton,
 } from './sidebar';
 export { GlobalSearch } from './globalSearch';
 export { Separator } from './separator';
@@ -36,6 +37,7 @@ export {
   HeaderGroup,
   HeaderProfile,
   type ProfileAction,
+  HeaderSkeleton,
 } from './header';
 export {
   DropdownMenu,

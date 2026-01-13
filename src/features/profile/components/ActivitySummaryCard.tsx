@@ -12,7 +12,7 @@ export const ActivitySummaryCard = () => {
   return (
     <Window className='p-5'>
       <div className='space-y-8'>
-        <h3 className='text-xl font-bold text-[#232323]'>Activity Summary</h3>
+        <h3 className='text-xl font-bold text-black'>Activity Summary</h3>
         <div className='grid gap-3 sm:grid-cols-2'>
           {summaryItems.map((item) => (
             <div
@@ -26,8 +26,8 @@ export const ActivitySummaryCard = () => {
                 strokeWidth={1.5}
               />
               <div>
-                <p className='text-[#4A5568]'>{item.label}</p>
-                <p className='text-2xl font-semibold text-[#232323]'>
+                <p className='text-gray-dark'>{item.label}</p>
+                <p className='text-2xl font-semibold text-black'>
                   {item.value}
                 </p>
               </div>
