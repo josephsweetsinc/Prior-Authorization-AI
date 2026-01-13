@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from dependencies.auth import get_provider_user_from_token
+from dependencies.auth import get_current_user
 from main import app
 from models.notification import NotificationCategory
 from models.user import UserRole
@@ -20,6 +20,13 @@ from schemas.notification import (
 def client() -> TestClient:
     """Create test client."""
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def reset_dependencies():
+    """Reset dependency overrides after each test."""
+    yield
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -46,7 +53,7 @@ class TestNotificationEndpoints:
         async def get_user_override():
             return mock_user
 
-        app.dependency_overrides[get_provider_user_from_token] = get_user_override
+        app.dependency_overrides[get_current_user] = get_user_override
 
         with patch(
             "services.notification.NotificationService.get_user_notifications",
@@ -95,7 +102,7 @@ class TestNotificationEndpoints:
         async def get_user_override():
             return mock_user
 
-        app.dependency_overrides[get_provider_user_from_token] = get_user_override
+        app.dependency_overrides[get_current_user] = get_user_override
 
         with patch(
             "services.notification.NotificationService.get_user_notifications",
