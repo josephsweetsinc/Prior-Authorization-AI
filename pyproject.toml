@@ -25,6 +25,7 @@ dependencies = [
     "sqlalchemy>=2.0.44",
     "urllib3>=2.0.0,<3.0.0",
     "uvicorn>=0.38.0",
+    "websockets>=14.0",
 ]
 
 [dependency-groups]
