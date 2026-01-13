@@ -3,12 +3,12 @@
 import { BellDot, type icons, Settings } from 'lucide-react';
 import Link from 'next/link';
 
-import { LogoutModal } from '@/features/profile/components/LogoutModal';
-import { useLogoutModal } from '@/features/profile/hooks/useLogoutModal';
 import {
   getDisplayName,
   getProfileRole,
-} from '@/features/profile/utils/userDisplay';
+  LogoutModal,
+  useLogoutModal,
+} from '@/features/profile';
 import { useGetCurrentUserQuery } from '@/services';
 import {
   Button,
@@ -19,6 +19,7 @@ import {
   HeaderProfile,
   type ProfileAction,
 } from '@/shared/components';
+import { HeaderSkeleton } from '@/shared/components/header/skeleton';
 import { cn } from '@/shared/lib/utils';
 
 type AppHeaderProps = {
@@ -53,6 +54,10 @@ export const AppHeader = ({
       onClick: open,
     },
   ] as const;
+
+  if (isUserLoading) {
+    return <HeaderSkeleton />;
+  }
 
   return (
     <>

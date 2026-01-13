@@ -73,7 +73,7 @@ export const ProfileHeaderCard = ({
             <Avatar
               name={name}
               src={avatarUrl ?? undefined}
-              className='w-[100px] **:data-[slot=name]:hidden **:data-[slot=role]:hidden'
+              className='w-25 **:data-[slot=name]:hidden **:data-[slot=role]:hidden'
               avatarClassName='!size-[100px]'
             />
             <span className='pointer-events-none absolute inset-0 overflow-hidden rounded-full'>
@@ -93,7 +93,7 @@ export const ProfileHeaderCard = ({
           <div className='w-full space-y-3'>
             <div className='flex flex-wrap items-center justify-between'>
               <div className='flex flex-wrap items-center gap-3'>
-                <h2 className='text-2xl font-bold text-[#232323]'>{name}</h2>
+                <h2 className='text-2xl font-bold text-black'>{name}</h2>
                 {!isAdmin && <Chip label={role} variant='info' size='sm' />}
               </div>
               {!isAdmin && (
@@ -108,7 +108,7 @@ export const ProfileHeaderCard = ({
                 </Button>
               )}
             </div>
-            <div className='flex flex-wrap items-center justify-between gap-5 text-base text-[#4A5568]'>
+            <div className='text-gray-dark flex flex-wrap items-center justify-between gap-5 text-base'>
               <span className='flex items-center gap-2'>
                 <Mail className='text-status-info size-5' />
                 {email ? email : 'N/A'}

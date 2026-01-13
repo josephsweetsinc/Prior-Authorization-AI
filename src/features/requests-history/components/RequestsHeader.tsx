@@ -45,12 +45,14 @@ export const RequestsHeader = ({
         value={filters.date}
         onChange={handleDateFilterChange}
         className='shrink grow basis-1/4'
+        triggerClassName='py-[9px] px-4 text-[14px] h-[38px]'
       />
       <Select
         options={STATUS_OPTIONS}
         value={filters.status}
         onChange={handleStatusFilterChange}
         className='shrink grow basis-1/4'
+        triggerClassName='py-[9px] px-4 text-[14px] h-[38px]'
       />
     </div>
   );
