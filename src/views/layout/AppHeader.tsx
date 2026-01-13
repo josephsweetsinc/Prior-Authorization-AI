@@ -18,8 +18,8 @@ import {
   HeaderGroup,
   HeaderProfile,
   type ProfileAction,
+  HeaderSkeleton,
 } from '@/shared/components';
-import { HeaderSkeleton } from '@/shared/components/header/skeleton';
 import { cn } from '@/shared/lib/utils';
 
 type AppHeaderProps = {

@@ -37,6 +37,7 @@ export {
   HeaderGroup,
   HeaderProfile,
   type ProfileAction,
+  HeaderSkeleton,
 } from './header';
 export {
   DropdownMenu,
