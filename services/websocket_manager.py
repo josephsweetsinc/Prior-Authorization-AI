@@ -46,7 +46,11 @@ class WebSocketConnectionManager:
     async def send_personal_message(
         self, message: dict[str, Any], user_id: int
     ) -> None:
-        """Send a message to a specific user.
+        """Send a message to a specific user if connected.
+
+        If user is not connected, this method does nothing (no error).
+        This is expected behavior - notifications are always saved in DB
+        and can be retrieved via API even if user is not connected to WebSocket.
 
         Args:
             message: Message dictionary to send.
@@ -57,11 +61,18 @@ class WebSocketConnectionManager:
         if websocket:
             try:
                 await websocket.send_json(message)
+                logger.debug('Sent WebSocket message to user %s', user_id)
             except Exception as e:
-                logger.exception(
-                    'Failed to send message to user %s: %s', user_id, e
+                logger.warning(
+                    'Failed to send WebSocket message to user %s: %s', user_id, e
                 )
                 self.disconnect(user_id)
+        else:
+            logger.debug(
+                'User %s is not connected to WebSocket. '
+                'Notification is saved in database.',
+                user_id
+            )
 
     async def broadcast_to_admins(self, message: dict[str, Any]) -> None:
         """Broadcast a message to all connected admin users.

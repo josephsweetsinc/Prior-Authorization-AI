@@ -71,6 +71,7 @@ class NotificationService(BaseService):
                 category=category, request_id=request_id
             )
 
+        # Always save notification to database first
         notification = await self._notification_dao.create(
             user_id=user_id,
             category=category,
@@ -81,12 +82,17 @@ class NotificationService(BaseService):
         await self._session.flush()
         await self._session.commit()
 
-        # Send notification via WebSocket to all connected admins
+        # Try to send notification via WebSocket in real-time (if user is connected)
+        # If user is not connected or WebSocket fails, notification is still saved in DB
+        # and can be retrieved later via API endpoint
         try:
             await self._send_notification_via_websocket(notification)
         except Exception as e:
-            logger.exception(
-                'Failed to send notification via WebSocket: %s', e
+            logger.warning(
+                'Failed to send notification via WebSocket to user %s: %s. '
+                'Notification is saved in database and can be retrieved via API.',
+                user_id,
+                e,
             )
             # Don't fail the notification creation if WebSocket fails
 
@@ -96,6 +102,9 @@ class NotificationService(BaseService):
         self, notification: Notification
     ) -> None:
         """Send notification via WebSocket to the specific user if connected.
+
+        If user is not connected, this method does nothing (no error).
+        Notification is already saved in database and can be retrieved via API.
 
         Args:
             notification: Notification to send.
@@ -109,6 +118,7 @@ class NotificationService(BaseService):
             'data': notification_data.model_dump(mode='json'),
         }
         # Send to the specific user who should receive this notification
+        # If user is not connected, send_personal_message will silently skip
         await websocket_manager.send_personal_message(
             message, notification.user_id
         )
