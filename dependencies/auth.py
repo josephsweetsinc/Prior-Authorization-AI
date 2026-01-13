@@ -1,30 +1,46 @@
 from typing import Annotated
 
-from fastapi import Depends
-from fastapi.params import Security
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, Request
 
 from config.settings import Settings
 from core import get_service
-from exceptions import UserHasNoPermissionPermission
+from exceptions import UserHasNoPermissionPermission, WrongCredentialsException
 from models import User
 from models.user import UserRole
 from services import UserService
 from services.auth import AuthService
 
 settings = Settings.load()
-oauth_scheme: OAuth2PasswordBearer = OAuth2PasswordBearer(
-    tokenUrl=f'Prod/api/{settings.API_VERSION}/auth/login',
-)
 
 
 async def get_current_user(
-    token: Annotated[str, Security(oauth_scheme)],
+    request: Request,
     auth_service: Annotated[AuthService, Depends(get_service(AuthService))],
     user_service: Annotated[UserService, Depends(get_service(UserService))],
 ) -> User:
-    """Get user from token. Role does not matter."""
-    user_id = await auth_service.validate_token_for_user(token)
+    """Get user from token. Reads token from HttpOnly cookie only.
+
+    Args:
+        request: FastAPI request object.
+        auth_service: Auth service dependency.
+        user_service: User service dependency.
+
+    Returns:
+        User: Authenticated user.
+
+    Raises:
+        WrongCredentialsException: If no valid token is found in cookies.
+
+    """
+    cookie_settings = settings.cookie_settings
+    access_token: str | None = request.cookies.get(
+        cookie_settings.ACCESS_TOKEN_COOKIE_NAME
+    )
+
+    if not access_token:
+        raise WrongCredentialsException
+
+    user_id = await auth_service.validate_token_for_user(access_token)
     return await user_service.get_user_by_id(user_id)
 
 

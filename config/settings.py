@@ -35,6 +35,7 @@ class TokenSettings(BaseSettings):
         ALGORITHM: Algorithm used for token signing (default: HS256).
         ACCESS_TOKEN_EXPIRE_MINUTES: Access token expiration time in minutes.
         REFRESH_TOKEN_EXPIRE_DAYS: Refresh token expiration time in days.
+        REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME: Refresh token expiration when remember me is enabled.
 
     """
 
@@ -45,7 +46,8 @@ class TokenSettings(BaseSettings):
     SECRET_KEY: str = ''
     ALGORITHM: str = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # Default session (no remember me)
+    REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME: int = 30  # Remember me session
 
 
 class DatabaseSettings(BaseSettings):
@@ -192,6 +194,31 @@ class LLMSettings(BaseSettings):
     PDF_MAX_PAGES: int = 15
 
 
+class CookieSettings(BaseSettings):
+    """Settings for HTTP cookies.
+
+    All settings are prefixed with 'COOKIE_' in environment variables.
+
+    Attributes:
+        ACCESS_TOKEN_COOKIE_NAME: Name of the access token cookie.
+        REFRESH_TOKEN_COOKIE_NAME: Name of the refresh token cookie.
+        DOMAIN: Cookie domain (optional).
+        SECURE: Whether cookies should only be sent over HTTPS.
+        SAME_SITE: SameSite attribute for cookies.
+
+    """
+
+    model_config = SettingsConfigDict(
+        env_prefix='COOKIE_', env_file=env_file, extra='ignore'
+    )
+
+    ACCESS_TOKEN_COOKIE_NAME: str = 'access_token'
+    REFRESH_TOKEN_COOKIE_NAME: str = 'refresh_token'
+    DOMAIN: str | None = None
+    SECURE: bool = True  # Set to False for local development without HTTPS
+    SAME_SITE: str = 'lax'  # lax, strict, or none
+
+
 class Settings(BaseSettings):
     """Main application settings class.
 
@@ -206,6 +233,7 @@ class Settings(BaseSettings):
         LOG_LEVEL: Logging level (DEBUG, INFO, WARNING, ERROR).
         DEBUG: Whether debug mode is enabled.
         token_settings: Nested token configuration.
+        cookie_settings: Nested cookie configuration.
         database_settings: Nested database configuration.
         logging_settings: Nested logging configuration.
         aws_settings: Nested AWS configuration.
@@ -229,6 +257,7 @@ class Settings(BaseSettings):
 
     # Nested settings
     token_settings: TokenSettings = Field(default_factory=TokenSettings)
+    cookie_settings: CookieSettings = Field(default_factory=CookieSettings)
     database_settings: DatabaseSettings = Field(
         default_factory=DatabaseSettings
     )
