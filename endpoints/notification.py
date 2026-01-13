@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.params import Security
 
 from core import exception_handler, get_service
-from dependencies import get_provider_user_from_token
+from dependencies import get_current_user
 from models import User
 from models.notification import NotificationCategory
 from schemas.notification import (
@@ -27,7 +27,7 @@ notification_router = APIRouter()
 )
 @exception_handler
 async def get_user_notifications(
-    user: Annotated[User, Security(get_provider_user_from_token)],
+    user: Annotated[User, Security(get_current_user)],
     service: Annotated[
         NotificationService, Depends(get_service(NotificationService))
     ],
