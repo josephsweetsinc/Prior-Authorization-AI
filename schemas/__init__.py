@@ -51,6 +51,7 @@ from .user import (
     UserResponseShema,
     UsersListResponseSchema,
 )
+from .websocket import WebSocketInfoResponse
 
 __all__ = [
     'AIExtractionResponse',
@@ -90,6 +91,7 @@ __all__ = [
     'UserListItemSchema',
     'UserResponseShema',
     'UsersListResponseSchema',
+    'WebSocketInfoResponse',
 ]
 
 # Rebuild models to resolve forward references

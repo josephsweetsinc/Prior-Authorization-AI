@@ -13,6 +13,7 @@ from endpoints import (
     report_router,
     stats_router,
     user_router,
+    websocket_router,
 )
 
 settings = Settings.load()
@@ -61,5 +62,10 @@ def initialize_routers() -> APIRouter:
         report_router,
         prefix='/report',
         tags=['report'],
+    )
+    main_api_router.include_router(
+        websocket_router,
+        prefix='/websocket',
+        tags=['websocket'],
     )
     return main_api_router
