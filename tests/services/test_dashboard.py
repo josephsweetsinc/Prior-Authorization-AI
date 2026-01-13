@@ -386,11 +386,12 @@ class TestDashboardService:
 
         now = datetime.now(UTC)
 
-        # Create requests from both providers
+        # Create requests from both providers (with SUBMITTED status so admin can see them)
         for i in range(3):
             await ambulance_request_factory(
                 user_id=provider1.id,
                 patient_first_name=f'P1Patient{i}',
+                status=RequestStatus.SUBMITTED,
                 created_at=now - timedelta(hours=i),
             )
 
@@ -398,6 +399,7 @@ class TestDashboardService:
             await ambulance_request_factory(
                 user_id=provider2.id,
                 patient_first_name=f'P2Patient{i}',
+                status=RequestStatus.SUBMITTED,
                 created_at=now - timedelta(hours=i + 0.5),
             )
 
