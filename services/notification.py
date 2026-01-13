@@ -9,6 +9,7 @@ from exceptions.notification import (
     NotificationSystemCategoryException,
 )
 from models.notification import Notification, NotificationCategory
+from services.websocket_manager import websocket_manager
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,38 @@ class NotificationService(BaseService):
         )
         await self._session.flush()
         await self._session.commit()
+
+        # Send notification via WebSocket to all connected admins
+        try:
+            await self._send_notification_via_websocket(notification)
+        except Exception as e:
+            logger.exception(
+                'Failed to send notification via WebSocket: %s', e
+            )
+            # Don't fail the notification creation if WebSocket fails
+
         return notification
+
+    async def _send_notification_via_websocket(
+        self, notification: Notification
+    ) -> None:
+        """Send notification via WebSocket to the specific user if connected.
+
+        Args:
+            notification: Notification to send.
+
+        """
+        from schemas.notification import NotificationResponseSchema
+
+        notification_data = NotificationResponseSchema.model_validate(notification)
+        message = {
+            'type': 'notification',
+            'data': notification_data.model_dump(mode='json'),
+        }
+        # Send to the specific user who should receive this notification
+        await websocket_manager.send_personal_message(
+            message, notification.user_id
+        )
 
     def _generate_title(
         self,
