@@ -9,6 +9,7 @@ from exceptions.notification import (
     NotificationSystemCategoryException,
 )
 from models.notification import Notification, NotificationCategory
+from schemas.notification import NotificationResponseSchema
 from services.websocket_manager import websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -82,15 +83,16 @@ class NotificationService(BaseService):
         await self._session.flush()
         await self._session.commit()
 
-        # Try to send notification via WebSocket in real-time (if user is connected)
-        # If user is not connected or WebSocket fails, notification is still saved in DB
+        # Try to send notification via WebSocket (if user is connected)
+        # If user is not connected or WebSocket fails,
+        # notification is still saved in DB
         # and can be retrieved later via API endpoint
         try:
             await self._send_notification_via_websocket(notification)
         except Exception as e:
             logger.warning(
                 'Failed to send notification via WebSocket to user %s: %s. '
-                'Notification is saved in database and can be retrieved via API.',
+                'Notification is saved in db and can be retrieved via API.',
                 user_id,
                 e,
             )
@@ -110,9 +112,9 @@ class NotificationService(BaseService):
             notification: Notification to send.
 
         """
-        from schemas.notification import NotificationResponseSchema
-
-        notification_data = NotificationResponseSchema.model_validate(notification)
+        notification_data = NotificationResponseSchema.model_validate(
+            notification
+        )
         message = {
             'type': 'notification',
             'data': notification_data.model_dump(mode='json'),

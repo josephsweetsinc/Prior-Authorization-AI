@@ -1,4 +1,3 @@
-import json
 import logging
 from typing import Any
 
@@ -11,7 +10,7 @@ class WebSocketConnectionManager:
     """Manager for WebSocket connections.
 
     Manages active WebSocket connections for all authenticated users.
-    Supports sending messages to specific users and broadcasting to all connected users.
+    Supports sending messages to specific users and broadcasting to all users.
     """
 
     def __init__(self) -> None:
@@ -64,14 +63,16 @@ class WebSocketConnectionManager:
                 logger.debug('Sent WebSocket message to user %s', user_id)
             except Exception as e:
                 logger.warning(
-                    'Failed to send WebSocket message to user %s: %s', user_id, e
+                    'Failed to send WebSocket message to user %s: %s',
+                    user_id,
+                    e,
                 )
                 self.disconnect(user_id)
         else:
             logger.debug(
                 'User %s is not connected to WebSocket. '
                 'Notification is saved in database.',
-                user_id
+                user_id,
             )
 
     async def broadcast_to_admins(self, message: dict[str, Any]) -> None:
@@ -85,11 +86,10 @@ class WebSocketConnectionManager:
         for user_id, websocket in self.active_connections.items():
             try:
                 await websocket.send_json(message)
-            except Exception as e:
+            except Exception:
                 logger.exception(
-                    'Failed to send broadcast message to user %s: %s',
+                    'Failed to send broadcast message to user %s',
                     user_id,
-                    e,
                 )
                 disconnected_users.append(user_id)
 
@@ -108,11 +108,10 @@ class WebSocketConnectionManager:
         for user_id, websocket in self.active_connections.items():
             try:
                 await websocket.send_json(message)
-            except Exception as e:
+            except Exception:
                 logger.exception(
-                    'Failed to send broadcast message to user %s: %s',
+                    'Failed to send broadcast message to user %s',
                     user_id,
-                    e,
                 )
                 disconnected_users.append(user_id)
 

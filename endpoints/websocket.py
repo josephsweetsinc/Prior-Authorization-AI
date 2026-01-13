@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from config.database import async_session_maker
 from models import User
 from schemas.websocket import WebSocketInfoResponse
 from services import UserService
@@ -12,11 +13,13 @@ logger = logging.getLogger(__name__)
 
 websocket_router = APIRouter()
 
+_SLICE_LOGGING: int = 50
+
 
 @websocket_router.get(
     '/notifications/info',
     summary='WebSocket connection information',
-    description='Get information about WebSocket endpoint for real-time notifications',
+    description='Get information about WebSocket endpoint.',
     response_model=WebSocketInfoResponse,
     tags=['websocket'],
 )
@@ -24,7 +27,7 @@ async def get_websocket_info() -> WebSocketInfoResponse:
     """Get information about WebSocket endpoint for real-time notifications.
 
     **Note:** WebSocket connections cannot be tested in Swagger UI.
-    Use a WebSocket client (Postman, wscat, or browser WebSocket API) to connect.
+    Use a WebSocket client to connect.
 
     **Connection details:**
     - URL: `ws://localhost:8000/Prod/api/v1/websocket/notifications`
@@ -101,8 +104,8 @@ async def websocket_notifications(
 ) -> None:
     """WebSocket endpoint for real-time notifications.
 
-    Connects authenticated users (admins and providers) to receive real-time notifications.
-    The connection is authenticated using a JWT token passed in Authorization header.
+    Connects authenticated users  to receive real-time notifications.
+    The connection is authenticated using a JWT token passed.
 
     **Authentication:**
     - Header: `Authorization: Bearer <your_jwt_token>`
@@ -122,29 +125,31 @@ async def websocket_notifications(
     """
     # Accept the connection first to avoid 403 rejection
     await websocket.accept()
-    
+
     user: User | None = None
     try:
         # Extract token from Authorization header
         # Try different ways to get the header
         authorization = websocket.headers['authorization']
-        
         # Log the actual authorization header value for debugging
         logger.info(
             'Authorization header found: %s, value: %s',
             authorization is not None,
-            authorization[:50] + '...' if authorization and len(authorization) > 50 else authorization
+            authorization[:_SLICE_LOGGING] + '...'
+            if authorization and len(authorization) > _SLICE_LOGGING
+            else authorization,
         )
-        
+
         token = _extract_token_from_header(authorization)
 
         if not token:
-            await websocket.close(code=1008, reason='Authorization header required')
+            await websocket.close(
+                code=1008, reason='Authorization header required'
+            )
             return
 
         # Validate token and get user
-        # We need to create services manually as WebSocket doesn't support Depends
-        from config.database import async_session_maker
+        # Create services manually WebSocket doesn't support Depends
 
         async with async_session_maker() as session:
             auth_service = AuthService(db_session=session)
@@ -178,12 +183,15 @@ async def websocket_notifications(
     except WebSocketDisconnect:
         if user:
             websocket_manager.disconnect(user.id)
-        logger.info('WebSocket disconnected for user %s', user.id if user else 'unknown')
-    except Exception as e:
-        logger.exception('WebSocket error: %s', e)
+        logger.info(
+            'WebSocket disconnected for user %s', user.id if user else 'unknown'
+        )
+    except Exception:
+        logger.exception('WebSocket error')
         if user:
             websocket_manager.disconnect(user.id)
         try:
             await websocket.close(code=1011, reason='Internal server error')
         except Exception:
-            pass  # Connection might already be closed
+            logger.exception('Failed to close WebSocket connection')
+            # Connection might already be closed
