@@ -53,6 +53,7 @@ class DashboardDAO(BaseDAO):
         Args:
             limit: Maximum number of requests to return.
             user_id: Optional user ID to filter by creator.
+                If None (admin view), DRAFT requests are excluded.
 
         Returns:
             List of recent AmbulanceRequest instances.
@@ -63,6 +64,9 @@ class DashboardDAO(BaseDAO):
         )
         if user_id is not None:
             stmt = stmt.where(AmbulanceRequest.user_id == user_id)
+        else:
+            # Admin view: exclude DRAFT requests
+            stmt = stmt.where(AmbulanceRequest.status != RequestStatus.DRAFT)
 
         stmt = stmt.order_by(
             AmbulanceRequest.created_at.desc(),
