@@ -35,14 +35,14 @@ data "aws_ami" "ubuntu_24_04" {
 
 # Local values
 locals {
-  ubuntu_ami = data.aws_ami.ubuntu_24_04.id
+  ubuntu_ami     = data.aws_ami.ubuntu_24_04.id
   ubuntu_version = "24.04 LTS (Noble)"
 }
 
 module "key_pair" {
   source = "terraform-aws-modules/key-pair/aws"
 
-  key_name           = "${var.name}-key"
+  key_name   = "${var.name}-key"
   public_key = var.SSH_KEY_PUB
 }
 
@@ -162,8 +162,8 @@ module "ec2_instance" {
           proxy_no_cache $cookie_session;
           proxy_buffers 32 4k;
         }
-        location /ws {
-              proxy_pass http://127.0.0.1:3100/ws;
+        location /Prod/api/v1/websocket/ {
+              proxy_pass http://127.0.0.1:3100/Prod/api/v1/websocket/;
               proxy_http_version 1.1;
               proxy_set_header Upgrade $http_upgrade;
               proxy_set_header Connection "upgrade";
@@ -185,13 +185,13 @@ module "ec2_instance" {
     # sudo -u ubuntu newgrp docker
   EOT
 
-    root_block_device = {
-      size = 30
-      # tags = {
-      #   Name = "my-root-block"
-      # }
-    }
-    enable_volume_tags = true
+  root_block_device = {
+    size = 30
+    # tags = {
+    #   Name = "my-root-block"
+    # }
+  }
+  enable_volume_tags = true
 
 
   tags = merge({
