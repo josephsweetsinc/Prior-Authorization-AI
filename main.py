@@ -21,13 +21,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://prior-authorization-ai.vercel.app",
-        "http:localhost:8000"
-    ],
+    allow_origins=['*'],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 main_api_router = initialize_routers()
 app.include_router(main_api_router)
