@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from core import BaseService
@@ -81,13 +83,17 @@ class AuthService(BaseService):
         return user
 
     async def create_token(
-        self, author_id: int, user_role: UserRole
+        self,
+        author_id: int,
+        user_role: UserRole,
+        remember_me: bool = False,  # noqa: FBT002, FBT001
     ) -> TokenSchemas:
         """Generate access and refresh tokens for an author.
 
         Args:
             author_id (int): ID of the author.
             user_role (UserRole): Role of the author.
+            remember_me (bool): If True, generate tokens with longer expiration.
 
         Returns:
             TokenSchemas: Access and refresh tokens with token type.
@@ -97,7 +103,7 @@ class AuthService(BaseService):
             author_id=author_id
         )
         refresh_token: str = TokenManager.generate_refresh_token(
-            author_id=author_id
+            author_id=author_id, remember_me=remember_me
         )
         return TokenSchemas(
             access_token=access_token,
@@ -132,11 +138,20 @@ class AuthService(BaseService):
         if not user or not user.is_active:
             raise RefreshTokenException
 
+        # Preserve remember_me setting from original token expiration
+        # If token expires in 30 days, it was a remember_me session
+        expires_at = int(decoded.get('exp', 0))
+        current_time = int(datetime.now(UTC).timestamp())
+        days_until_expiry = (expires_at - current_time) / 86400
+        remember_me = (
+            days_until_expiry > 20  # noqa: PLR2004
+        )  # If more than 20 days, it's remember_me
+
         access_token: str = TokenManager.generate_access_token(
             author_id=user_id
         )
         new_refresh_token: str = TokenManager.generate_refresh_token(
-            author_id=user_id
+            author_id=user_id, remember_me=remember_me
         )
 
         # Blacklist old refresh token to prevent reuse

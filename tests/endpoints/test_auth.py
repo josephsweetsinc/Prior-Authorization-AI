@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
+from core.dependencies import get_session
 from exceptions import (
     RefreshTokenException,
     UserIsNotActiveException,
@@ -20,6 +21,13 @@ from schemas import TokenSchemas, UserResponseShema
 def client() -> TestClient:
     """Create test client."""
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def reset_dependencies():
+    """Reset dependency overrides after each test."""
+    yield
+    app.dependency_overrides.clear()
 
 
 class TestAuthEndpoints:
@@ -134,17 +142,36 @@ class TestAuthEndpoints:
     async def test_refresh_token_success(
         self,
         client: TestClient,
+        db_session,
     ):
         """Test successful token refresh."""
+        from datetime import UTC, datetime, timedelta
+
+        # Override get_session to use test database session
+        async def get_session_override():
+            yield db_session
+
+        app.dependency_overrides[get_session] = get_session_override
+
+        # Patch AuthService.refresh_token method
         with patch(
             "services.auth.AuthService.refresh_token",
             new_callable=AsyncMock,
-        ) as mock_refresh:
+        ) as mock_refresh, patch(
+            "services.jwt.token.TokenManager.decode_refresh_token"
+        ) as mock_decode:
             mock_refresh.return_value = TokenSchemas(
                 access_token="new_access_token",
                 refresh_token="new_refresh_token",
                 user_role=UserRole.PROVIDER,
             )
+
+            # Return a decoded token with exp timestamp
+            # so endpoint can calculate max_age for cookies
+            exp_timestamp = int(
+                (datetime.now(UTC) + timedelta(days=7)).timestamp()
+            )
+            mock_decode.return_value = {"exp": exp_timestamp, "sub": "1"}
 
             response = client.post(
                 "/Prod/api/v1/auth/refresh",
@@ -163,10 +190,19 @@ class TestAuthEndpoints:
     async def test_refresh_token_invalid(
         self,
         client: TestClient,
+        db_session,
     ):
         """Test token refresh with invalid token."""
+        # Override get_session to use test database session
+        async def get_session_override():
+            yield db_session
+
+        app.dependency_overrides[get_session] = get_session_override
+
+        # Patch AuthService.refresh_token to raise RefreshTokenException
         with patch(
             "services.auth.AuthService.refresh_token",
+            new_callable=AsyncMock,
             side_effect=RefreshTokenException,
         ):
             response = client.post(
@@ -180,8 +216,16 @@ class TestAuthEndpoints:
     async def test_logout_user_success(
         self,
         client: TestClient,
+        db_session,
     ):
         """Test successful user logout."""
+        # Override get_session to use test database session
+        async def get_session_override():
+            yield db_session
+
+        app.dependency_overrides[get_session] = get_session_override
+
+        # Patch AuthService.logout_user method
         with patch(
             "services.auth.AuthService.logout_user",
             new_callable=AsyncMock,
