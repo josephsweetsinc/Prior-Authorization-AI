@@ -120,10 +120,6 @@ export function CompleteProfileForm() {
           error={errors.company?.message}
         />
 
-        {/* {serverErrors && (
-          <div className='text-destructive text-sm'>{serverErrors}</div>
-        )} */}
-
         <div className='pt-2'>
           <Button
             type='submit'
