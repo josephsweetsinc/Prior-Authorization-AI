@@ -10,7 +10,7 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
     <aside
       ref={ref}
       className={cn(
-        'bg-sidebar text-sidebar-foreground flex h-dvh w-full flex-col',
+        'bg-sidebar text-sidebar-foreground flex h-dvh w-full max-w-72.5 flex-col',
         className,
       )}
       {...props}
@@ -49,7 +49,7 @@ export const SidebarFooter = React.forwardRef<
   HTMLDivElement,
   SidebarSectionProps
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('px-8 py-10', className)} {...props} />
+  <div ref={ref} className={cn('px-7.75 py-10', className)} {...props} />
 ));
 
 SidebarFooter.displayName = 'SidebarFooter';

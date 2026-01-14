@@ -22,7 +22,7 @@ export const SidebarCTA = forwardRef<HTMLDivElement, SidebarCTAProps>(
       <article
         ref={ref}
         className={cn(
-          'bg-primary-gradient relative flex flex-col items-center rounded-[24px] border px-6 py-4.25 text-center text-sm text-white',
+          'bg-primary-gradient relative flex flex-col items-center rounded-[24px] px-6 py-4.25 text-center text-sm text-white',
           { 'pt-14.25': !!icon },
           className,
         )}
