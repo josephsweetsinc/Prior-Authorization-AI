@@ -3,10 +3,9 @@
 import { type HTMLProps } from 'react';
 
 import { useGetRequestsSummary } from '@/services/request-totals';
-import { OverlayIcon } from '@/shared/components';
+import { MetricsCard, OverlayIcon } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
-import MetricsCard from './MetricsCard';
 import { MetricsListSkeleton } from './skeletons/MetricsListSkeleton';
 
 type Props = HTMLProps<HTMLElement>;

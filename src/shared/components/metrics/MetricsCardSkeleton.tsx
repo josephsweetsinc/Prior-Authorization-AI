@@ -1,7 +1,5 @@
-import { Separator, Skeleton } from '@/shared/components';
+import { MetricsCard, Separator, Skeleton } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
-
-import MetricsCard from '../MetricsCard';
 
 export const MetricsCardSkeleton = ({ className }: { className?: string }) => {
   return (
@@ -15,7 +13,7 @@ export const MetricsCardSkeleton = ({ className }: { className?: string }) => {
           <Skeleton className='h-7 w-20 md:h-8 xl:h-9' />
         </MetricsCard.Group>
       </MetricsCard.Group>
-      <Separator className='bg-gray-100' />
+      <Separator className='bg-gray-separator' />
       <Skeleton className='h-4 w-32' />
     </MetricsCard>
   );
