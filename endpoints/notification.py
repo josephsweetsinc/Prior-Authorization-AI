@@ -50,13 +50,13 @@ async def get_user_notifications(
 ) -> NotificationsListResponseSchema:
     """Get all notifications for the current user with pagination.
 
-    Only provider users can access this endpoint.
+    Available for both admin and provider users.
 
     Args:
         page: Page number (1-based).
         category: Notification category to filter by (optional).
         is_read: Filter by read status (optional).
-        user: Current authenticated user (must be provider).
+        user: Current authenticated user (admin or provider).
         service: Notification service.
 
     Returns:
