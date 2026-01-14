@@ -104,11 +104,12 @@ async def websocket_notifications(
 ) -> None:
     """WebSocket endpoint for real-time notifications.
 
-    Connects authenticated users  to receive real-time notifications.
-    The connection is authenticated using a JWT token passed.
+    Connects authenticated users (admins and providers) to receive
+    real-time notifications.
 
-    **Authentication:**
+    **Authentication (choose one):**
     - Header: `Authorization: Bearer <your_jwt_token>`
+    - Query parameter: `?token=<your_jwt_token>` (для браузерного WebSocket API)
 
     **Testing in Postman:**
     1. Create a new WebSocket request
@@ -128,23 +129,11 @@ async def websocket_notifications(
 
     user: User | None = None
     try:
-        # Extract token from Authorization header
-        # Try different ways to get the header
-        authorization = websocket.headers['authorization']
-        # Log the actual authorization header value for debugging
-        logger.info(
-            'Authorization header found: %s, value: %s',
-            authorization is not None,
-            authorization[:_SLICE_LOGGING] + '...'
-            if authorization and len(authorization) > _SLICE_LOGGING
-            else authorization,
-        )
-
-        token = _extract_token_from_header(authorization)
-
+        token = websocket.query_params.get('token')
         if not token:
             await websocket.close(
-                code=1008, reason='Authorization header required'
+                code=1008,
+                reason='Authorization required (header or ?token=<jwt>)',
             )
             return
 
