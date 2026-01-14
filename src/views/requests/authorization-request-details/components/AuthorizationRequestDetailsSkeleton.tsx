@@ -32,7 +32,7 @@ export const AuthorizationRequestDetailsSkeleton = () => (
           </div>
         </div>
 
-        <Separator className='bg-gray-200' />
+        <Separator className='bg-gray-separator' />
 
         <div className='space-y-5'>
           <Skeleton className='h-5 w-40' />
@@ -44,7 +44,7 @@ export const AuthorizationRequestDetailsSkeleton = () => (
           </div>
         </div>
 
-        <Separator className='bg-gray-200' />
+        <Separator className='bg-gray-separator' />
 
         <div className='space-y-5'>
           <Skeleton className='h-5 w-44' />

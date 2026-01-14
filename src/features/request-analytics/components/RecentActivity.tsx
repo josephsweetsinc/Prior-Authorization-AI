@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { type HTMLProps } from 'react';
 
 import { type IRecentActivity } from '@/services/dashboard';
@@ -33,9 +34,12 @@ const ActivityRow = ({
       <div className='space-y-1'>
         <p className='flex gap-2 text-base font-bold text-black'>
           {transformStatusToAction(status)}
-          <span className='text-status-info decoration-status-info block underline'>
+          <Link
+            href={`/requests/${request_id}`}
+            className='text-status-info decoration-status-info block underline'
+          >
             {request_id}
-          </span>
+          </Link>
         </p>
         <p className='text-gray-dark text-sm'>by {author_name}</p>
       </div>
@@ -70,7 +74,7 @@ export const RecentActivity = ({ data, className, ...props }: Props) => {
         Requests in Progress
       </h2>
 
-      <ul className='space-y-4 divide-y divide-gray-100'>
+      <ul className='divide-gray-separator/35 space-y-4 divide-y'>
         {data.map((activity) => (
           <ActivityRow {...activity} key={activity.created_at} />
         ))}

@@ -11,15 +11,21 @@ import { AccountDetailsCard } from './AccountDetailsCard';
 import { ActivitySummaryCard } from './ActivitySummaryCard';
 import { AdminAccountsCard } from './AdminAccountsCard';
 import { LogoutModal } from './LogoutModal';
+import { ProfileContainerSkeleton } from './ProfileContainerSkeleton';
 import { ProfileHeaderCard } from './ProfileHeaderCard';
 
 export const ProfileContainer = () => {
-  const { isOpen, isLoading, close, confirm } = useLogoutModal();
+  const { isOpen, isLoading: isLoggingOut, close, confirm } = useLogoutModal();
   const router = useRouter();
-  const { data: currentUser } = useGetCurrentUserQuery();
+  const { data: currentUser, isLoading: isLoadingUser } =
+    useGetCurrentUserQuery();
   const userRole = currentUser?.role;
   const displayName = getDisplayName(currentUser);
   const profileRole = getProfileRole(currentUser);
+
+  if (isLoadingUser) {
+    return <ProfileContainerSkeleton />;
+  }
 
   return (
     <main className='space-y-5'>
@@ -44,7 +50,7 @@ export const ProfileContainer = () => {
         isOpen={isOpen}
         onCloseAction={close}
         onConfirm={confirm}
-        isLoading={isLoading}
+        isLoading={isLoggingOut}
       />
     </main>
   );

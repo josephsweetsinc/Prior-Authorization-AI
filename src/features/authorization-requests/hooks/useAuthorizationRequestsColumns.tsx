@@ -60,8 +60,8 @@ export const useAuthorizationRequestsColumns =
             href={`/requests/${getValue<number>()}`}
             className='text-status-info flex items-center gap-2 font-medium'
           >
-            <span>More Details</span>
-            <ArrowUpRight className='text-status-info size-4' />
+            <span>More details</span>
+            <ArrowUpRight className='size-5' />
           </Link>
         ),
       },

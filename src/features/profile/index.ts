@@ -1,2 +1,3 @@
-export { ProfileContainer } from './components';
+export { LogoutModal, ProfileContainer } from './components';
 export { useLogoutModal } from './hooks';
+export * from './utils';

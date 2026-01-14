@@ -80,8 +80,8 @@ export const AccountDetailsCard = () => {
   return (
     <Window className='p-5'>
       <div className='space-y-6'>
-        <h3 className='text-xl font-bold text-[#232323]'>Account Details</h3>
-        <div className='divide-y divide-[#F5F7FA]'>
+        <h3 className='text-xl font-bold text-black'>Account Details</h3>
+        <div className='divide-y divide-neutral-100'>
           {details.map((detail) => (
             <div
               key={detail.label}
@@ -89,9 +89,9 @@ export const AccountDetailsCard = () => {
             >
               <div className='flex items-center gap-2'>
                 <detail.icon className='text-status-info size-4' />
-                <span className='text-[#4A5568]'>{detail.label}</span>
+                <span className='text-gray-dark'>{detail.label}</span>
               </div>
-              <span className='font-medium text-[#232323]'>{detail.value}</span>
+              <span className='font-medium text-black'>{detail.value}</span>
             </div>
           ))}
         </div>

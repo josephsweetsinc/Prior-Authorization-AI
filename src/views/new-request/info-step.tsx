@@ -1,20 +1,22 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect } from 'react';
 
 import {
   type FormState,
   InfoFormFields,
   useInfoForm,
 } from '@/features/new-request';
-import { type IExtractedData } from '@/services';
+import { extractedToForm, type IExtractedData } from '@/services';
 import { Button, SensitiveMessage } from '@/shared/components';
 
 interface InfoStepProps {
-  onBack: () => void;
+  onBack?: () => void;
   // eslint-disable-next-line no-unused-vars
   onNext: (res?: Partial<FormState> | null) => void;
   initialValues?: Partial<IExtractedData> | null;
   isComplete?: boolean;
   mode?: 'default' | 'review-edit';
+  hideBackButton?: boolean;
 }
 
 export const InfoStep = ({
@@ -23,8 +25,21 @@ export const InfoStep = ({
   initialValues = null,
   isComplete = false,
   mode = 'default',
+  hideBackButton = false,
 }: InfoStepProps) => {
-  const { form, setForm, errors, isFormComplete } = useInfoForm(initialValues);
+  const { form, setForm, errors, isFormComplete } = useInfoForm();
+
+  useEffect(() => {
+    if (initialValues) {
+      const formData = extractedToForm(initialValues);
+
+      if (!formData) {
+        return;
+      }
+
+      setForm(formData);
+    }
+  }, [initialValues, setForm]);
 
   const isReviewEdit = mode === 'review-edit';
 
@@ -64,6 +79,14 @@ export const InfoStep = ({
         />
       )}
 
+      {!form.formNumber && (
+        <SensitiveMessage
+          variant='destructive'
+          title='Unable to find form number'
+          description='We are unable to extract form number field from request draft'
+        />
+      )}
+
       <div className='space-y-5'>
         <InfoFormFields form={form} setForm={setForm} errors={errors} />
       </div>
@@ -72,7 +95,9 @@ export const InfoStep = ({
         className={
           isReviewEdit
             ? 'flex justify-end gap-3 pt-4'
-            : 'flex justify-between pt-4'
+            : hideBackButton
+              ? 'flex justify-end pt-4'
+              : 'flex justify-between pt-4'
         }
       >
         {isReviewEdit ? (
@@ -97,15 +122,18 @@ export const InfoStep = ({
           </>
         ) : (
           <>
-            <Button
-              variant='gray'
-              size='lg'
-              onClick={onBack}
-              className='w-fit px-10! py-3! font-medium'
-            >
-              <ChevronLeft className='text-black' strokeWidth={1.5} />
-              Back
-            </Button>
+            {!hideBackButton && (
+              <Button
+                variant='gray'
+                size='lg'
+                onClick={onBack}
+                className='w-fit px-10! py-3! font-medium'
+              >
+                <ChevronLeft className='text-black' strokeWidth={1.5} />
+                Back
+              </Button>
+            )}
+
             <Button
               variant='primary'
               size='lg'

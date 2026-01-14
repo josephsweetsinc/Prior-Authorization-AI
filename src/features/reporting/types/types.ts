@@ -2,7 +2,7 @@ export type ReportFormat = 'pdf' | 'xlsx' | 'csv';
 
 export interface IMetric {
   metric: string;
-  value: string;
+  value: number;
   change: number;
 }
 

@@ -27,6 +27,7 @@ export {
   Sidebar,
   SidebarHeader,
   SidebarItem,
+  SidebarSkeleton,
 } from './sidebar';
 export { GlobalSearch } from './globalSearch';
 export { Separator } from './separator';
@@ -36,6 +37,7 @@ export {
   HeaderGroup,
   HeaderProfile,
   type ProfileAction,
+  HeaderSkeleton,
 } from './header';
 export {
   DropdownMenu,
@@ -66,3 +68,7 @@ export {
 export { DiagnosisCell } from './diagnosis-cell';
 export { SearchFilter } from './search-filter';
 export { NotificationBadge } from './notification-badge';
+export { RequestAction } from './request-action';
+export * from './tooltip';
+export * from './metrics';
+export * from './popover';

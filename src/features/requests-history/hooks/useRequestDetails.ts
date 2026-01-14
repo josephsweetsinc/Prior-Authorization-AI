@@ -7,11 +7,12 @@ interface IDetailsState {
   open: boolean;
 }
 
-export const useRequestDetails = () => {
-  const [details, setDetails] = useState<IDetailsState>({
-    requestId: null,
-    open: false,
-  });
+export const useRequestDetails = (initialRequestId?: number) => {
+  const [details, setDetails] = useState<IDetailsState>(() =>
+    initialRequestId
+      ? { requestId: initialRequestId, open: true }
+      : { requestId: null, open: false },
+  );
 
   const handleDetailsClick = (requestId: number) => {
     setDetails({ requestId: requestId, open: true });

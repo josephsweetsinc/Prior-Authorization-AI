@@ -4,10 +4,9 @@ import { TrendingDown, TrendingUp } from 'lucide-react';
 import { type HTMLProps } from 'react';
 
 import { useGetRequestsByStatus } from '@/services/request-totals';
-import { OverlayIcon, Separator } from '@/shared/components';
+import { MetricsCard, OverlayIcon, Separator } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
-import MetricsCard from './MetricsCard';
 import { MetricsListSkeleton } from './skeletons/MetricsListSkeleton';
 
 type Props = HTMLProps<HTMLElement>;
@@ -33,7 +32,7 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
           </MetricsCard.Group>
         </MetricsCard.Group>
 
-        <Separator className='bg-gray-200' />
+        <Separator className='bg-gray-separator' />
         <MetricsCard.Description
           className={cn('flex items-center gap-2', {
             'text-status-success': kpi.approved_requests_change_percent > 0,
@@ -57,7 +56,7 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
             <MetricsCard.Value>{kpi.pending_review}</MetricsCard.Value>
           </MetricsCard.Group>
         </MetricsCard.Group>
-        <Separator className='bg-gray-200' />
+        <Separator className='bg-gray-separator' />
         <MetricsCard.Description>
           Avg. wait time: {kpi.pending_avg_wait_time_hours} hours
         </MetricsCard.Description>
@@ -70,7 +69,7 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
             <MetricsCard.Value>{kpi.denied_requests}</MetricsCard.Value>
           </MetricsCard.Group>
         </MetricsCard.Group>
-        <Separator className='bg-gray-200' />
+        <Separator className='bg-gray-separator' />
         <MetricsCard.Description>
           {kpi.denial_rate_percent}% denial rate
         </MetricsCard.Description>
@@ -83,7 +82,7 @@ export const AdminMetrics = ({ className, ...props }: Props) => {
             <MetricsCard.Value>{kpi.ai_accuracy}%</MetricsCard.Value>
           </MetricsCard.Group>
         </MetricsCard.Group>
-        <Separator className='bg-gray-200' />
+        <Separator className='bg-gray-separator' />
         <MetricsCard.Description>
           AI-powered auto-fill accuracy rate
         </MetricsCard.Description>

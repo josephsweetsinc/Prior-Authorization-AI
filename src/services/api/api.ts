@@ -135,6 +135,7 @@ export const api = createApi({
     'Auth',
     'User',
     'Dashboard',
+    'Reports',
     'AuthorizationRequests',
     'RequestsHistory',
     'RequestDetails',

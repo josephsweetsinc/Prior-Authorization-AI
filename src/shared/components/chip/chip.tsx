@@ -15,7 +15,7 @@ const chipVariants = cva(
         info: 'bg-status-info/10 text-status-info',
         destructive: 'bg-status-destructive/10 text-status-destructive',
         warning: 'bg-status-warning/10 text-status-warning',
-        submitted: 'text-indigo-500 bg-indigo-100',
+        submitted: 'text-status-submitted bg-status-submitted/10',
         default: 'bg-muted text-foreground',
         outlined: 'border border-input bg-background',
       },

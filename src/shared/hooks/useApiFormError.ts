@@ -10,12 +10,6 @@ export function useApiFormError<TFieldValues extends FieldValues>(
 ) {
   const handleError = useCallback(
     (err: unknown) => {
-      const status = (err as { status?: number | string })?.status;
-
-      if (status === 401) {
-        return;
-      }
-
       const parsed = parseApiError(err);
 
       if (setError) {

@@ -4,12 +4,12 @@ import { BellDot, type icons, Settings } from 'lucide-react';
 import Link from 'next/link';
 
 import { useUnreadNotificationsCount } from '@/features/notifications';
-import { LogoutModal } from '@/features/profile/components/LogoutModal';
-import { useLogoutModal } from '@/features/profile/hooks/useLogoutModal';
 import {
   getDisplayName,
   getProfileRole,
-} from '@/features/profile/utils/userDisplay';
+  LogoutModal,
+  useLogoutModal,
+} from '@/features/profile';
 import { useGetCurrentUserQuery } from '@/services';
 import {
   Button,
@@ -20,15 +20,26 @@ import {
   HeaderProfile,
   NotificationBadge,
   type ProfileAction,
+  HeaderSkeleton,
 } from '@/shared/components';
+import { cn } from '@/shared/lib/utils';
 
-export const AppHeader = () => {
+type AppHeaderProps = {
+  isSearchOpen: boolean;
+  onSearchOpenChange: (_open: boolean) => void;
+};
+
+export const AppHeader = ({
+  isSearchOpen,
+  onSearchOpenChange,
+}: AppHeaderProps) => {
   const { isOpen, isLoading, open, close, confirm } = useLogoutModal();
   const { data: currentUser, isLoading: isUserLoading } =
     useGetCurrentUserQuery();
   const displayName = getDisplayName(currentUser);
   const profileRole = getProfileRole(currentUser);
   const avatarSrc = currentUser?.avatar_url || null;
+  const searchOpen = Boolean(isSearchOpen);
 
   const { count: unreadCount } = useUnreadNotificationsCount();
 
@@ -48,40 +59,51 @@ export const AppHeader = () => {
     },
   ] as const;
 
+  if (isUserLoading) {
+    return <HeaderSkeleton />;
+  }
+
   return (
     <>
-      <Header className='row-span-1 mx-10 mt-9'>
+      <Header
+        className={cn('relative z-20 row-span-1 mx-10 mt-9', {
+          'z-30': searchOpen,
+        })}
+      >
         <GlobalSearch
           size='medium'
           placeholder='Search patients or requests'
-          disabled
+          isOpen={searchOpen}
+          onOpenChange={onSearchOpenChange}
         />
 
-        <HeaderGroup separate>
-          <HeaderActions>
-            {currentUser?.role !== 'admin' && (
+        {!searchOpen ? (
+          <HeaderGroup separate>
+            <HeaderActions>
+              {currentUser?.role !== 'admin' && (
+                <Button variant='ghost' size='icon' asChild>
+                  <Link href='/settings'>
+                    <Settings className='text-status-info size-5' />
+                  </Link>
+                </Button>
+              )}
               <Button variant='ghost' size='icon' asChild>
-                <Link href='/settings'>
-                  <Settings className='text-status-info size-5' />
+                <Link href='/notifications' className='relative'>
+                  <BellDot className='text-status-destructive size-5' />
+                  <NotificationBadge count={unreadCount} />
                 </Link>
               </Button>
-            )}
-            <Button variant='ghost' size='icon' asChild>
-              <Link href='/notifications' className='relative'>
-                <BellDot className='text-status-destructive size-5' />
-                <NotificationBadge count={unreadCount} />
-              </Link>
-            </Button>
-          </HeaderActions>
+            </HeaderActions>
 
-          <HeaderProfile
-            src={avatarSrc}
-            name={displayName}
-            role={profileRole}
-            actions={profileActions}
-            isLoading={isUserLoading}
-          />
-        </HeaderGroup>
+            <HeaderProfile
+              src={avatarSrc}
+              name={displayName}
+              role={profileRole}
+              actions={profileActions}
+              isLoading={isUserLoading}
+            />
+          </HeaderGroup>
+        ) : null}
       </Header>
       <LogoutModal
         isOpen={isOpen}

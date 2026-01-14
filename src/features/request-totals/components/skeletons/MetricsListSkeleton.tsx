@@ -1,8 +1,7 @@
 import { type HTMLProps } from 'react';
 
+import { MetricsCardSkeleton } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
-
-import { MetricsCardSkeleton } from './MetricsCardSkeleton';
 
 export const MetricsListSkeleton = ({
   className,

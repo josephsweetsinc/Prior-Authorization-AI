@@ -9,3 +9,5 @@ export {
   SidebarContent,
   SidebarFooter,
 } from './sidebar';
+
+export * from './skeleton';

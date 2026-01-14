@@ -1,12 +1,10 @@
 import { type HTMLProps } from 'react';
 
-import {
-  DATE_OPTIONS,
-  STATUS_OPTIONS,
-} from '@/features/requests-history/constants';
+import { DATE_OPTIONS } from '@/features/requests-history/constants';
 import { SearchFilter, Select } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
+import { STATUS_OPTIONS } from '../constants';
 import { type AuthorizationRequestsFilters as AuthorizationRequestsFiltersType } from '../types';
 
 type Props = {

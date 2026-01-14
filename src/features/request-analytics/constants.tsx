@@ -21,7 +21,7 @@ export const requestsInProgressColumns: ColumnDef<ProviderRequestProgress>[] = [
     accessorKey: 'progress',
     header: () => <TableHeadCell className='text-sm'>Progress</TableHeadCell>,
 
-    cell: ({ getValue }) => <Progress value={getValue<number>()} max={3} />,
+    cell: ({ getValue }) => <Progress value={getValue<number>()} max={4} />,
   },
 ];
 
