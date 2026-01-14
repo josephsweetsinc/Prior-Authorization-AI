@@ -49,6 +49,7 @@
   --color-status-info: var(--status-info);
   --color-status-warning: var(--status-warning);
   --color-status-destructive: var(--status-destructive);
+  --color-status-submitted: var(--status-submitted);
   --color-muted-blue: var(--muted-blue);
 
   --color-brand-dark: var(--brand-dark);
@@ -103,6 +104,7 @@
   --status-info: #047cb4;
   --status-warning: #fc9d00;
   --status-destructive: #fe5c73;
+  --status-submitted: #4c00fe;
   --muted-blue: #a3aed0;
 
   --brand-dark: #193782;
@@ -151,6 +153,7 @@
   --status-info: #38bdf8;
   --status-warning: #fbbf24;
   --status-destructive: #f87171;
+  --status-submitted: #4c00fe;
   --muted-blue: #94a3b8;
 
   --brand-dark: #60a5fa;

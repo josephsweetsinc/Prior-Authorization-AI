@@ -8,11 +8,11 @@ import { cn } from '@/shared/lib/utils';
 const variants = cva('box-content size-8 p-3.5 rounded-lg', {
   variants: {
     color: {
-      blue: 'text-status-info bg-blue-100',
-      green: 'text-status-success bg-green-100',
-      orange: 'text-status-warning bg-orange-100',
-      red: 'text-status-destructive bg-red-100',
-      indigo: 'text-indigo-500 bg-indigo-100',
+      blue: 'text-status-info bg-status-info/10',
+      green: 'text-status-success bg-status-success/10',
+      orange: 'text-status-warning bg-status-warning/10',
+      red: 'text-status-destructive bg-status-destructive/10',
+      indigo: 'text-status-submitted bg-status-submitted/10',
     },
   },
   defaultVariants: {
