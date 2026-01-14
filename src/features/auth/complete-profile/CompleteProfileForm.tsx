@@ -6,10 +6,10 @@ import { useEffect, useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 
-import { parseApiError } from '@/services/api/types';
 import { useSignUp } from '@/services/auth/hooks';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
+import { useApiFormError } from '@/shared/hooks/useApiFormError';
 
 export const completeProfileSchema = z.object({
   phone: z
@@ -27,13 +27,13 @@ export type CompleteProfileSchema = z.infer<typeof completeProfileSchema>;
 export function CompleteProfileForm() {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
-  const [serverErrors, setServerErrors] = useState<string | null>(null);
 
   const { signup, isLoading } = useSignUp();
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<CompleteProfileSchema>({
     resolver: zodResolver(completeProfileSchema),
@@ -44,6 +44,8 @@ export function CompleteProfileForm() {
     },
   });
 
+  const { handleError } = useApiFormError(setError);
+
   useEffect(() => {
     const step1 = sessionStorage.getItem('signup_step1');
     if (!step1) {
@@ -53,7 +55,6 @@ export function CompleteProfileForm() {
 
   const onSubmit: SubmitHandler<CompleteProfileSchema> = async (data) => {
     setIsSaving(true);
-    setServerErrors(null);
 
     try {
       const step1Raw = sessionStorage.getItem('signup_step1');
@@ -89,17 +90,7 @@ export function CompleteProfileForm() {
       sessionStorage.removeItem('signup_step1');
       router.push('/');
     } catch (err: unknown) {
-      const parsed = parseApiError(err);
-      if (
-        parsed.validation?.detail &&
-        Array.isArray(parsed.validation.detail)
-      ) {
-        setServerErrors(parsed.validation.detail.map((d) => d.msg).join(', '));
-      } else if (parsed.message) {
-        setServerErrors(parsed.message);
-      } else {
-        setServerErrors('Signup failed');
-      }
+      handleError(err);
     } finally {
       setIsSaving(false);
     }
@@ -128,10 +119,6 @@ export function CompleteProfileForm() {
           {...register('company')}
           error={errors.company?.message}
         />
-
-        {serverErrors && (
-          <div className='text-destructive text-sm'>{serverErrors}</div>
-        )}
 
         <div className='pt-2'>
           <Button
