@@ -385,7 +385,9 @@ class ReportService(BaseService):
                 created_at=report.created_at,
                 created_by_full_name=f'{report.created_by.name} '
                 f'{report.created_by.surname}',
-                s3_key=report.s3_key,
+                download_url=self._s3_actions.get_presigned_url(
+                    key=report.s3_key
+                ),
             )
             for report in reports
         ]
