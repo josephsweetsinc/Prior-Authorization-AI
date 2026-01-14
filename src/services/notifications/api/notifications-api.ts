@@ -23,6 +23,7 @@ export const notificationApi = baseApi.injectEndpoints({
                 { type: 'Notifications', id: 'LIST' },
               ]
             : [{ type: 'Notifications', id: 'LIST' }],
+        keepUnusedDataFor: 60,
       },
     ),
   }),

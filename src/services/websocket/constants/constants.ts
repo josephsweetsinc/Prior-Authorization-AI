@@ -1,0 +1,2 @@
+export const POLLING_INTERVAL = 30000;
+export const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL;

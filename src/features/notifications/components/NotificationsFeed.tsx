@@ -1,3 +1,5 @@
+import { useGetCurrentUserQuery } from '@/services/auth';
+
 import { type NotificationsFeedProps } from '../types/types';
 
 import { NotificationFeedItem } from './NotificationFeedItem';
@@ -8,6 +10,9 @@ export const NotificationsFeed = ({
   isLoading,
   onNotificationClick,
 }: NotificationsFeedProps) => {
+  const { data: currentUser } = useGetCurrentUserQuery();
+  const isAdmin = currentUser?.role === 'admin';
+
   if (isLoading) {
     return <NotificationFeedSkeleton />;
   }
@@ -27,6 +32,7 @@ export const NotificationsFeed = ({
           notification={notification}
           key={notification.id}
           onClick={() => onNotificationClick?.(notification.id)}
+          isAdmin={isAdmin}
         />
       ))}
     </div>

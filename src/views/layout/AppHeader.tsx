@@ -3,6 +3,7 @@
 import { BellDot, type icons, Settings } from 'lucide-react';
 import Link from 'next/link';
 
+import { useUnreadNotificationsCount } from '@/features/notifications';
 import { LogoutModal } from '@/features/profile/components/LogoutModal';
 import { useLogoutModal } from '@/features/profile/hooks/useLogoutModal';
 import {
@@ -17,6 +18,7 @@ import {
   HeaderActions,
   HeaderGroup,
   HeaderProfile,
+  NotificationBadge,
   type ProfileAction,
 } from '@/shared/components';
 
@@ -27,6 +29,8 @@ export const AppHeader = () => {
   const displayName = getDisplayName(currentUser);
   const profileRole = getProfileRole(currentUser);
   const avatarSrc = currentUser?.avatar_url || null;
+
+  const { count: unreadCount } = useUnreadNotificationsCount();
 
   const profileActions: ProfileAction[] = [
     {
@@ -54,20 +58,22 @@ export const AppHeader = () => {
         />
 
         <HeaderGroup separate>
-          {currentUser?.role !== 'admin' && (
-            <HeaderActions>
+          <HeaderActions>
+            {currentUser?.role !== 'admin' && (
               <Button variant='ghost' size='icon' asChild>
                 <Link href='/settings'>
                   <Settings className='text-status-info size-5' />
                 </Link>
               </Button>
-              <Button variant='ghost' size='icon'>
-                <Link href='/notifications'>
-                  <BellDot className='text-status-destructive size-5' />
-                </Link>
-              </Button>
-            </HeaderActions>
-          )}
+            )}
+            <Button variant='ghost' size='icon' asChild>
+              <Link href='/notifications' className='relative'>
+                <BellDot className='text-status-destructive size-5' />
+                <NotificationBadge count={unreadCount} />
+              </Link>
+            </Button>
+          </HeaderActions>
+
           <HeaderProfile
             src={avatarSrc}
             name={displayName}
