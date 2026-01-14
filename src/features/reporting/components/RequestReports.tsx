@@ -3,10 +3,9 @@
 import { Info } from 'lucide-react';
 import { type HTMLProps } from 'react';
 
-import { MetricsCard } from '@/features/request-totals/components';
+import { type IReportStats } from '@/services/reports';
 import {
   DataTable,
-  OverlayIcon,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -15,12 +14,21 @@ import {
 import { cn } from '@/shared/lib/utils';
 
 import { metricColumns } from '../columns';
-import { MOCK_METRICS } from '../constants';
+import { transformReportStatsToMetrics } from '../utils';
+
+type Props = {
+  stats?: IReportStats;
+  isLoading: boolean;
+} & HTMLProps<HTMLDivElement>;
 
 export const RequestReports = ({
+  stats,
+  isLoading,
   className,
   ...props
-}: HTMLProps<HTMLDivElement>) => {
+}: Props) => {
+  const transformedData = transformReportStatsToMetrics(stats);
+
   return (
     <Window className={cn('space-y-5 p-5', className)} {...props}>
       <div className='flex flex-wrap items-center justify-between gap-6'>
@@ -40,25 +48,10 @@ export const RequestReports = ({
           </TooltipContent>
         </Tooltip>
       </div>
-      <div className='flex flex-wrap items-center gap-5'>
-        <MetricsCard className='flex shrink grow basis-33.5 items-center gap-2.5 bg-neutral-100/40 px-5 py-2.5'>
-          <OverlayIcon variant='FileText' color='green' />
-          <MetricsCard.Group>
-            <MetricsCard.Label>Total Data Points</MetricsCard.Label>
-            <MetricsCard.Value>8,432</MetricsCard.Value>
-          </MetricsCard.Group>
-        </MetricsCard>
-        <MetricsCard className='flex shrink grow basis-33.5 items-center gap-2.5 bg-neutral-100/40 px-5 py-2.5'>
-          <OverlayIcon variant='Shuffle' color='orange' />
-          <MetricsCard.Group>
-            <MetricsCard.Label>Report Size</MetricsCard.Label>
-            <MetricsCard.Value>2.4 MB</MetricsCard.Value>
-          </MetricsCard.Group>
-        </MetricsCard>
-      </div>
-      <DataTable columns={metricColumns} data={MOCK_METRICS}>
+
+      <DataTable columns={metricColumns} data={transformedData}>
         <DataTable.Header />
-        <DataTable.Body />
+        <DataTable.Body isLoading={isLoading} />
       </DataTable>
     </Window>
   );

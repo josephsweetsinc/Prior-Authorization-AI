@@ -4,10 +4,9 @@ import { TrendingDown, TrendingUp } from 'lucide-react';
 import { type HTMLProps } from 'react';
 
 import { useGetRequestsByStatus } from '@/services/request-totals';
-import { OverlayIcon, Separator } from '@/shared/components';
+import { MetricsCard, OverlayIcon, Separator } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
-import MetricsCard from './MetricsCard';
 import { MetricsListSkeleton } from './skeletons/MetricsListSkeleton';
 
 type Props = HTMLProps<HTMLElement>;
