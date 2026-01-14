@@ -35,7 +35,8 @@ class TokenSettings(BaseSettings):
         ALGORITHM: Algorithm used for token signing (default: HS256).
         ACCESS_TOKEN_EXPIRE_MINUTES: Access token expiration time in minutes.
         REFRESH_TOKEN_EXPIRE_DAYS: Refresh token expiration time in days.
-        REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME: Refresh token expiration when remember me is enabled.
+        REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME: Refresh token expiration when
+         remember me is enabled.
 
     """
 
@@ -212,8 +213,8 @@ class CookieSettings(BaseSettings):
         env_prefix='COOKIE_', env_file=env_file, extra='ignore'
     )
 
-    ACCESS_TOKEN_COOKIE_NAME: str = 'access_token'
-    REFRESH_TOKEN_COOKIE_NAME: str = 'refresh_token'
+    ACCESS_TOKEN_COOKIE_NAME: str = 'access_token'  # noqa: S105
+    REFRESH_TOKEN_COOKIE_NAME: str = 'refresh_token'  # noqa: S105
     DOMAIN: str | None = None
     SECURE: bool = True  # Set to False for local development without HTTPS
     SAME_SITE: str = 'lax'  # lax, strict, or none

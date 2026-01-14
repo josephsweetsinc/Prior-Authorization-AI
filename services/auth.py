@@ -83,7 +83,10 @@ class AuthService(BaseService):
         return user
 
     async def create_token(
-        self, author_id: int, user_role: UserRole, remember_me: bool = False
+        self,
+        author_id: int,
+        user_role: UserRole,
+        remember_me: bool = False,  # noqa: FBT002, FBT001
     ) -> TokenSchemas:
         """Generate access and refresh tokens for an author.
 
@@ -140,7 +143,9 @@ class AuthService(BaseService):
         expires_at = int(decoded.get('exp', 0))
         current_time = int(datetime.now(UTC).timestamp())
         days_until_expiry = (expires_at - current_time) / 86400
-        remember_me = days_until_expiry > 20  # If more than 20 days, it's remember_me
+        remember_me = (
+            days_until_expiry > 20  # noqa: PLR2004
+        )  # If more than 20 days, it's remember_me
 
         access_token: str = TokenManager.generate_access_token(
             author_id=user_id

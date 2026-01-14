@@ -46,11 +46,14 @@ class TokenManager:
         return encoded_jwt
 
     @classmethod
-    def _get_refresh_expiration_delta(cls, remember_me: bool = False) -> datetime:
+    def _get_refresh_expiration_delta(
+        cls,
+        remember_me: bool = False,  # noqa: FBT002, FBT001
+    ) -> datetime:
         """Get expiration datetime for refresh token.
 
         Args:
-            remember_me: If True, use longer expiration for remember me sessions.
+            remember_me: If True, use longer expiration for remember me.
 
         Returns:
             datetime: Expiration datetime in UTC.
@@ -64,7 +67,11 @@ class TokenManager:
         return datetime.now(UTC) + timedelta(days=days)
 
     @classmethod
-    def generate_refresh_token(cls, author_id: int, remember_me: bool = False) -> str:
+    def generate_refresh_token(
+        cls,
+        author_id: int,
+        remember_me: bool = False,  # noqa: FBT002, FBT001
+    ) -> str:
         """Generate a JWT refresh token for the given author ID.
 
         Args:

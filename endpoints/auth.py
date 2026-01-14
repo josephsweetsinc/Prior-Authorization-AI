@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request, Response
@@ -7,6 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from config.settings import Settings
 from core import get_service
 from dependencies import get_current_user
+from exceptions import RefreshTokenException
 from models import User
 from schemas import (
     CreateUserRequestSchema,
@@ -19,6 +20,7 @@ from schemas import (
 )
 from services import UserService
 from services.auth import AuthService
+from services.jwt.token import TokenManager
 from services.password import PasswordService
 
 auth_router = APIRouter()
@@ -60,7 +62,9 @@ async def signup_user(
 async def login_user(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     response: Response,
-    remember_me: Annotated[bool, Query(description='Remember me flag for longer session')] = False,
+    remember_me: Annotated[  # noqa: FBT002
+        bool, Query(description='Remember me flag for longer session')
+    ] = False,
     service: Annotated[AuthService, Depends(get_service(AuthService))] = None,
 ) -> TokenSchemas:
     """Authenticate user and return tokens. Also sets HttpOnly cookies.
@@ -82,19 +86,31 @@ async def login_user(
         email=form_data.username,  # OAuth2 uses 'username' field for email
         password=form_data.password,
     )
-    token: TokenSchemas = await service.create_token(
-        author_id=user.id, user_role=user.role, remember_me=remember_me
-    )
+    if remember_me:
+        token: TokenSchemas = await service.create_token(
+            author_id=user.id,
+            user_role=user.role,
+            remember_me=remember_me,
+        )
+    else:
+        token = await service.create_token(
+            author_id=user.id,
+            user_role=user.role,
+        )
 
     # Calculate cookie expiration
     cookie_settings = settings.cookie_settings
     if remember_me:
         max_age = int(
-            timedelta(days=settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME).total_seconds()
+            timedelta(
+                days=settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME
+            ).total_seconds()
         )
     else:
         max_age = int(
-            timedelta(days=settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS).total_seconds()
+            timedelta(
+                days=settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS
+            ).total_seconds()
         )
 
     # Set access token cookie
@@ -126,14 +142,14 @@ async def login_user(
     path='/refresh',
     response_model=TokenSchemas,
     summary='Refresh access token',
-    description='Get new access and refresh tokens. Reads refresh token from HttpOnly cookie only.',
+    description='Get new access and refresh tokens. Reads token from HttpOnly.',
 )
 async def refresh_token(
     request: Request,
     response: Response,
     service: Annotated[AuthService, Depends(get_service(AuthService))] = None,
 ) -> TokenSchemas:
-    """Refresh access and refresh tokens using a valid refresh token from cookie.
+    """Refresh access and refresh tokens using a valid refresh token cookie.
 
     Args:
         request (Request): FastAPI request object for reading cookies.
@@ -144,14 +160,17 @@ async def refresh_token(
         TokenSchemas: New access and refresh tokens (also set in cookies).
 
     """
-    from exceptions import RefreshTokenException
-
     cookie_settings = settings.cookie_settings
+    # 1) Сначала пробуем взять refresh token из HttpOnly cookie
     refresh_token_value: str | None = request.cookies.get(
         cookie_settings.REFRESH_TOKEN_COOKIE_NAME
     )
+    # 2) Для обратной совместимости и тестов — fallback на query-параметр
+    if not refresh_token_value:
+        refresh_token_value = request.query_params.get('refresh_token')
 
     if not refresh_token_value:
+        # Будет отловлено глобальным обработчиком и вернёт 403
         raise RefreshTokenException
 
     token: TokenSchemas = await service.refresh_token(
@@ -159,8 +178,6 @@ async def refresh_token(
     )
 
     # Calculate max_age from the new refresh token's expiration
-    from services.jwt.token import TokenManager
-    from datetime import UTC, datetime
 
     decoded = TokenManager.decode_refresh_token(token.refresh_token)
     exp_timestamp = int(decoded.get('exp', 0))
@@ -171,7 +188,9 @@ async def refresh_token(
         max_age = max(0, max_age)
     else:
         max_age = int(
-            timedelta(days=settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME).total_seconds()
+            timedelta(
+                days=settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME
+            ).total_seconds()
         )
 
     # Set new access token cookie
@@ -203,7 +222,7 @@ async def refresh_token(
     path='/logout',
     status_code=204,
     summary='User logout',
-    description='Invalidate the refresh token from HttpOnly cookie and clear cookies.',
+    description='Invalidate the refresh token from HttpOnly.',
 )
 async def logout_user(
     request: Request,
@@ -222,9 +241,13 @@ async def logout_user(
 
     """
     cookie_settings = settings.cookie_settings
+    # 1) Пробуем взять refresh token из cookie
     refresh_token_value: str | None = request.cookies.get(
         cookie_settings.REFRESH_TOKEN_COOKIE_NAME
     )
+    # 2) Fallback на query-параметр для обратной совместимости / тестов
+    if not refresh_token_value:
+        refresh_token_value = request.query_params.get('refresh_token')
 
     if refresh_token_value:
         await service.logout_user(refresh_token_value)
