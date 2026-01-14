@@ -1,5 +1,5 @@
 from datetime import UTC, datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Literal, cast
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm
@@ -62,10 +62,10 @@ async def signup_user(
 async def login_user(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     response: Response,
+    service: Annotated[AuthService, Depends(get_service(AuthService))],
     remember_me: Annotated[  # noqa: FBT002
         bool, Query(description='Remember me flag for longer session')
     ] = False,
-    service: Annotated[AuthService, Depends(get_service(AuthService))] = None,
 ) -> TokenSchemas:
     """Authenticate user and return tokens. Also sets HttpOnly cookies.
 
@@ -114,13 +114,16 @@ async def login_user(
         )
 
     # Set access token cookie
+    samesite: Literal['lax', 'strict', 'none'] | None = cast(
+        Literal['lax', 'strict', 'none'] | None, cookie_settings.SAME_SITE
+    )
     response.set_cookie(
         key=cookie_settings.ACCESS_TOKEN_COOKIE_NAME,
         value=token.access_token,
         max_age=max_age,
         httponly=True,
         secure=cookie_settings.SECURE,
-        samesite=cookie_settings.SAME_SITE,
+        samesite=samesite,
         domain=cookie_settings.DOMAIN,
     )
 
@@ -131,7 +134,7 @@ async def login_user(
         max_age=max_age,
         httponly=True,
         secure=cookie_settings.SECURE,
-        samesite=cookie_settings.SAME_SITE,
+        samesite=samesite,
         domain=cookie_settings.DOMAIN,
     )
 
@@ -147,7 +150,7 @@ async def login_user(
 async def refresh_token(
     request: Request,
     response: Response,
-    service: Annotated[AuthService, Depends(get_service(AuthService))] = None,
+    service: Annotated[AuthService, Depends(get_service(AuthService))],
 ) -> TokenSchemas:
     """Refresh access and refresh tokens using a valid refresh token cookie.
 
@@ -194,13 +197,16 @@ async def refresh_token(
         )
 
     # Set new access token cookie
+    samesite: Literal['lax', 'strict', 'none'] | None = cast(
+        Literal['lax', 'strict', 'none'] | None, cookie_settings.SAME_SITE
+    )
     response.set_cookie(
         key=cookie_settings.ACCESS_TOKEN_COOKIE_NAME,
         value=token.access_token,
         max_age=max_age,
         httponly=True,
         secure=cookie_settings.SECURE,
-        samesite=cookie_settings.SAME_SITE,
+        samesite=samesite,
         domain=cookie_settings.DOMAIN,
     )
 
@@ -211,7 +217,7 @@ async def refresh_token(
         max_age=max_age,
         httponly=True,
         secure=cookie_settings.SECURE,
-        samesite=cookie_settings.SAME_SITE,
+        samesite=samesite,
         domain=cookie_settings.DOMAIN,
     )
 
@@ -227,7 +233,7 @@ async def refresh_token(
 async def logout_user(
     request: Request,
     response: Response,
-    service: Annotated[AuthService, Depends(get_service(AuthService))] = None,
+    service: Annotated[AuthService, Depends(get_service(AuthService))],
 ) -> None:
     """Invalidate the refresh token from cookie and clear cookies.
 
@@ -253,16 +259,19 @@ async def logout_user(
         await service.logout_user(refresh_token_value)
 
     # Clear cookies
+    samesite: Literal['lax', 'strict', 'none'] | None = cast(
+        Literal['lax', 'strict', 'none'] | None, cookie_settings.SAME_SITE
+    )
     response.delete_cookie(
         key=cookie_settings.ACCESS_TOKEN_COOKIE_NAME,
         domain=cookie_settings.DOMAIN,
-        samesite=cookie_settings.SAME_SITE,
+        samesite=samesite,
         secure=cookie_settings.SECURE,
     )
     response.delete_cookie(
         key=cookie_settings.REFRESH_TOKEN_COOKIE_NAME,
         domain=cookie_settings.DOMAIN,
-        samesite=cookie_settings.SAME_SITE,
+        samesite=samesite,
         secure=cookie_settings.SECURE,
     )
 
