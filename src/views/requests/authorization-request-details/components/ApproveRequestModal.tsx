@@ -36,8 +36,9 @@ export const ApproveRequestModal = ({
     />
     <div className='mt-8 flex flex-wrap items-center justify-end gap-3'>
       <Button
-        variant='default-outlined'
-        className='w-max'
+        variant='gray'
+        size='lg'
+        className='h-10 w-max px-10 py-3 font-medium'
         onClick={onCloseAction}
         disabled={isApproving}
       >
@@ -46,7 +47,7 @@ export const ApproveRequestModal = ({
       <Button
         variant='success'
         onClick={onApprove}
-        className='w-max'
+        className='h-10 w-50 p-2.5'
         disabled={isApproving}
       >
         {isApproving ? (

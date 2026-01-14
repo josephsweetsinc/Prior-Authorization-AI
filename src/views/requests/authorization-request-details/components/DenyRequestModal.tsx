@@ -76,6 +76,7 @@ export const DenyRequestModal = ({
             className='focus:border-accent-foreground min-h-[120px] w-full rounded-xl border border-[#E8E8E8] bg-white px-4 py-3 text-sm text-slate-700 shadow-sm transition outline-none focus:shadow-none'
             placeholder='Enter reason for denial...'
             value={notes}
+            maxLength={250}
             onChange={(event) => setNotes(event.target.value)}
           />
         )}
@@ -84,7 +85,7 @@ export const DenyRequestModal = ({
       <div className='mt-3 flex flex-wrap items-center justify-end gap-3'>
         <Button
           variant='gray'
-          className='w-max rounded-3xl'
+          className='h-10 w-max px-10 py-3 font-medium'
           onClick={onCloseAction}
           disabled={isSubmitting}
         >
@@ -93,7 +94,7 @@ export const DenyRequestModal = ({
         <Button
           variant='destructive'
           onClick={handleConfirm}
-          className='w-max rounded-3xl'
+          className='h-10 w-50 p-2.5'
           disabled={isSubmitting || isConfirmDisabled}
         >
           Confirm Denial
