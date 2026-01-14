@@ -65,7 +65,7 @@ export const RequestDetailsContent = ({
       </div>
     </div>
 
-    <Separator className='bg-gray-200' />
+    <Separator className='bg-gray-separator' />
 
     <div className='space-y-5'>
       <h2 className='text-brand-dark text-lg font-bold'>Transport Details</h2>
@@ -127,7 +127,7 @@ export const RequestDetailsContent = ({
       </div>
     </div>
 
-    <Separator className='bg-gray-200' />
+    <Separator className='bg-gray-separator' />
 
     <div className='space-y-5'>
       <h2 className='text-brand-dark text-lg font-bold'>Medical Information</h2>

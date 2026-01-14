@@ -1,3 +1,5 @@
+'use client';
+
 import { NewRequestLink } from '@/features/new-request';
 import { RecentRequests } from '@/features/recent-requests';
 import {
@@ -5,9 +7,12 @@ import {
   RequestsAnalytics,
 } from '@/features/request-analytics';
 import { RequestsSummary } from '@/features/request-totals';
+import { useIsAdmin } from '@/services';
 import { TitleAndDesc } from '@/shared/components';
 
 export const Dashboard = () => {
+  const { isAdmin } = useIsAdmin();
+
   return (
     <main className='space-y-5'>
       <div className='flex flex-wrap items-center justify-between gap-6'>
@@ -19,8 +24,17 @@ export const Dashboard = () => {
         <NewRequestLink />
       </div>
       <RequestsSummary />
-      <RecentRequests />
-      <RequestsAnalytics />
+      {isAdmin ? (
+        <>
+          <RequestsAnalytics />
+          <RecentRequests />
+        </>
+      ) : (
+        <>
+          <RecentRequests />
+          <RequestsAnalytics />
+        </>
+      )}
       <DecisionInsights />
     </main>
   );

@@ -8,7 +8,7 @@ export const StatusIcon = ({ status }: { status: RequestStatus }) => {
     approved: 'bg-status-success/10 text-status-success',
     pending: 'bg-status-success/10 text-status-success',
     draft: 'bg-status-warning/10 text-status-warning',
-    submitted: 'bg-indigo-100 text-indigo-500',
+    submitted: 'bg-status-submitted/10 text-status-submitted',
     denied: 'bg-status-destructive/10 text-status-destructive',
   };
 

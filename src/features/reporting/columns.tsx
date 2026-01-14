@@ -50,7 +50,9 @@ export const metricColumns: ColumnDef<IMetric>[] = [
 export const reportsColumns: ColumnDef<IRecentReport>[] = [
   {
     accessorKey: 'name',
-    header: () => <TableHeadCell className='text-sm'>Name</TableHeadCell>,
+    header: () => (
+      <TableHeadCell className='text-sm'>Report name</TableHeadCell>
+    ),
   },
   {
     accessorKey: 'generatedBy',

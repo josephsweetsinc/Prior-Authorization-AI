@@ -74,7 +74,7 @@ export const RecentActivity = ({ data, className, ...props }: Props) => {
         Requests in Progress
       </h2>
 
-      <ul className='space-y-4 divide-y divide-gray-100'>
+      <ul className='divide-gray-separator/35 space-y-4 divide-y'>
         {data.map((activity) => (
           <ActivityRow {...activity} key={activity.created_at} />
         ))}
