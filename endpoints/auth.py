@@ -1,13 +1,11 @@
-from datetime import UTC, datetime, timedelta
-from typing import Annotated, Literal, cast
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Request, Response
+from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from config.settings import Settings
 from core import get_service
 from dependencies import get_current_user
-from exceptions import RefreshTokenException
 from models import User
 from schemas import (
     CreateUserRequestSchema,
@@ -15,12 +13,12 @@ from schemas import (
     PasswordResetConfirmSchema,
     PasswordResetRequestSchema,
     PasswordResetVerifySchema,
+    RefreshTokenRequestSchema,
     TokenSchemas,
     UserResponseShema,
 )
 from services import UserService
 from services.auth import AuthService
-from services.jwt.token import TokenManager
 from services.password import PasswordService
 
 auth_router = APIRouter()
@@ -54,90 +52,30 @@ async def signup_user(
     response_model=TokenSchemas,
     summary='User login',
     description=(
-        'Authenticate user with email and password. '
-        'Tokens are returned in response body AND set as HttpOnly cookies. '
-        'Uses OAuth2PasswordRequestForm (form-data) for Swagger compatibility.'
+        'Authenticate user with email and password to get access to tokens.'
     ),
 )
 async def login_user(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    response: Response,
     service: Annotated[AuthService, Depends(get_service(AuthService))],
-    remember_me: Annotated[  # noqa: FBT002
-        bool, Query(description='Remember me flag for longer session')
-    ] = False,
 ) -> TokenSchemas:
-    """Authenticate user and return tokens. Also sets HttpOnly cookies.
-
-    Uses OAuth2PasswordRequestForm (form-data) for Swagger UI compatibility.
-    The remember_me parameter can be passed as a query parameter.
+    """Authenticate user and return access and refresh tokens.
 
     Args:
-        form_data (OAuth2PasswordRequestForm): Username (email) and password.
-        response (Response): FastAPI response object for setting cookies.
-        remember_me (bool): Optional remember me flag (default: False).
+        form_data (OAuth2PasswordRequestForm): Username and password.
         service (AuthService): Auth service dependency.
 
     Returns:
-        TokenSchemas: Access and refresh tokens with type (also set in cookies).
+        TokenSchemas: Access and refresh tokens with type.
 
     """
     user = await service.auth_user(
-        email=form_data.username,  # OAuth2 uses 'username' field for email
+        email=form_data.username,
         password=form_data.password,
     )
-    if remember_me:
-        token: TokenSchemas = await service.create_token(
-            author_id=user.id,
-            user_role=user.role,
-            remember_me=remember_me,
-        )
-    else:
-        token = await service.create_token(
-            author_id=user.id,
-            user_role=user.role,
-        )
-
-    # Calculate cookie expiration
-    cookie_settings = settings.cookie_settings
-    if remember_me:
-        max_age = int(
-            timedelta(
-                days=settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME
-            ).total_seconds()
-        )
-    else:
-        max_age = int(
-            timedelta(
-                days=settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS
-            ).total_seconds()
-        )
-
-    # Set access token cookie
-    samesite: Literal['lax', 'strict', 'none'] | None = cast(
-        Literal['lax', 'strict', 'none'] | None, cookie_settings.SAME_SITE
+    token: TokenSchemas = await service.create_token(
+        author_id=user.id, user_role=user.role
     )
-    response.set_cookie(
-        key=cookie_settings.ACCESS_TOKEN_COOKIE_NAME,
-        value=token.access_token,
-        max_age=max_age,
-        httponly=True,
-        secure=cookie_settings.SECURE,
-        samesite=samesite,
-        domain=cookie_settings.DOMAIN,
-    )
-
-    # Set refresh token cookie
-    response.set_cookie(
-        key=cookie_settings.REFRESH_TOKEN_COOKIE_NAME,
-        value=token.refresh_token,
-        max_age=max_age,
-        httponly=True,
-        secure=cookie_settings.SECURE,
-        samesite=samesite,
-        domain=cookie_settings.DOMAIN,
-    )
-
     return token
 
 
@@ -145,82 +83,26 @@ async def login_user(
     path='/refresh',
     response_model=TokenSchemas,
     summary='Refresh access token',
-    description='Get new access and refresh tokens. Reads token from HttpOnly.',
+    description='Get new access and refresh tokens using a valid one.',
 )
 async def refresh_token(
-    request: Request,
-    response: Response,
+    refresh_request: Annotated[RefreshTokenRequestSchema, Depends()],
     service: Annotated[AuthService, Depends(get_service(AuthService))],
 ) -> TokenSchemas:
-    """Refresh access and refresh tokens using a valid refresh token cookie.
+    """Refresh access and refresh tokens using a valid refresh token.
 
     Args:
-        request (Request): FastAPI request object for reading cookies.
-        response (Response): FastAPI response object for setting cookies.
+        refresh_request (RefreshTokenRequestSchema): Schema containing
+            the refresh token.
         service (AuthService): Auth service dependency.
 
     Returns:
-        TokenSchemas: New access and refresh tokens (also set in cookies).
+        TokenSchemas: New access and refresh tokens.
 
     """
-    cookie_settings = settings.cookie_settings
-    # 1) Сначала пробуем взять refresh token из HttpOnly cookie
-    refresh_token_value: str | None = request.cookies.get(
-        cookie_settings.REFRESH_TOKEN_COOKIE_NAME
-    )
-    # 2) Для обратной совместимости и тестов — fallback на query-параметр
-    if not refresh_token_value:
-        refresh_token_value = request.query_params.get('refresh_token')
-
-    if not refresh_token_value:
-        # Будет отловлено глобальным обработчиком и вернёт 403
-        raise RefreshTokenException
-
     token: TokenSchemas = await service.refresh_token(
-        refresh_token=refresh_token_value,
+        refresh_token=refresh_request.refresh_token,
     )
-
-    # Calculate max_age from the new refresh token's expiration
-
-    decoded = TokenManager.decode_refresh_token(token.refresh_token)
-    exp_timestamp = int(decoded.get('exp', 0))
-    if exp_timestamp:
-        exp_datetime = datetime.fromtimestamp(exp_timestamp, tz=UTC)
-        now = datetime.now(UTC)
-        max_age = int((exp_datetime - now).total_seconds())
-        max_age = max(0, max_age)
-    else:
-        max_age = int(
-            timedelta(
-                days=settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME
-            ).total_seconds()
-        )
-
-    # Set new access token cookie
-    samesite: Literal['lax', 'strict', 'none'] | None = cast(
-        Literal['lax', 'strict', 'none'] | None, cookie_settings.SAME_SITE
-    )
-    response.set_cookie(
-        key=cookie_settings.ACCESS_TOKEN_COOKIE_NAME,
-        value=token.access_token,
-        max_age=max_age,
-        httponly=True,
-        secure=cookie_settings.SECURE,
-        samesite=samesite,
-        domain=cookie_settings.DOMAIN,
-    )
-
-    # Set new refresh token cookie
-    response.set_cookie(
-        key=cookie_settings.REFRESH_TOKEN_COOKIE_NAME,
-        value=token.refresh_token,
-        max_age=max_age,
-        httponly=True,
-        secure=cookie_settings.SECURE,
-        samesite=samesite,
-        domain=cookie_settings.DOMAIN,
-    )
-
     return token
 
 
@@ -228,52 +110,24 @@ async def refresh_token(
     path='/logout',
     status_code=204,
     summary='User logout',
-    description='Invalidate the refresh token from HttpOnly.',
+    description='Invalidate the provided refresh token to log out the user.',
 )
 async def logout_user(
-    request: Request,
-    response: Response,
+    refresh_request: Annotated[RefreshTokenRequestSchema, Depends()],
     service: Annotated[AuthService, Depends(get_service(AuthService))],
 ) -> None:
-    """Invalidate the refresh token from cookie and clear cookies.
+    """Invalidate the provided refresh token, logging out the user.
 
     Args:
-        request (Request): FastAPI request object for reading cookies.
-        response (Response): FastAPI response object for clearing cookies.
+        refresh_request (RefreshTokenRequestSchema): Schema containing
+            the refresh token to invalidate.
         service (AuthService): Auth service dependency.
 
     Returns:
         None
 
     """
-    cookie_settings = settings.cookie_settings
-    # 1) Пробуем взять refresh token из cookie
-    refresh_token_value: str | None = request.cookies.get(
-        cookie_settings.REFRESH_TOKEN_COOKIE_NAME
-    )
-    # 2) Fallback на query-параметр для обратной совместимости / тестов
-    if not refresh_token_value:
-        refresh_token_value = request.query_params.get('refresh_token')
-
-    if refresh_token_value:
-        await service.logout_user(refresh_token_value)
-
-    # Clear cookies
-    samesite: Literal['lax', 'strict', 'none'] | None = cast(
-        Literal['lax', 'strict', 'none'] | None, cookie_settings.SAME_SITE
-    )
-    response.delete_cookie(
-        key=cookie_settings.ACCESS_TOKEN_COOKIE_NAME,
-        domain=cookie_settings.DOMAIN,
-        samesite=samesite,
-        secure=cookie_settings.SECURE,
-    )
-    response.delete_cookie(
-        key=cookie_settings.REFRESH_TOKEN_COOKIE_NAME,
-        domain=cookie_settings.DOMAIN,
-        samesite=samesite,
-        secure=cookie_settings.SECURE,
-    )
+    await service.logout_user(refresh_request.refresh_token)
 
 
 @auth_router.post(
