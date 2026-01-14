@@ -41,7 +41,7 @@ export const metricColumns: ColumnDef<IMetric>[] = [
             'text-status-info': changeRate === 0,
           })}
         >
-          {Math.round(changeRate)}
+          {Math.round(changeRate)}%
         </span>
       );
     },
