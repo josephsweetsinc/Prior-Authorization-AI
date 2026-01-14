@@ -10,6 +10,7 @@ from dao import (
     AmbulanceRequestDAO,
     RequestFileDAO,
     RequestStatusHistoryDAO,
+    UserDAO,
 )
 from exceptions import (
     AmbulanceRequestAllFilesUploadFailedException,
@@ -64,6 +65,7 @@ class AmbulanceRequestService(BaseService):
         s3_actions: S3Actions | None = None,
         ai_extraction_service: AIExtractionService | None = None,
         notification_service: NotificationService | None = None,
+        user_dao: UserDAO | None = None,
     ):
         """Initialize AmbulanceRequestService."""
         super().__init__(db_session)
@@ -80,6 +82,7 @@ class AmbulanceRequestService(BaseService):
         self._notification_service = (
             notification_service or NotificationService(db_session)
         )
+        self._user_dao = user_dao or UserDAO(db_session)
 
     async def upload_file(
         self,
@@ -319,7 +322,7 @@ class AmbulanceRequestService(BaseService):
             extracted_data=ai_response.extracted_data,
         )
 
-    async def create_request(
+    async def create_request(  # noqa: C901
         self,
         user_id: int,
         request_data: CreateAmbulanceRequestSchema,
@@ -432,6 +435,34 @@ class AmbulanceRequestService(BaseService):
             notes='Request submitted',
         )
         await self._session.flush()
+
+        # Create notifications for all admins about the new submitted request
+        try:
+            admin_users = await self._user_dao.get_all(
+                roles=[UserRole.ADMIN],
+                limit=1000,  # Get all admins (reasonable limit)
+            )
+            for admin in admin_users:
+                try:
+                    await self._notification_service.create_status_update_notification(  # noqa: E501
+                        user_id=admin.id,
+                        request_id=request.id,
+                        status_message=f'New request #{request.id}'
+                        f' has been submitted for review',
+                    )
+                except Exception:
+                    logger.exception(
+                        'Failed to create notification for '
+                        'admin %s about request %s',
+                        admin.id,
+                        request.id,
+                    )
+        except Exception:
+            logger.exception(
+                'Failed to create notifications for admins about request %s',
+                request.id,
+            )
+
         await self._session.commit()
         await self._session.refresh(request)
         return AmbulanceRequestResponseSchema.model_validate(request)
