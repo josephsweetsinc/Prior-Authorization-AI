@@ -79,7 +79,7 @@ export const RequestDetails = ({
           <DataBlock label='MRN' value={data.patient_id.toString()} />
           <StatusChip status={data.status} />
         </section>
-        <Separator className='bg-gray-200' />
+        <Separator className='bg-gray-separator' />
 
         <section className='my-5 flex flex-wrap items-stretch gap-5'>
           {details.map((detail) => (
@@ -93,7 +93,7 @@ export const RequestDetails = ({
         </section>
         {timelineItems.length > 0 && (
           <>
-            <Separator className='bg-gray-200' />
+            <Separator className='bg-gray-separator' />
             <div className='my-5 space-y-5'>
               <h2 className='text-brand-dark text-base font-bold md:text-lg xl:text-xl'>
                 Activity Log
@@ -104,7 +104,7 @@ export const RequestDetails = ({
         )}
         {data.documents.length > 0 && (
           <>
-            <Separator className='bg-gray-200' />
+            <Separator className='bg-gray-separator' />
             <section className='mt-5 space-y-5'>
               <h2 className='text-brand-dark text-base font-bold lg:text-lg xl:text-xl'>
                 Documents

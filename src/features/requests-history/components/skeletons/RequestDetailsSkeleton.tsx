@@ -40,7 +40,7 @@ export const RequestDetailsSkeleton = ({
           <Skeleton className='h-6 w-24 rounded-full' />
         </section>
 
-        <Separator className='bg-gray-200' />
+        <Separator className='bg-gray-separator' />
 
         <section className='my-5 flex flex-wrap gap-5'>
           {Array.from({ length: 6 }).map((_, i) => (
@@ -49,10 +49,10 @@ export const RequestDetailsSkeleton = ({
             </div>
           ))}
         </section>
-        <Separator className='bg-gray-200' />
+        <Separator className='bg-gray-separator' />
         <Skeleton className='mt-5 h-6 w-24' />
         <StatusTimelineSkeleton className='my-5' />
-        <Separator className='bg-gray-200' />
+        <Separator className='bg-gray-separator' />
 
         <section className='mt-5'>
           <Skeleton className='mb-5 h-6 w-24' />

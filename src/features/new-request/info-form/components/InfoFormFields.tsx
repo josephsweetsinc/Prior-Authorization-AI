@@ -13,7 +13,7 @@ type Props = {
 
 export const InfoFormFields = ({ form, setForm, errors }: Props) => {
   return (
-    <div className='space-y-5'>
+    <div className='space-y-6'>
       <Select
         options={TRANSPORTATION_TYPE_OPTIONS}
         label='Transportation Type'
@@ -113,10 +113,10 @@ export const InfoFormFields = ({ form, setForm, errors }: Props) => {
         error={errors.destinationAddress}
       />
 
-      <Separator className='bg-gray-200' />
+      <Separator className='bg-gray-separator my-8' />
       <div className='space-y-6'>
-        <h2 className='text-brand-dark text-lg font-bold'>
-          Transportation Information
+        <h2 className='text-brand-dark text-lg font-bold capitalize'>
+          Medical justification
         </h2>
         <Input
           label='Medical Justification'
