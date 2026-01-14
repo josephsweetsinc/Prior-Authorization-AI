@@ -46,32 +46,19 @@ class TokenManager:
         return encoded_jwt
 
     @classmethod
-    def _get_refresh_expiration_delta(
-        cls,
-        remember_me: bool = False,  # noqa: FBT002, FBT001
-    ) -> datetime:
+    def _get_refresh_expiration_delta(cls) -> datetime:
         """Get expiration datetime for refresh token.
-
-        Args:
-            remember_me: If True, use longer expiration for remember me.
 
         Returns:
             datetime: Expiration datetime in UTC.
 
         """
-        days = (
-            settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME
-            if remember_me
-            else settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS
+        return datetime.now(UTC) + timedelta(
+            days=settings.token_settings.REFRESH_TOKEN_EXPIRE_DAYS
         )
-        return datetime.now(UTC) + timedelta(days=days)
 
     @classmethod
-    def generate_refresh_token(
-        cls,
-        author_id: int,
-        remember_me: bool = False,  # noqa: FBT002, FBT001
-    ) -> str:
+    def generate_refresh_token(cls, author_id: int) -> str:
         """Generate a JWT refresh token for the given author ID.
 
         Args:
@@ -80,13 +67,9 @@ class TokenManager:
         Returns:
             str: Encoded JWT refresh token.
 
-        Args:
-            author_id: The ID of the author for whom the token.
-            remember_me: If True, generate token with longer expiration.
-
         """
         jti = str(uuid.uuid4())
-        exp = cls._get_refresh_expiration_delta(remember_me=remember_me)
+        exp = cls._get_refresh_expiration_delta()
         to_encode = {
             'sub': str(author_id),
             'exp': exp,
