@@ -92,7 +92,9 @@ class ReportItemSchema(BaseModel):
         str,
         Field(description='Full name of the user who created the report'),
     ]
-    s3_key: Annotated[str, Field(description='S3 key for the report file')]
+    download_url: Annotated[
+        str, Field(description='Presigned URL for downloading the report file')
+    ]
 
 
 class LatestReportsResponseSchema(BaseModel):
