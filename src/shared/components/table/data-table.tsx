@@ -59,13 +59,17 @@ const DataTableRoot = <TData, TValue>({
     }),
   });
 
+  const displayPagination = pageCount
+    ? pagination && pageCount > 1
+    : pagination;
+
   return (
     <DataTableContext.Provider value={{ table, columnsLength: columns.length }}>
       <div className='w-full'>
         <div className='overflow-hidden rounded-md'>
           <Table>{children}</Table>
         </div>
-        {pagination && <DataTablePagination total={total ?? 0} />}
+        {displayPagination && <DataTablePagination total={total ?? 0} />}
       </div>
     </DataTableContext.Provider>
   );

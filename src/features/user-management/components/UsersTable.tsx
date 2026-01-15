@@ -23,7 +23,6 @@ type Props = {
 export const UsersTable = ({
   isLoading,
   data,
-
   onDeleteClick,
   onUpdateClick,
   paginationState,

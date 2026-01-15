@@ -1,5 +1,10 @@
 import { format } from 'date-fns';
 
+import { type IGetUserParams } from '@/services/user-management';
+import { buildParams } from '@/shared/lib/utils';
+
+import { type RoleOptions } from '../types';
+
 export const formatLastLogin = (value: string) => {
   return format(new Date(value), 'MM/dd/yyyy hh:mm a');
 };
@@ -9,4 +14,23 @@ export const splitFullName = (fullName?: string) => {
     return [];
   }
   return fullName.split(' ');
+};
+
+export const buildGetUsersParams = (
+  pageIndex: number,
+  role: RoleOptions,
+  search: string,
+): Partial<IGetUserParams> => {
+  const transformedSearchQuery = search.trim();
+  const transformedRole = role === 'all' ? undefined : role;
+  const page = pageIndex + 1;
+
+  // ? removes all undefined and null records from params object
+  const preparedParams = buildParams({
+    page: page,
+    role: transformedRole,
+    search: transformedSearchQuery.length > 0 ? search : undefined,
+  });
+
+  return preparedParams;
 };

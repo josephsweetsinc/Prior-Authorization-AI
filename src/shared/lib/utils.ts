@@ -44,3 +44,19 @@ export function groupByX<T extends Record<string, any>>(
     [valueKey]: value,
   })) as T[];
 }
+
+type Param = string | number | boolean | null | undefined;
+
+const isValidParam = (value: Param): boolean =>
+  value !== undefined && value !== null && value !== '';
+
+export const buildParams = <T extends Record<string, Param>>(
+  params: T,
+): Partial<T> => {
+  const validParamsEntries = Object.entries(params).filter(([, value]) =>
+    isValidParam(value),
+  );
+  const validParams = Object.fromEntries(validParamsEntries) as Partial<T>;
+
+  return validParams;
+};
