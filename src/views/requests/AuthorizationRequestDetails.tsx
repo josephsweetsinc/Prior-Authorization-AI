@@ -13,7 +13,6 @@ import {
   useUpdateRequestMutation,
 } from '@/services/requests';
 import { Chip, SensitiveMessage, TitleAndDesc } from '@/shared/components';
-import { phonePattern } from '@/shared/lib/validations/schemas';
 
 import { ApproveRequestModal } from './authorization-request-details/components/ApproveRequestModal';
 import { AuthorizationRequestDetailsSkeleton } from './authorization-request-details/components/AuthorizationRequestDetailsSkeleton';
@@ -27,6 +26,10 @@ import {
   buildRequestDetailsUiState,
   buildRequestUpdatePayload,
 } from './authorization-request-details/lib/utils/builders';
+import {
+  getPhysicianPhoneError,
+  resolveFormState,
+} from './authorization-request-details/lib/utils/form-state';
 
 type Props = {
   requestId: string;
@@ -52,23 +55,6 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     () => (data ? buildRequestDetailsFormState(data) : null),
     [data],
   );
-  const resolvedDefaultFormState = data
-    ? (defaultFormState ?? buildRequestDetailsFormState(data))
-    : null;
-  const effectiveFormState =
-    formState && data && formState.requestId === data.id
-      ? formState.state
-      : resolvedDefaultFormState;
-  const physicianPhoneError = useMemo(() => {
-    const value = effectiveFormState?.physicianPhone?.trim() ?? '';
-    if (!value) {
-      return '';
-    }
-
-    return phonePattern.test(value)
-      ? ''
-      : 'Phone can contain only digits, spaces, and ()+-';
-  }, [effectiveFormState?.physicianPhone]);
 
   if (isLoading) {
     return <AuthorizationRequestDetailsSkeleton />;
@@ -108,6 +94,12 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     );
   }
 
+  const resolvedFormState = resolveFormState({
+    data,
+    formState,
+    defaultFormState,
+  });
+  const physicianPhoneError = getPhysicianPhoneError(resolvedFormState);
   const {
     statusConfig,
     shouldShowActions,
@@ -161,7 +153,7 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
 
     updateRequest({
       id: data.id,
-      data: buildRequestUpdatePayload(effectiveFormState),
+      data: buildRequestUpdatePayload(resolvedFormState),
     })
       .unwrap()
       .then(() => {
@@ -206,13 +198,11 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
       <section className='grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]'>
         <RequestDetailsContent
           data={data}
-          form={effectiveFormState}
+          form={resolvedFormState}
           onChange={(next) =>
             setFormState((prev) => {
               const baseState =
-                prev?.requestId === data.id
-                  ? prev.state
-                  : resolvedDefaultFormState;
+                prev?.requestId === data.id ? prev.state : resolvedFormState;
               return {
                 requestId: data.id,
                 state: {
