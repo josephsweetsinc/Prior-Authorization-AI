@@ -8,7 +8,15 @@ export const addNotificationToCache = (
   notification: NotificationItem,
   dispatch: AppDispatch,
 ) => {
-  updateNotificationCache({ page: 1 }, notification, dispatch);
+  updateNotificationCache({ page: 1, filter: 'all' }, notification, dispatch);
+
+  if (!notification.is_read) {
+    updateNotificationCache(
+      { page: 1, filter: 'unread' },
+      notification,
+      dispatch,
+    );
+  }
 
   const category = notification.category as NotificationCategory;
   if (category && category !== 'all' && category !== 'unread') {

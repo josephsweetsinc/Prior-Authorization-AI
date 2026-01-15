@@ -15,6 +15,7 @@ export const buildNotificationsParams = (
   return clearParams({
     page,
     category: category ? apiCategory(category) : undefined,
+    filter: category === 'all' || category === 'unread' ? category : undefined,
   });
 };
 

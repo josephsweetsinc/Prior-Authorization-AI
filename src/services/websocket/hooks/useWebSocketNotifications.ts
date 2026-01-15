@@ -27,7 +27,7 @@ export const useWebSocketNotifications = () => {
   const lastNotificationIdRef = useRef<number | null>(null);
 
   const { data: pollingNotificationsData } = useGetNotificationsQuery(
-    buildNotificationsParams(1),
+    buildNotificationsParams(1, 'all'),
     {
       pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
       skip: isConnected,

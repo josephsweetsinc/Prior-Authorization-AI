@@ -7,12 +7,15 @@ export const notificationApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getNotifications: builder.query<NotificationsResponse, NotificationsParams>(
       {
-        query: ({ page = 1, category }) => ({
+        query: ({ page = 1, category, filter }) => ({
           url: '/notification/',
           params: clearParams({
             page,
             category:
-              category !== 'all' && category !== 'unread'
+              category !== 'all' &&
+              category !== 'unread' &&
+              filter !== 'all' &&
+              filter !== 'unread'
                 ? category
                 : undefined,
           }),

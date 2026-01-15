@@ -46,7 +46,7 @@ export const NotificationsContainer = () => {
   );
 
   const { data: allNotificationsData } = useGetNotificationsQuery(
-    buildNotificationsParams(1),
+    buildNotificationsParams(1, 'all'),
     {
       pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
     },

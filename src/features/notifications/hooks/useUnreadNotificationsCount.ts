@@ -8,7 +8,7 @@ export const useUnreadNotificationsCount = () => {
   const { isConnected } = useWebSocket();
 
   const { data: allNotificationsData, isLoading } = useGetNotificationsQuery(
-    buildNotificationsParams(1),
+    buildNotificationsParams(1, 'all'),
     {
       pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
     },
