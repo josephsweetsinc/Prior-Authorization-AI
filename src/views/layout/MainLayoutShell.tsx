@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { WebSocketInitializer } from '@/features/websocket';
+import { useWebSocketNotifications } from '@/services/websocket/hooks';
 import { AppHeader, AppSidebar } from '@/views/layout';
 
 type MainLayoutShellProps = {
@@ -10,11 +10,11 @@ type MainLayoutShellProps = {
 };
 
 export const MainLayoutShell = ({ children }: MainLayoutShellProps) => {
+  useWebSocketNotifications();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   return (
     <div className='bg-secondary grid max-h-dvh grid-cols-[minmax(290px,20.138%)_1fr] grid-rows-[max-content_1fr]'>
-      <WebSocketInitializer />
       <AppSidebar />
       <div className='relative col-start-2 row-span-2 flex min-h-0 flex-col'>
         <AppHeader

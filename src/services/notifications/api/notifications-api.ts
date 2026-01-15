@@ -1,4 +1,5 @@
 import { api as baseApi } from '@/services/api/api';
+import { clearParams } from '@/shared/lib/utils';
 
 import { type NotificationsResponse, type NotificationsParams } from '../types';
 
@@ -8,10 +9,13 @@ export const notificationApi = baseApi.injectEndpoints({
       {
         query: ({ page = 1, category }) => ({
           url: '/notification/',
-          params: {
+          params: clearParams({
             page,
-            category: category !== 'all' ? category : undefined,
-          },
+            category:
+              category !== 'all' && category !== 'unread'
+                ? category
+                : undefined,
+          }),
         }),
         providesTags: (result) =>
           result

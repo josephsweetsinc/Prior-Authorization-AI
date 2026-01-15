@@ -10,7 +10,7 @@ import {
   LogoutModal,
   useLogoutModal,
 } from '@/features/profile';
-import { useGetCurrentUserQuery } from '@/services';
+import { useGetCurrentUserQuery, useIsAdmin } from '@/services';
 import {
   Button,
   GlobalSearch,
@@ -33,6 +33,7 @@ export const AppHeader = ({
   isSearchOpen,
   onSearchOpenChange,
 }: AppHeaderProps) => {
+  const { isAdmin } = useIsAdmin();
   const { isOpen, isLoading, open, close, confirm } = useLogoutModal();
   const { data: currentUser, isLoading: isUserLoading } =
     useGetCurrentUserQuery();
@@ -80,7 +81,7 @@ export const AppHeader = ({
         {!searchOpen ? (
           <HeaderGroup separate>
             <HeaderActions>
-              {currentUser?.role !== 'admin' && (
+              {!isAdmin && (
                 <Button variant='ghost' size='icon' asChild>
                   <Link href='/settings'>
                     <Settings className='text-status-info size-5' />

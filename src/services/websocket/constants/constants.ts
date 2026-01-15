@@ -1,2 +1,7 @@
 export const POLLING_INTERVAL = 30000;
 export const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
+export const MAX_RECONNECTION_DELAY = 10000;
+export const MIN_RECONNECTION_DELAY = 1000;
+export const RECONNECTION_DELAY_GROW_FACTOR = 1.3;
+export const CONNECTION_TIMEOUT = 4000;
+export const MAX_RETRIES = 50;

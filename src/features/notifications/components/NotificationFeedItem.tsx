@@ -1,7 +1,9 @@
 'use client';
+import Link from 'next/link';
 import { useState } from 'react';
 
 import { RequestDetails } from '@/features/requests-history';
+import { cn } from '@/shared/lib/utils';
 
 import { type NotificationFeedItemProps } from '../types';
 import { formatDate } from '../utils/formatDate';
@@ -14,28 +16,42 @@ export const NotificationFeedItem = ({
   ...rest
 }: NotificationFeedItemProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const shouldShowBlueBorder = isAdmin
+    ? !notification.is_read
+    : notification.category === 'requirements';
+
   return (
     <div
       onClick={() => onClick?.(notification.id)}
-      className={`rounded-xl border bg-white p-5 transition-all hover:shadow-md ${
-        onClick ? 'cursor-pointer' : ''
-      } ${isAdmin ? (notification.category === 'unread' ? 'border-l-4 border-l-blue-500' : '') : notification.category === 'requirements' ? 'border-l-4 border-l-blue-500' : ''} ${className}`}
+      className={cn(
+        'rounded-xl border bg-white p-5 transition-all hover:shadow-md',
+        onClick && 'cursor-pointer',
+        shouldShowBlueBorder && 'border-l-4 border-l-blue-500',
+        className,
+      )}
       {...rest}
     >
       <div className='space-y-1'>
         <div className='flex items-center gap-2'>
           <h3 className='text-base font-bold'>{notification.title}</h3>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsModalOpen(true);
-            }}
-            className='cursor-pointer text-base font-bold text-[#047CB4] underline transition-colors hover:text-[#035a85]'
-          >
-            #{notification.request_id}
-          </button>
-          {!notification.is_read && (
-            <span className='h-2 w-2 rounded-full bg-blue-500' />
+          {isAdmin ? (
+            <Link
+              href={`/requests/${notification.request_id}`}
+              className='text-request-link hover:text-request-link-hover cursor-pointer text-base font-bold underline transition-colors'
+            >
+              #{notification.request_id}
+            </Link>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsModalOpen(true);
+              }}
+              className='text-request-link hover:text-request-link-hover cursor-pointer text-base font-bold underline transition-colors'
+            >
+              #{notification.request_id}
+            </button>
           )}
         </div>
         <RequestDetails

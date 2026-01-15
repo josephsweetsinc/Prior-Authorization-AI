@@ -1,18 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import type { CloseEvent } from 'reconnecting-websocket/dist/events';
 
 import {
-  type NotificationEventHandler,
-  type UseWebSocketReturn,
-} from '../types';
+  CONNECTION_TIMEOUT,
+  MAX_RECONNECTION_DELAY,
+  MAX_RETRIES,
+  MIN_RECONNECTION_DELAY,
+  RECONNECTION_DELAY_GROW_FACTOR,
+} from '../constants';
+import { type NotificationEventHandler } from '../types';
 
 let wsSingleton: ReconnectingWebSocket | null = null;
 let wsUrlSingleton: string | null = null;
 let isConnectedSingleton = false;
-let acquireCountSingleton = 0;
+export let acquireCountSingleton = 0;
 const eventHandlersSingleton = new Map<string, Set<NotificationEventHandler>>();
 const connectionSubscribers = new Set<(_isConnected: boolean) => void>();
 
@@ -30,7 +33,9 @@ const setConnectedSingleton = (next: boolean) => {
   notifyConnectionSubscribers();
 };
 
-const ensureWebSocket = (websocketUrl: string) => {
+export const getIsConnectedSingleton = () => isConnectedSingleton;
+
+export const ensureWebSocket = (websocketUrl: string) => {
   const existing = wsSingleton;
   const existingState = existing?.readyState;
   const urlUnchanged = wsUrlSingleton === websocketUrl;
@@ -53,11 +58,11 @@ const ensureWebSocket = (websocketUrl: string) => {
 
   wsUrlSingleton = websocketUrl;
   wsSingleton = new ReconnectingWebSocket(websocketUrl, [], {
-    maxReconnectionDelay: 10000,
-    minReconnectionDelay: 1000,
-    reconnectionDelayGrowFactor: 1.3,
-    connectionTimeout: 4000,
-    maxRetries: Infinity,
+    maxReconnectionDelay: MAX_RECONNECTION_DELAY,
+    minReconnectionDelay: MIN_RECONNECTION_DELAY,
+    reconnectionDelayGrowFactor: RECONNECTION_DELAY_GROW_FACTOR,
+    connectionTimeout: CONNECTION_TIMEOUT,
+    maxRetries: MAX_RETRIES,
   });
 
   wsSingleton.addEventListener('open', () => {
@@ -86,7 +91,9 @@ const ensureWebSocket = (websocketUrl: string) => {
   });
 };
 
-const subscribeConnection = (subscriber: (_isConnected: boolean) => void) => {
+export const subscribeConnection = (
+  subscriber: (_isConnected: boolean) => void,
+) => {
   connectionSubscribers.add(subscriber);
   subscriber(isConnectedSingleton);
   return () => {
@@ -94,7 +101,10 @@ const subscribeConnection = (subscriber: (_isConnected: boolean) => void) => {
   };
 };
 
-const onSingleton = (eventType: string, handler: NotificationEventHandler) => {
+export const onSingleton = (
+  eventType: string,
+  handler: NotificationEventHandler,
+) => {
   if (!eventHandlersSingleton.has(eventType)) {
     eventHandlersSingleton.set(eventType, new Set());
   }
@@ -111,13 +121,13 @@ const onSingleton = (eventType: string, handler: NotificationEventHandler) => {
   };
 };
 
-const sendSingleton = (data: unknown) => {
+export const sendSingleton = (data: unknown) => {
   if (wsSingleton?.readyState === WebSocket.OPEN) {
     wsSingleton.send(JSON.stringify(data));
   }
 };
 
-const closeSingleton = () => {
+export const closeSingleton = () => {
   if (wsSingleton) {
     try {
       wsSingleton.close();
@@ -131,40 +141,11 @@ const closeSingleton = () => {
   setConnectedSingleton(false);
 };
 
-export const useWebSocket = (): UseWebSocketReturn => {
-  const [isConnected, setIsConnected] = useState(isConnectedSingleton);
+export const incrementAcquireCount = () => {
+  acquireCountSingleton += 1;
+};
 
-  const acquiredRef = useRef(false);
-
-  useEffect(() => subscribeConnection(setIsConnected), []);
-
-  const connect = useCallback((websocketUrl: string, _token: string) => {
-    if (!acquiredRef.current) {
-      acquiredRef.current = true;
-      acquireCountSingleton += 1;
-    }
-    ensureWebSocket(websocketUrl);
-  }, []);
-
-  const disconnect = useCallback(() => {
-    if (!acquiredRef.current) {
-      return;
-    }
-    acquiredRef.current = false;
-    acquireCountSingleton = Math.max(0, acquireCountSingleton - 1);
-    if (acquireCountSingleton === 0) {
-      closeSingleton();
-    }
-  }, []);
-
-  const on = useMemo(() => onSingleton, []);
-  const send = useMemo(() => sendSingleton, []);
-
-  useEffect(() => {
-    return () => {
-      disconnect();
-    };
-  }, [disconnect]);
-
-  return { connect, disconnect, on, send, isConnected };
+export const decrementAcquireCount = () => {
+  acquireCountSingleton = Math.max(0, acquireCountSingleton - 1);
+  return acquireCountSingleton;
 };

@@ -4,8 +4,8 @@ import { type PaginationState } from '@tanstack/react-table';
 import { useState } from 'react';
 
 import { useGetNotificationsQuery } from '@/services/notifications/';
-import { useWebSocket } from '@/services/websocket/api/websocket-service';
 import { POLLING_INTERVAL } from '@/services/websocket/constants';
+import { useWebSocket } from '@/services/websocket/hooks';
 import { TitleAndDesc } from '@/shared/components';
 import { useFilters } from '@/shared/hooks/useFilters';
 

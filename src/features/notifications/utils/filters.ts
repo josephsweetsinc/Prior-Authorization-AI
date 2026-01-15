@@ -1,4 +1,5 @@
 import { type NotificationsParams } from '@/services/notifications/types';
+import { clearParams } from '@/shared/lib/utils';
 
 import { type INotification } from '../types';
 import { type NotificationCategory } from '../types/types';
@@ -11,9 +12,10 @@ export const buildNotificationsParams = (
   page: number,
   category?: NotificationCategory,
 ): NotificationsParams => {
-  const apiCategoryValue = category ? apiCategory(category) : undefined;
-
-  return apiCategoryValue ? { page, category: apiCategoryValue } : { page };
+  return clearParams({
+    page,
+    category: category ? apiCategory(category) : undefined,
+  });
 };
 
 export const filteredNotifications = (
