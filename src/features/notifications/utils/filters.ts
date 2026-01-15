@@ -1,8 +1,19 @@
+import { type NotificationsParams } from '@/services/notifications/types';
+
 import { type INotification } from '../types';
 import { type NotificationCategory } from '../types/types';
 
 export const apiCategory = (category: NotificationCategory) => {
   return category === 'unread' || category === 'all' ? undefined : category;
+};
+
+export const buildNotificationsParams = (
+  page: number,
+  category?: NotificationCategory,
+): NotificationsParams => {
+  const apiCategoryValue = category ? apiCategory(category) : undefined;
+
+  return apiCategoryValue ? { page, category: apiCategoryValue } : { page };
 };
 
 export const filteredNotifications = (

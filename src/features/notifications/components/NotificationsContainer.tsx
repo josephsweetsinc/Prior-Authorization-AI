@@ -15,7 +15,7 @@ import {
   type NotificationCategory,
 } from '../types/types';
 import {
-  apiCategory,
+  buildNotificationsParams,
   filteredNotifications,
   unreadCount,
   statusUpdatesCount,
@@ -38,23 +38,15 @@ export const NotificationsContainer = () => {
 
   const { isConnected } = useWebSocket();
 
-  const apiCategoryValue = apiCategory(filters.category);
-
   const { data, isLoading } = useGetNotificationsQuery(
-    {
-      page: pagination.pageIndex + 1,
-      category: apiCategoryValue,
-    },
+    buildNotificationsParams(pagination.pageIndex + 1, filters.category),
     {
       pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
     },
   );
 
   const { data: allNotificationsData } = useGetNotificationsQuery(
-    {
-      page: 1,
-      category: undefined,
-    },
+    buildNotificationsParams(1),
     {
       pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
     },
