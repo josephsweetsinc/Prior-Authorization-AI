@@ -24,7 +24,7 @@ export const MainLayoutShell = ({ children }: MainLayoutShellProps) => {
         <main className='max-h-dvh overflow-y-auto p-10'>{children}</main>
         {isSearchOpen && (
           <div
-            className='absolute inset-0 z-10 bg-[#D5D5D51A] backdrop-blur-xs'
+            className='bg-dialog-backdrop absolute inset-0 z-10 backdrop-blur-xs'
             onClick={() => setIsSearchOpen(false)}
             aria-hidden='true'
           />

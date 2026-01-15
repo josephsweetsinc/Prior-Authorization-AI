@@ -28,7 +28,7 @@ export const UserManagementHeader = ({
 
       <Button
         variant='primary'
-        className='aspect-square w-max lg:aspect-auto lg:px-16! lg:py-2.5!'
+        className='aspect-square w-max rounded-[12px] lg:aspect-auto lg:px-16! lg:py-2.5!'
         onClick={onCreateClick}
       >
         <Plus className='size-4' />

@@ -3,13 +3,11 @@
 import { type PaginationState } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 
-import {
-  buildAuthorizationRequestsParams,
-  useGetAuthorizationRequestsQuery,
-} from '@/services/requests';
+import { useGetAuthorizationRequestsQuery } from '@/services/requests';
 
 import { useAuthorizationRequestsFilters } from '../hooks';
 import { type AuthorizationRequestsFilters } from '../types';
+import { buildAuthorizationRequestsParams } from '../utils';
 
 import { AuthorizationRequestsFilters as Filters } from './AuthorizationRequestsFilters';
 import { AuthorizationRequestsTable } from './AuthorizationRequestsTable';

@@ -28,7 +28,7 @@ export interface IUpdateUserPayload {
 }
 
 export interface IGetUserParams {
-  page: number;
+  page?: number;
   search?: string;
   role?: string;
 }

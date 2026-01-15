@@ -138,8 +138,8 @@ export interface IRequestHistoryResponse {
 }
 
 export interface IRequestHistoryParams {
-  page: number;
-  search: string;
+  page?: number;
+  search?: string;
   status?: RequestStatus;
   days?: number;
 }

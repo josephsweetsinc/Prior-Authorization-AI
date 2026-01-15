@@ -6,6 +6,7 @@ import { useGetUsersQuery } from '@/services/user-management';
 
 import { useUserFilters, useUserModals } from '../hooks';
 import { type IFilters } from '../types';
+import { buildGetUsersParams } from '../utils';
 
 import { CreateModal } from './CreateModal';
 import { DeleteModal } from './DeleteModal';
@@ -22,11 +23,13 @@ export const UserManagementContainer = () => {
     pageSize: 8,
   });
 
-  const { data, isFetching } = useGetUsersQuery({
-    page: pagination.pageIndex + 1,
-    role: filters.role === 'all' ? undefined : filters.role,
-    search: filters.searchQuery,
-  });
+  const { data, isFetching } = useGetUsersQuery(
+    buildGetUsersParams(
+      pagination.pageIndex,
+      filters.role,
+      filters.searchQuery,
+    ),
+  );
 
   const updateFilters = <Key extends keyof IFilters>(
     key: Key,
