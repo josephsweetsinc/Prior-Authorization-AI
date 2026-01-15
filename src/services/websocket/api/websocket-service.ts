@@ -1,98 +1,164 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import type { CloseEvent } from 'reconnecting-websocket/dist/events';
-
-import { parseApiError } from '@/services/api/types';
 
 import {
   type NotificationEventHandler,
   type UseWebSocketReturn,
 } from '../types';
 
-export const useWebSocket = (): UseWebSocketReturn => {
-  const wsRef = useRef<ReconnectingWebSocket | null>(null);
-  const eventHandlersRef = useRef<Map<string, Set<NotificationEventHandler>>>(
-    new Map(),
-  );
-  const [isConnected, setIsConnected] = useState(false);
+let wsSingleton: ReconnectingWebSocket | null = null;
+let wsUrlSingleton: string | null = null;
+let isConnectedSingleton = false;
+let acquireCountSingleton = 0;
+const eventHandlersSingleton = new Map<string, Set<NotificationEventHandler>>();
+const connectionSubscribers = new Set<(_isConnected: boolean) => void>();
 
-  const connect = useCallback((websocketUrl: string, _token: string) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
+const notifyConnectionSubscribers = () => {
+  connectionSubscribers.forEach((subscriber) => {
+    subscriber(isConnectedSingleton);
+  });
+};
+
+const setConnectedSingleton = (next: boolean) => {
+  if (isConnectedSingleton === next) {
+    return;
+  }
+  isConnectedSingleton = next;
+  notifyConnectionSubscribers();
+};
+
+const ensureWebSocket = (websocketUrl: string) => {
+  const existing = wsSingleton;
+  const existingState = existing?.readyState;
+  const urlUnchanged = wsUrlSingleton === websocketUrl;
+
+  if (
+    existing &&
+    urlUnchanged &&
+    (existingState === WebSocket.OPEN || existingState === WebSocket.CONNECTING)
+  ) {
+    return;
+  }
+
+  if (existing) {
+    try {
+      existing.close();
+    } catch (err) {
+      console.error('Failed to close existing WebSocket connection', err);
+    }
+  }
+
+  wsUrlSingleton = websocketUrl;
+  wsSingleton = new ReconnectingWebSocket(websocketUrl, [], {
+    maxReconnectionDelay: 10000,
+    minReconnectionDelay: 1000,
+    reconnectionDelayGrowFactor: 1.3,
+    connectionTimeout: 4000,
+    maxRetries: Infinity,
+  });
+
+  wsSingleton.addEventListener('open', () => {
+    setConnectedSingleton(true);
+  });
+
+  wsSingleton.addEventListener('message', (event: MessageEvent) => {
+    try {
+      const data = JSON.parse(event.data);
+      const eventType = data?.type || 'notification';
+      const handlers = eventHandlersSingleton.get(eventType);
+      if (handlers) {
+        handlers.forEach((handler) => handler(data));
+      }
+    } catch (err) {
+      console.error('Failed to parse WebSocket message', err);
+    }
+  });
+
+  wsSingleton.addEventListener('error', () => {
+    setConnectedSingleton(false);
+  });
+
+  wsSingleton.addEventListener('close', (_event: CloseEvent) => {
+    setConnectedSingleton(false);
+  });
+};
+
+const subscribeConnection = (subscriber: (_isConnected: boolean) => void) => {
+  connectionSubscribers.add(subscriber);
+  subscriber(isConnectedSingleton);
+  return () => {
+    connectionSubscribers.delete(subscriber);
+  };
+};
+
+const onSingleton = (eventType: string, handler: NotificationEventHandler) => {
+  if (!eventHandlersSingleton.has(eventType)) {
+    eventHandlersSingleton.set(eventType, new Set());
+  }
+  eventHandlersSingleton.get(eventType)!.add(handler);
+  return () => {
+    const handlers = eventHandlersSingleton.get(eventType);
+    if (!handlers) {
       return;
     }
+    handlers.delete(handler);
+    if (handlers.size === 0) {
+      eventHandlersSingleton.delete(eventType);
+    }
+  };
+};
 
-    wsRef.current = new ReconnectingWebSocket(websocketUrl, [], {
-      maxReconnectionDelay: 10000,
-      minReconnectionDelay: 1000,
-      reconnectionDelayGrowFactor: 1.3,
-      connectionTimeout: 4000,
-      maxRetries: Infinity,
-    });
+const sendSingleton = (data: unknown) => {
+  if (wsSingleton?.readyState === WebSocket.OPEN) {
+    wsSingleton.send(JSON.stringify(data));
+  }
+};
 
-    wsRef.current.addEventListener('open', () => {
-      setIsConnected(true);
-    });
+const closeSingleton = () => {
+  if (wsSingleton) {
+    try {
+      wsSingleton.close();
+    } catch (err) {
+      console.error('Failed to close WebSocket connection', err);
+    }
+  }
+  wsSingleton = null;
+  wsUrlSingleton = null;
+  eventHandlersSingleton.clear();
+  setConnectedSingleton(false);
+};
 
-    wsRef.current.addEventListener('message', (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
+export const useWebSocket = (): UseWebSocketReturn => {
+  const [isConnected, setIsConnected] = useState(isConnectedSingleton);
 
-        const handlers = eventHandlersRef.current.get(
-          data.type || 'notification',
-        );
+  const acquiredRef = useRef(false);
 
-        if (handlers) {
-          handlers.forEach((handler) => handler(data));
-        }
-      } catch (err) {
-        const parsedError = parseApiError(err)?.message;
-        toast.error(parsedError ?? 'Failed to parse WebSocket message');
-      }
-    });
+  useEffect(() => subscribeConnection(setIsConnected), []);
 
-    wsRef.current.addEventListener('error', () => {
-      setIsConnected(false);
-    });
-
-    wsRef.current.addEventListener('close', (_event: CloseEvent) => {
-      setIsConnected(false);
-    });
+  const connect = useCallback((websocketUrl: string, _token: string) => {
+    if (!acquiredRef.current) {
+      acquiredRef.current = true;
+      acquireCountSingleton += 1;
+    }
+    ensureWebSocket(websocketUrl);
   }, []);
 
   const disconnect = useCallback(() => {
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
+    if (!acquiredRef.current) {
+      return;
     }
-    eventHandlersRef.current.clear();
-    setIsConnected(false);
-  }, []);
-
-  const on = useCallback(
-    (eventType: string, handler: NotificationEventHandler) => {
-      if (!eventHandlersRef.current.has(eventType)) {
-        eventHandlersRef.current.set(eventType, new Set());
-      }
-      eventHandlersRef.current.get(eventType)!.add(handler);
-
-      return () => {
-        const handlers = eventHandlersRef.current.get(eventType);
-        if (handlers) {
-          handlers.delete(handler);
-        }
-      };
-    },
-    [],
-  );
-
-  const send = useCallback((data: unknown) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(data));
+    acquiredRef.current = false;
+    acquireCountSingleton = Math.max(0, acquireCountSingleton - 1);
+    if (acquireCountSingleton === 0) {
+      closeSingleton();
     }
   }, []);
+
+  const on = useMemo(() => onSingleton, []);
+  const send = useMemo(() => sendSingleton, []);
 
   useEffect(() => {
     return () => {
@@ -100,11 +166,5 @@ export const useWebSocket = (): UseWebSocketReturn => {
     };
   }, [disconnect]);
 
-  return {
-    connect,
-    disconnect,
-    on,
-    send,
-    isConnected,
-  };
+  return { connect, disconnect, on, send, isConnected };
 };

@@ -41,15 +41,11 @@ export const addNotificationToCache = (
     );
   };
 
-  updateCache({ page: 1, category: undefined });
+  updateCache({ page: 1 });
 
-  updateCache({ page: 1, category: 'all' });
-
-  if (notification.category && notification.category !== 'all') {
-    updateCache({
-      page: 1,
-      category: notification.category as NotificationCategory,
-    });
+  const category = notification.category as NotificationCategory;
+  if (category && category !== 'all' && category !== 'unread') {
+    updateCache({ page: 1, category });
   }
 
   dispatch(

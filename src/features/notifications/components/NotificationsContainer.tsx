@@ -4,8 +4,8 @@ import { type PaginationState } from '@tanstack/react-table';
 import { useState } from 'react';
 
 import { useGetNotificationsQuery } from '@/services/notifications/';
+import { useWebSocket } from '@/services/websocket/api/websocket-service';
 import { POLLING_INTERVAL } from '@/services/websocket/constants';
-import { useWebSocketNotifications } from '@/services/websocket/hooks';
 import { TitleAndDesc } from '@/shared/components';
 import { useFilters } from '@/shared/hooks/useFilters';
 
@@ -36,7 +36,7 @@ export const NotificationsContainer = () => {
     pageSize: DEFAULT_PAGE_SIZE,
   });
 
-  const { isConnected } = useWebSocketNotifications();
+  const { isConnected } = useWebSocket();
 
   const apiCategoryValue = apiCategory(filters.category);
 

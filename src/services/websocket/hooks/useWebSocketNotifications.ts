@@ -50,8 +50,13 @@ export const useWebSocketNotifications = () => {
       return;
     }
 
-    const wsUrlWithToken = `${WEBSOCKET_URL}?token=${encodeURIComponent(token)}`;
-    connect(wsUrlWithToken, token);
+    if (!WEBSOCKET_URL) {
+      return;
+    }
+
+    const url = new URL(WEBSOCKET_URL);
+    url.searchParams.set('token', token);
+    connect(url.toString(), token);
 
     const unsubscribe = on('notification', (notification) => {
       const notificationItem = notification as NotificationItem;
