@@ -26,6 +26,10 @@ import {
   buildRequestDetailsUiState,
   buildRequestUpdatePayload,
 } from './authorization-request-details/lib/utils/builders';
+import {
+  getPhysicianPhoneError,
+  resolveFormState,
+} from './authorization-request-details/lib/utils/form-state';
 
 type Props = {
   requestId: string;
@@ -90,6 +94,12 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     );
   }
 
+  const resolvedFormState = resolveFormState({
+    data,
+    formState,
+    defaultFormState,
+  });
+  const physicianPhoneError = getPhysicianPhoneError(resolvedFormState);
   const {
     statusConfig,
     shouldShowActions,
@@ -97,13 +107,6 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     requestLabel,
     timelineItems,
   } = buildRequestDetailsUiState(data);
-  const resolvedDefaultFormState =
-    defaultFormState ?? buildRequestDetailsFormState(data);
-  const effectiveFormState =
-    formState?.requestId === data.id
-      ? formState.state
-      : resolvedDefaultFormState;
-
   const handleApproveRequest = () => {
     approveRequest(data.id)
       .unwrap()
@@ -143,9 +146,14 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
   const closeDenyModal = () => setIsDenyModalOpen(false);
 
   const handleUpdateRequest = () => {
+    if (physicianPhoneError) {
+      toast.error('Please fix validation errors before saving.');
+      return;
+    }
+
     updateRequest({
       id: data.id,
-      data: buildRequestUpdatePayload(effectiveFormState),
+      data: buildRequestUpdatePayload(resolvedFormState),
     })
       .unwrap()
       .then(() => {
@@ -190,13 +198,11 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
       <section className='grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]'>
         <RequestDetailsContent
           data={data}
-          form={effectiveFormState}
+          form={resolvedFormState}
           onChange={(next) =>
             setFormState((prev) => {
               const baseState =
-                prev?.requestId === data.id
-                  ? prev.state
-                  : resolvedDefaultFormState;
+                prev?.requestId === data.id ? prev.state : resolvedFormState;
               return {
                 requestId: data.id,
                 state: {
@@ -207,6 +213,7 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
             })
           }
           onSave={handleUpdateRequest}
+          physicianPhoneError={physicianPhoneError}
           isSaving={isSaving}
         />
 
