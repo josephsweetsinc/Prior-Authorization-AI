@@ -30,11 +30,11 @@ export const STATUS_TO_TIMELINE_STATUS: Record<RequestStatus, RequestStatus> = {
 
 export const DATE_OPTIONS = [
   { value: 'all', label: 'All Time' },
-  { value: '0', label: 'Today' },
-  { value: '7', label: 'Last 7 Days' },
-  { value: '30', label: 'Last 30 Days' },
-  { value: '90', label: 'Last 90 Days' },
-  { value: '365', label: 'This Year' },
+  { value: 'today', label: 'Today' },
+  { value: '7-days', label: 'Last 7 Days' },
+  { value: '30-days', label: 'Last 30 Days' },
+  { value: '90-days', label: 'Last 90 Days' },
+  { value: 'year', label: 'This Year' },
 ];
 
 export const DEFAULT_FILTERS: IFilters = {

@@ -55,6 +55,7 @@
 
   --color-brand-dark: var(--brand-dark);
   --color-gray-dark: var(--gray-dark);
+  --color-dialog-backdrop: #D5D5D51A;
 }
 
 :root {
@@ -111,6 +112,7 @@
 
   --brand-dark: #193782;
   --gray-dark: #4a5568;
+  --dialog-backdrop: #D5D5D51A;
 
   --font-nunito-sans:
     'Nunito Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
@@ -162,6 +164,7 @@
   --brand-dark: #60a5fa;
   --gray-dark: #9ca3af;
   --gray-light: #a3aed0;
+  --dialog-backdrop: #D5D5D51A;
 }
 
 @layer base {

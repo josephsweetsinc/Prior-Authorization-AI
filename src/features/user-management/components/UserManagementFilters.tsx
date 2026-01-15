@@ -37,6 +37,7 @@ export const UserManagementFilters = ({ filters, onFiltersChange }: Props) => {
         options={ROLE_OPTIONS}
         placeholder='Filter by role'
         onChange={handleRoleFilterChange}
+        triggerClassName='py-[9px] px-4 text-[14px] h-[38px]'
       />
     </section>
   );
