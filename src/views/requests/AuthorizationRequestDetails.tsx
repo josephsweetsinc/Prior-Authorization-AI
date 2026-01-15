@@ -13,6 +13,7 @@ import {
   useUpdateRequestMutation,
 } from '@/services/requests';
 import { Chip, SensitiveMessage, TitleAndDesc } from '@/shared/components';
+import { phonePattern } from '@/shared/lib/validations/schemas';
 
 import { ApproveRequestModal } from './authorization-request-details/components/ApproveRequestModal';
 import { AuthorizationRequestDetailsSkeleton } from './authorization-request-details/components/AuthorizationRequestDetailsSkeleton';
@@ -51,6 +52,23 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     () => (data ? buildRequestDetailsFormState(data) : null),
     [data],
   );
+  const resolvedDefaultFormState = data
+    ? (defaultFormState ?? buildRequestDetailsFormState(data))
+    : null;
+  const effectiveFormState =
+    formState && data && formState.requestId === data.id
+      ? formState.state
+      : resolvedDefaultFormState;
+  const physicianPhoneError = useMemo(() => {
+    const value = effectiveFormState?.physicianPhone?.trim() ?? '';
+    if (!value) {
+      return '';
+    }
+
+    return phonePattern.test(value)
+      ? ''
+      : 'Phone can contain only digits, spaces, and ()+-';
+  }, [effectiveFormState?.physicianPhone]);
 
   if (isLoading) {
     return <AuthorizationRequestDetailsSkeleton />;
@@ -97,13 +115,6 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     requestLabel,
     timelineItems,
   } = buildRequestDetailsUiState(data);
-  const resolvedDefaultFormState =
-    defaultFormState ?? buildRequestDetailsFormState(data);
-  const effectiveFormState =
-    formState?.requestId === data.id
-      ? formState.state
-      : resolvedDefaultFormState;
-
   const handleApproveRequest = () => {
     approveRequest(data.id)
       .unwrap()
@@ -143,6 +154,11 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
   const closeDenyModal = () => setIsDenyModalOpen(false);
 
   const handleUpdateRequest = () => {
+    if (physicianPhoneError) {
+      toast.error('Please fix validation errors before saving.');
+      return;
+    }
+
     updateRequest({
       id: data.id,
       data: buildRequestUpdatePayload(effectiveFormState),
@@ -207,6 +223,7 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
             })
           }
           onSave={handleUpdateRequest}
+          physicianPhoneError={physicianPhoneError}
           isSaving={isSaving}
         />
 
