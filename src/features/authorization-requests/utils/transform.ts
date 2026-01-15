@@ -4,7 +4,7 @@ import {
   type AuthorizationRequestsFilters,
   type AuthorizationRequestsParams,
 } from '@/services';
-import { buildParams } from '@/shared/lib/utils';
+import { clearParams } from '@/shared/lib/utils';
 
 export const mapDateFilterToDays = (
   value: AuthorizationRequestsDateFilter,
@@ -27,7 +27,7 @@ export const buildAuthorizationRequestsParams = ({
   const status = filters.status === 'all' ? undefined : filters.status;
   const days = mapDateFilterToDays(filters.date);
 
-  return buildParams({
+  return clearParams({
     page,
     search: search.length > 0 ? search : undefined,
     status,

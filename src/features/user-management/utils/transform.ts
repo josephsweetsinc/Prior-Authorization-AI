@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 
 import { type IGetUserParams } from '@/services/user-management';
-import { buildParams } from '@/shared/lib/utils';
+import { clearParams } from '@/shared/lib/utils';
 
 import { type RoleOptions } from '../types';
 
@@ -25,8 +25,7 @@ export const buildGetUsersParams = (
   const transformedRole = role === 'all' ? undefined : role;
   const page = pageIndex + 1;
 
-  // ? removes all undefined and null records from params object
-  const preparedParams = buildParams({
+  const preparedParams = clearParams({
     page: page,
     role: transformedRole,
     search: transformedSearchQuery.length > 0 ? search : undefined,

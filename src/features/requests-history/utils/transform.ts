@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 
 import { type RequestStatus } from '@/services/dashboard';
 import { type IRequestDetails } from '@/services/requests';
-import { buildParams } from '@/shared/lib/utils';
+import { clearParams } from '@/shared/lib/utils';
 
 import { TIMELINE_STATUS_TITLE } from '../constants';
 import { type IDetail, type IFilters } from '../types';
@@ -18,7 +18,7 @@ export const filtersToParams = ({
   const transformedDate = date === 'all' ? undefined : parseInt(date);
   const transformedStatus = status === 'all' ? undefined : status;
 
-  const params = buildParams({
+  const params = clearParams({
     page,
     search: search.length > 0 ? search : undefined,
     days: transformedDate,
