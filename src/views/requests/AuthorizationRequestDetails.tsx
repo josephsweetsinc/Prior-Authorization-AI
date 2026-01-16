@@ -71,7 +71,7 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     });
     setFormState((prev) => {
       const baseState =
-        prev?.requestId === data?.id ? prev.state : resolvedFormState;
+        prev && prev.requestId === data?.id ? prev.state : resolvedFormState;
       return {
         requestId: data?.id ?? 0,
         state: {
