@@ -2,7 +2,7 @@
 
 import { type PaginationState } from '@tanstack/react-table';
 import { useSearchParams } from 'next/navigation';
-import { useState, type HTMLProps } from 'react';
+import { useMemo, useState, type HTMLProps } from 'react';
 
 import { useGetRequestsHistoryQuery } from '@/services/requests';
 import { useFilters } from '@/shared/hooks/useFilters';
@@ -33,10 +33,10 @@ export const RequestsHistoryContainer = ({
   });
 
   const { data, isFetching } = useGetRequestsHistoryQuery(params);
-  const initialRequestId = (() => {
+  const initialRequestId = useMemo(() => {
     const parsedRequestId = Number(searchParams.get('requestId'));
     return Number.isFinite(parsedRequestId) ? parsedRequestId : undefined;
-  })();
+  }, [searchParams]);
 
   const updateFilters = <Key extends keyof IFilters>(
     key: Key,
