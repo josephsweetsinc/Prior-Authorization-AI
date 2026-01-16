@@ -1,38 +1,49 @@
 'use client';
 
-import { ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { toast } from 'react-toastify';
 
-import { parseApiError } from '@/services/api/types';
+import { useGetRequestDetailsQuery } from '@/services/requests';
+import { Chip, SensitiveMessage } from '@/shared/components';
 import {
-  useApproveRequestMutation,
-  useDenyRequestMutation,
-  useGetRequestDetailsQuery,
-  useUpdateRequestMutation,
-} from '@/services/requests';
-import { Chip, SensitiveMessage, TitleAndDesc } from '@/shared/components';
+  ApproveRequestModal,
+  AuthorizationRequestDetailsSkeleton,
+  DenyRequestModal,
+  RequestDetailsContent,
+  RequestDetailsHeader,
+  RequestDetailsSidebar,
+} from '@/views/requests/authorization-request-details/components';
 
-import { ApproveRequestModal } from './authorization-request-details/components/ApproveRequestModal';
-import { AuthorizationRequestDetailsSkeleton } from './authorization-request-details/components/AuthorizationRequestDetailsSkeleton';
-import { DenyRequestModal } from './authorization-request-details/components/DenyRequestModal';
-import { RequestDetailsContent } from './authorization-request-details/components/RequestDetailsContent';
-import { RequestDetailsSidebar } from './authorization-request-details/components/RequestDetailsSidebar';
-import { type DenialReason } from './authorization-request-details/lib/denial-reasons';
+import { useRequestDetailsActions } from './authorization-request-details/lib/hooks/useRequestDetailsActions';
 import { type RequestDetailsFormState } from './authorization-request-details/lib/types';
 import {
   buildRequestDetailsFormState,
   buildRequestDetailsUiState,
-  buildRequestUpdatePayload,
 } from './authorization-request-details/lib/utils/builders';
+import { resolveFormState } from './authorization-request-details/lib/utils/form-state';
 import {
-  getPhysicianPhoneError,
-  resolveFormState,
-} from './authorization-request-details/lib/utils/form-state';
+  type RequestDetailsFormErrors,
+  validateRequestDetailsForm,
+} from './authorization-request-details/lib/validation';
 
 type Props = {
   requestId: string;
+};
+
+const EMPTY_FORM_STATE: RequestDetailsFormState = {
+  patientName: '',
+  patientDob: '',
+  patientId: '',
+  ambulatoryStatus: '',
+  pickupAddress: '',
+  destinationAddress: '',
+  appointmentDate: '',
+  appointmentTime: '',
+  transportationType: '',
+  oxygenRequired: undefined,
+  primaryDiagnosis: '',
+  medicalJustification: '',
+  orderingPhysician: '',
+  physicianPhone: '',
 };
 
 const AuthorizationRequestDetails = ({ requestId }: Props) => {
@@ -41,20 +52,45 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
   const { data, isLoading } = useGetRequestDetailsQuery(numericRequestId, {
     skip: shouldSkip,
   });
-  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
-  const [isDenyModalOpen, setIsDenyModalOpen] = useState(false);
-  const [approveRequest, { isLoading: isApproving }] =
-    useApproveRequestMutation();
-  const [denyRequest, { isLoading: isDenying }] = useDenyRequestMutation();
-  const [updateRequest, { isLoading: isSaving }] = useUpdateRequestMutation();
   const [formState, setFormState] = useState<{
     requestId: number;
     state: RequestDetailsFormState;
   } | null>(null);
+  const [formErrors, setFormErrors] = useState<RequestDetailsFormErrors>({});
   const defaultFormState = useMemo(
     () => (data ? buildRequestDetailsFormState(data) : null),
     [data],
   );
+  const resolvedFormState = data
+    ? resolveFormState({
+        data,
+        formState,
+        defaultFormState,
+      })
+    : EMPTY_FORM_STATE;
+  const validateForm = () => {
+    const result = validateRequestDetailsForm(resolvedFormState);
+    setFormErrors(result.errors);
+    return result.isValid;
+  };
+  const {
+    isApproveModalOpen,
+    isDenyModalOpen,
+    isApproving,
+    isDenying,
+    isSaving,
+    openApproveModal,
+    closeApproveModal,
+    openDenyModal,
+    closeDenyModal,
+    handleApproveRequest,
+    handleDenyRequest,
+    handleUpdateRequest,
+  } = useRequestDetailsActions({
+    requestId: data?.id ?? 0,
+    resolvedFormState,
+    validateForm,
+  });
 
   if (isLoading) {
     return <AuthorizationRequestDetailsSkeleton />;
@@ -63,28 +99,10 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
   if (!data) {
     return (
       <main className='space-y-6'>
-        <section className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
-          <div className='space-y-4'>
-            <Link
-              href='/requests'
-              className='flex items-center text-sm text-[#4A5568]'
-            >
-              <ChevronLeft
-                color='#4A5568'
-                strokeWidth={1.25}
-                width={16}
-                height={16}
-              />{' '}
-              Back to Request
-            </Link>
-            <TitleAndDesc
-              title={`Request ${requestId}`}
-              subtitle='CMS-10344 Medical Transportation Authorization Form'
-              titleClassName='text-2xl md:text-3xl'
-              subtitleClassName='text-base'
-            />
-          </div>
-        </section>
+        <RequestDetailsHeader
+          title={`Request ${requestId}`}
+          subtitle='CMS-10344 Medical Transportation Authorization Form'
+        />
         <SensitiveMessage
           variant='destructive'
           title='Request details unavailable'
@@ -93,13 +111,6 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
       </main>
     );
   }
-
-  const resolvedFormState = resolveFormState({
-    data,
-    formState,
-    defaultFormState,
-  });
-  const physicianPhoneError = getPhysicianPhoneError(resolvedFormState);
   const {
     statusConfig,
     shouldShowActions,
@@ -107,99 +118,40 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     requestLabel,
     timelineItems,
   } = buildRequestDetailsUiState(data);
-  const handleApproveRequest = () => {
-    approveRequest(data.id)
-      .unwrap()
-      .then(() => {
-        toast.success('Request approved successfully.');
-        setIsApproveModalOpen(false);
-      })
-      .catch((error) => {
-        const parsedError = parseApiError(error);
-        toast.error(parsedError.message ?? 'Failed to approve request.');
-      });
-  };
-
-  const handleDenyRequest = (payload: {
-    reason: DenialReason;
-    notes?: string;
-  }) => {
-    denyRequest({
-      id: data.id,
-      denial_reason: payload.reason,
-      denial_notes: payload.notes,
-    })
-      .unwrap()
-      .then(() => {
-        toast.success('Request denied successfully.');
-        setIsDenyModalOpen(false);
-      })
-      .catch((error) => {
-        const parsedError = parseApiError(error);
-        toast.error(parsedError.message ?? 'Failed to deny request.');
-      });
-  };
-
-  const openApproveModal = () => setIsApproveModalOpen(true);
-  const closeApproveModal = () => setIsApproveModalOpen(false);
-  const openDenyModal = () => setIsDenyModalOpen(true);
-  const closeDenyModal = () => setIsDenyModalOpen(false);
-
-  const handleUpdateRequest = () => {
-    if (physicianPhoneError) {
-      toast.error('Please fix validation errors before saving.');
-      return;
-    }
-
-    updateRequest({
-      id: data.id,
-      data: buildRequestUpdatePayload(resolvedFormState),
-    })
-      .unwrap()
-      .then(() => {
-        toast.success('Request updated successfully.');
-      })
-      .catch((error) => {
-        const parsedError = parseApiError(error);
-        toast.error(parsedError.message ?? 'Failed to update request.');
-      });
-  };
 
   return (
     <main className='space-y-6'>
-      <section className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
-        <div className='space-y-4'>
-          <Link
-            href='/requests'
-            className='flex items-center text-sm text-[#4A5568]'
-          >
-            <ChevronLeft
-              color='#4A5568'
-              strokeWidth={1.25}
-              width={16}
-              height={16}
-            />{' '}
-            Back to Request
-          </Link>
-          <TitleAndDesc
-            title={`Request ${data.id}`}
-            subtitle={`${data.form_number} Medical Transportation Authorization Form`}
-            titleClassName='text-2xl md:text-3xl'
-            subtitleClassName='text-base'
+      <RequestDetailsHeader
+        title={`Request ${data.id}`}
+        subtitle={`${data.form_number} Medical Transportation Authorization Form`}
+        extra={
+          <Chip
+            variant={statusConfig?.variant ?? 'warning'}
+            label={statusConfig?.label ?? 'Unknown'}
+            className='self-end px-4 py-2.5 text-[16px]'
           />
-        </div>
-        <Chip
-          variant={statusConfig?.variant ?? 'warning'}
-          label={statusConfig?.label ?? 'Unknown'}
-          className='self-end px-4 py-2.5 text-[16px]'
-        />
-      </section>
+        }
+      />
 
       <section className='grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]'>
         <RequestDetailsContent
           data={data}
           form={resolvedFormState}
-          onChange={(next) =>
+          errors={formErrors}
+          onChange={(next) => {
+            setFormErrors((prev) => {
+              const keys = Object.keys(next) as Array<
+                keyof RequestDetailsFormState
+              >;
+              if (keys.length === 0) {
+                return prev;
+              }
+              const updated = { ...prev };
+              keys.forEach((key) => {
+                delete updated[key];
+              });
+              return updated;
+            });
             setFormState((prev) => {
               const baseState =
                 prev?.requestId === data.id ? prev.state : resolvedFormState;
@@ -210,10 +162,9 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
                   ...next,
                 },
               };
-            })
-          }
+            });
+          }}
           onSave={handleUpdateRequest}
-          physicianPhoneError={physicianPhoneError}
           isSaving={isSaving}
         />
 
