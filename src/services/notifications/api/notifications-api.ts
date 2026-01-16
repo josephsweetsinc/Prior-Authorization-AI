@@ -33,8 +33,19 @@ export const notificationApi = baseApi.injectEndpoints({
         keepUnusedDataFor: 60,
       },
     ),
+    markNotificationAsRead: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/notification/${id}`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Notifications', id },
+        { type: 'Notifications', id: 'LIST' },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
 
-export const { useGetNotificationsQuery } = notificationApi;
+export const { useGetNotificationsQuery, useMarkNotificationAsReadMutation } =
+  notificationApi;
