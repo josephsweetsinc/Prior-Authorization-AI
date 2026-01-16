@@ -22,6 +22,7 @@ import {
   statusUpdatesCount,
   documentsCount,
   requirementsCount,
+  getFilteredTotal,
 } from '../utils/filters';
 
 import { FilterTabs } from './FilterTabs';
@@ -67,6 +68,18 @@ export const NotificationsContainer = () => {
     allNotificationsData?.items || [],
   );
 
+  const filteredTotal = (() => {
+    return getFilteredTotal({
+      category: filters.category,
+      unreadCount: unreadCountValue,
+      statusUpdatesCount: statusUpdatesCountValue,
+      documentsCount: documentsCountValue,
+      requirementsCount: requirementsCountValue,
+      backendTotal: data?.total || 0,
+    });
+  })();
+  const filteredTotalPages = Math.ceil(filteredTotal / pagination.pageSize);
+
   const [mark] = useMarkNotificationAsReadMutation();
 
   const handleMarkAsRead = (notificationId: number) => mark(notificationId);
@@ -102,12 +115,12 @@ export const NotificationsContainer = () => {
         onNotificationClick={handleMarkAsRead}
       />
 
-      {data && data.total > 0 && (
+      {filteredTotal > 0 && filteredTotalPages > 1 && (
         <NotificationsPagination
           pagination={pagination}
           onPaginationChange={setPagination}
-          total={data.total}
-          totalPages={data.total_pages}
+          total={filteredTotal}
+          totalPages={filteredTotalPages}
         />
       )}
     </div>

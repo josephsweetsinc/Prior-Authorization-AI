@@ -62,3 +62,12 @@ export interface UseNotificationsPaginationProps {
   total: number;
   totalPages: number;
 }
+
+export interface CategoryCountsProps {
+  category: NotificationCategory;
+  unreadCount: number;
+  statusUpdatesCount: number;
+  documentsCount: number;
+  requirementsCount: number;
+  backendTotal: number;
+}
