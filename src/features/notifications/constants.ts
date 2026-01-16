@@ -4,7 +4,7 @@ export const DEFAULT_FILTERS: INotificationFilters = {
   category: 'all',
 };
 
-export const DEFAULT_PAGE_SIZE = 8;
+export const DEFAULT_PAGE_SIZE = 20;
 
 export const PROVIDER_FILTER_TABS = [
   { value: 'all' as const, label: 'All' },
