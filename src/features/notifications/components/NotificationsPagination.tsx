@@ -31,7 +31,8 @@ export const NotificationsPagination = ({
   return (
     <div className='flex w-full items-center justify-between px-2 py-3'>
       <div className='text-muted-foreground flex-1 text-sm'>
-        Showing {end - start + 1} out of {total}
+        Showing <strong>{start}</strong>–<strong>{end}</strong> of{' '}
+        <strong>{total}</strong>
       </div>
 
       <div className='flex flex-1 items-center justify-center gap-1'>
