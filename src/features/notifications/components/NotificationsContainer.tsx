@@ -11,6 +11,7 @@ import { TitleAndDesc } from '@/shared/components';
 import { useFilters } from '@/shared/hooks/useFilters';
 
 import { DEFAULT_FILTERS, DEFAULT_PAGE_SIZE } from '../constants';
+import { useMarkNotificationAsRead } from '../hooks/useMarkNotificationAsRead';
 import {
   type INotificationFilters,
   type NotificationCategory,
@@ -66,6 +67,8 @@ export const NotificationsContainer = () => {
     allNotificationsData?.items || [],
   );
 
+  const markNotificationAsRead = useMarkNotificationAsRead();
+
   const handleFilterChange = (category: NotificationCategory) => {
     handleFiltersChange('category', category);
     setPagination((prev) => ({
@@ -94,6 +97,7 @@ export const NotificationsContainer = () => {
       <NotificationsFeed
         notifications={filteredNotificationsList}
         isLoading={isLoading}
+        onNotificationClick={markNotificationAsRead}
       />
 
       {data && data.total > 0 && (
