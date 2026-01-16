@@ -23,7 +23,7 @@ export const ProviderMetrics = ({ className, ...props }: Props) => {
       {...props}
     >
       <MetricsCard className='flex items-center gap-4'>
-        <OverlayIcon variant='FileChartColumnIncreasing' color='blue' />
+        <OverlayIcon variant='HeartPulse' color='blue' />
         <MetricsCard.Group>
           <MetricsCard.Label>Total Requests</MetricsCard.Label>
           <MetricsCard.Value>{summary.total_requests}</MetricsCard.Value>
