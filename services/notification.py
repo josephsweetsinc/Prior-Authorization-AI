@@ -6,6 +6,7 @@ from core import BaseService
 from dao import NotificationDAO
 from exceptions.notification import (
     NotificationMissingRequestException,
+    NotificationNotFoundException,
     NotificationSystemCategoryException,
 )
 from models.notification import Notification, NotificationCategory
@@ -325,22 +326,33 @@ class NotificationService(BaseService):
     async def mark_notification_as_read(
         self,
         notification_id: int,
-    ) -> Notification | None:
+        user_id: int,
+    ) -> Notification:
         """Mark notification as read.
 
         Args:
             notification_id: Notification ID.
+            user_id: ID of the user performing the action.
 
         Returns:
-            Notification | None: Updated notification instance or None.
+            Notification: Updated notification instance.
+
+        Raises:
+            NotificationNotFoundException: If notification not found or
+                doesn't belong to the user.
 
         """
-        notification = await self._notification_dao.mark_as_read(
+        notification = await self._notification_dao.get_by_id(notification_id)
+        if not notification or notification.user_id != user_id:
+            raise NotificationNotFoundException
+
+        updated_notification = await self._notification_dao.mark_as_read(
             notification_id
         )
-        if notification:
-            await self._session.commit()
-        return notification
+        if not updated_notification:
+            raise NotificationNotFoundException
+        await self._session.commit()
+        return updated_notification
 
     async def mark_notifications_as_read(
         self,
