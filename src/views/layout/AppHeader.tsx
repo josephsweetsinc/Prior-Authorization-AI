@@ -67,9 +67,12 @@ export const AppHeader = ({
   return (
     <>
       <Header
-        className={cn('relative z-20 row-span-1 mx-10 mt-9', {
-          'z-30': searchOpen,
-        })}
+        className={cn(
+          'bg-header-background sticky top-0 z-20 px-10 pt-8 pb-2.5 backdrop-blur-lg',
+          {
+            'z-30': searchOpen,
+          },
+        )}
       >
         <GlobalSearch
           size='medium'

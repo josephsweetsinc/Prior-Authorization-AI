@@ -15,7 +15,10 @@ type Props = HTMLProps<HTMLElement>;
 export const HeaderSkeleton = ({ className, ...props }: Props) => {
   return (
     <Header
-      className={cn('relative z-20 row-span-1 mx-10 mt-9', className)}
+      className={cn(
+        'bg-header-background sticky top-0 z-20 px-10 pt-8 pb-2.5 backdrop-blur-lg',
+        className,
+      )}
       {...props}
     >
       <Skeleton className='h-10 w-105 rounded-lg bg-white' />
