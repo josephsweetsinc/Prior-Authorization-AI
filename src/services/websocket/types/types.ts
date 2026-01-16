@@ -14,3 +14,5 @@ export interface WebSocketEvent {
   type?: string;
   data: NotificationItem;
 }
+
+export type NotificationSource = 'socket' | 'polling';

@@ -54,11 +54,13 @@ export const NotificationFeedItem = ({
             </button>
           )}
         </div>
-        <RequestDetails
-          requestId={notification.request_id}
-          open={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
+        {isModalOpen && (
+          <RequestDetails
+            requestId={notification.request_id}
+            open={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+          />
+        )}
         <div className='flex items-center justify-between gap-2'>
           <p className='text-gray-dark text-sm font-normal'>
             {notification.message}

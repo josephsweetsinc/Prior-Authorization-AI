@@ -1,5 +1,7 @@
 import { type NotificationItem } from '@/services/notifications';
 
+import { type NotificationSource } from '../types';
+
 export const isNotificationItem = (
   value: unknown,
 ): value is NotificationItem => {
@@ -12,7 +14,11 @@ export const isNotificationItem = (
 
 export const safeNotificationHandler = (
   payload: unknown,
-  handleNotification: (_notification: NotificationItem) => void,
+  handleNotification: (
+    _notification: NotificationItem,
+    _source: NotificationSource,
+  ) => void,
+  source: NotificationSource,
   lastNotificationIdRef?: { current: number | null },
 ) => {
   if (!isNotificationItem(payload)) {
@@ -28,5 +34,5 @@ export const safeNotificationHandler = (
     lastNotificationIdRef.current = payload.id;
   }
 
-  handleNotification(payload);
+  handleNotification(payload, source);
 };

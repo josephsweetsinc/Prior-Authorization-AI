@@ -44,6 +44,7 @@ export const usePolling = ({
       safeNotificationHandler(
         notification,
         handleNotification,
+        'polling',
         lastNotificationIdRef,
       );
     });

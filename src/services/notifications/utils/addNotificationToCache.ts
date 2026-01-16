@@ -25,7 +25,6 @@ export const addNotificationToCache = (
 
   dispatch(
     notificationApi.util.invalidateTags([
-      { type: 'Notifications', id: 'LIST' },
       { type: 'Notifications', id: notification.id },
     ]),
   );
