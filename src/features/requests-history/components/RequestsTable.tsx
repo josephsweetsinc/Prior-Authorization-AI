@@ -24,6 +24,8 @@ export const RequestsTable = ({
 }: Props) => {
   const { details, handleDetailsClick, handleDetailsClose } =
     useRequestDetails(initialRequestId);
+  const requestId =
+    typeof details.requestId === 'number' ? details.requestId : undefined;
 
   const columns = useGetColumns({
     onDetailsClick: handleDetailsClick,
@@ -44,9 +46,9 @@ export const RequestsTable = ({
         <DataTable.Header />
         <DataTable.Body isLoading={isLoading} />
       </DataTable>
-      {details.requestId && (
+      {requestId !== undefined && (
         <RequestDetails
-          requestId={details.requestId!}
+          requestId={requestId}
           open={details.open}
           onClose={handleDetailsClose}
         />
