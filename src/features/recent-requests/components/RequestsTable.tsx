@@ -3,7 +3,7 @@
 import { RequestDetails, useRequestDetails } from '@/features/requests-history';
 import { useGetCurrentUserQuery } from '@/services/auth';
 import { useGetRecentRequests } from '@/services/recent-requests';
-import { DataTable, EmptyStateMessage } from '@/shared/components';
+import { DataTable } from '@/shared/components';
 
 import { useGetColumns } from '../hooks';
 
@@ -20,10 +20,6 @@ const RequestsTable = () => {
   const columns = useGetColumns({ onDetailsClick: handleDetailsClick });
 
   const isLoading = userLoading || requestsLoading;
-
-  if (requests.length === 0) {
-    return <EmptyStateMessage message='No requests found' />;
-  }
 
   return (
     <>

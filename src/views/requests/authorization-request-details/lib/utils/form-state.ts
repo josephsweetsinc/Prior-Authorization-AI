@@ -1,11 +1,8 @@
 import { type IRequestDetails } from '@/services/requests';
-import { phonePattern } from '@/shared/lib/validations/schemas';
 
 import { type RequestDetailsFormState } from '../types';
 
 import { buildRequestDetailsFormState } from './builders';
-
-const PHONE_ERROR_MESSAGE = 'Phone can contain only digits, spaces, and ()+-';
 
 const getBaseFormState = (
   data: IRequestDetails,
@@ -19,27 +16,7 @@ export const resolveFormState = (params: {
 }) => {
   const { data, formState, defaultFormState } = params;
   const baseState = getBaseFormState(data, defaultFormState);
-
-  if (!formState) {
-    return baseState;
-  }
-
-  if (formState.requestId !== data.id) {
-    return baseState;
-  }
-
-  return formState.state;
-};
-
-export const getPhysicianPhoneError = (formState: RequestDetailsFormState) => {
-  const value = formState.physicianPhone.trim();
-  if (!value) {
-    return '';
-  }
-
-  if (phonePattern.test(value)) {
-    return '';
-  }
-
-  return PHONE_ERROR_MESSAGE;
+  return !formState || formState.requestId !== data.id
+    ? baseState
+    : formState.state;
 };

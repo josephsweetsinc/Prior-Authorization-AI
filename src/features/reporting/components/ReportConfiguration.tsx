@@ -9,13 +9,8 @@ import { useGenerateReportMutation } from '@/services/reports';
 import { Button, Select, SensitiveMessage, Window } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
-import { FORMAT_OPTIONS } from '../constants';
-import { toExactDate } from '../utils';
+import { DATE_OPTIONS, FORMAT_OPTIONS } from '../constants';
 import { type ReportFormValues, reportSchema } from '../validation';
-
-import { DateRangeField } from './DateRange';
-
-const currenDate = new Date();
 
 export const ReportConfiguration = ({
   className,
@@ -24,8 +19,7 @@ export const ReportConfiguration = ({
   const [generateReport, { isLoading }] = useGenerateReportMutation();
   const form = useForm<ReportFormValues>({
     defaultValues: {
-      start_date: currenDate,
-      end_date: currenDate,
+      days: '0',
       format: 'pdf',
     },
     resolver: zodResolver(reportSchema),
@@ -35,8 +29,7 @@ export const ReportConfiguration = ({
   const handleSubmit = (data: ReportFormValues) => {
     generateReport({
       format: data.format,
-      start_date: toExactDate(data.start_date),
-      end_date: toExactDate(data.end_date),
+      days: parseInt(data.days),
     })
       .unwrap()
       .then(() => toast.success('Report generated'))
@@ -54,11 +47,17 @@ export const ReportConfiguration = ({
       <FormProvider {...form}>
         <form className='space-y-5' onSubmit={form.handleSubmit(handleSubmit)}>
           <div className='space-y-4'>
-            <DateRangeField
-              startName='start_date'
-              endName='end_date'
-              label='Date Range'
-              placeholder='Select date range'
+            <Controller
+              name='days'
+              render={({ field }) => (
+                <Select
+                  label='Date range'
+                  placeholder='Select date range'
+                  options={DATE_OPTIONS}
+                  {...field}
+                  onChange={(value) => field.onChange(value)}
+                />
+              )}
             />
 
             <Controller

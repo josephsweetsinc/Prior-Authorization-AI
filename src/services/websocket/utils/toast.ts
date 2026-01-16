@@ -8,5 +8,6 @@ export const showNotificationToast = (notification: NotificationItem) => {
   toast.info(notification.title || 'New notification', {
     position: 'top-right',
     autoClose: AUTOCLOSE_MS,
+    toastId: 'notification-toast',
   });
 };

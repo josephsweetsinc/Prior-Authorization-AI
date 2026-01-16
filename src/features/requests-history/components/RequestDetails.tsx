@@ -37,15 +37,6 @@ export const RequestDetails = ({
 }: Props) => {
   const { data, isLoading } = useGetRequestDetailsQuery(requestId);
 
-  const details = getRequestDetailsBlocks(data);
-  const timelineItems =
-    data?.status_history.map((item) => ({
-      title: transformStatusToTimelineTitle(item.status),
-      date: format(new Date(item.created_at), "MMM d, yyyy 'at' h:mm a"),
-      description: item.notes ?? undefined,
-      status: STATUS_TO_TIMELINE_STATUS[item.status],
-    })) ?? [];
-
   if (isLoading) {
     return (
       <RequestDetailsSkeleton
@@ -58,8 +49,16 @@ export const RequestDetails = ({
   }
 
   if (!data) {
-    return;
+    return null;
   }
+
+  const details = getRequestDetailsBlocks(data);
+  const timelineItems = data.status_history.map((item) => ({
+    title: transformStatusToTimelineTitle(item.status),
+    date: format(new Date(item.created_at), "MMM d, yyyy 'at' h:mm a"),
+    description: item.notes ?? undefined,
+    status: STATUS_TO_TIMELINE_STATUS[item.status],
+  }));
 
   return (
     <Modal

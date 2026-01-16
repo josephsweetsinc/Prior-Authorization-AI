@@ -16,11 +16,12 @@ import {
 
 import { AMBULATORY_STATUS_OPTIONS } from '../lib/constants';
 import { type RequestDetailsFormState } from '../lib/types';
+import { type RequestDetailsFormErrors } from '../lib/validation';
 
 type Props = {
   data: IRequestDetails;
   form: RequestDetailsFormState;
-  physicianPhoneError?: string;
+  errors?: RequestDetailsFormErrors;
   onChange: (_next: Partial<RequestDetailsFormState>) => void;
   onSave: () => void;
   isSaving: boolean;
@@ -29,7 +30,7 @@ type Props = {
 export const RequestDetailsContent = ({
   data,
   form,
-  physicianPhoneError,
+  errors,
   onChange,
   onSave,
   isSaving,
@@ -42,17 +43,20 @@ export const RequestDetailsContent = ({
           labelVariant='static'
           label='Patient Name'
           value={form.patientName}
+          error={errors?.patientName}
           onChange={(event) => onChange({ patientName: event.target.value })}
         />
         <DateInput
           label='Date of Birth'
           value={form.patientDob || undefined}
+          error={errors?.patientDob}
           onChangeAction={(value) => onChange({ patientDob: value ?? '' })}
         />
         <Input
           labelVariant='static'
           label='Medicare Number'
           value={form.patientId}
+          error={errors?.patientId}
           onChange={(event) => onChange({ patientId: event.target.value })}
         />
         <Select
@@ -60,6 +64,7 @@ export const RequestDetailsContent = ({
           label='Ambulatory Status'
           placeholder='Select status'
           value={form.ambulatoryStatus}
+          error={errors?.ambulatoryStatus}
           onChange={(value) =>
             onChange({ ambulatoryStatus: value as AmbulatoryStatus })
           }
@@ -75,12 +80,14 @@ export const RequestDetailsContent = ({
         labelVariant='static'
         label='Pickup Address'
         value={form.pickupAddress}
+        error={errors?.pickupAddress}
         onChange={(event) => onChange({ pickupAddress: event.target.value })}
       />
       <Input
         labelVariant='static'
         label='Destination'
         value={form.destinationAddress}
+        error={errors?.destinationAddress}
         onChange={(event) =>
           onChange({ destinationAddress: event.target.value })
         }
@@ -89,6 +96,7 @@ export const RequestDetailsContent = ({
         <DateInput
           label='Appointment Date'
           value={form.appointmentDate || undefined}
+          error={errors?.appointmentDate}
           onChangeAction={(value) => onChange({ appointmentDate: value ?? '' })}
         />
         <Input
@@ -96,7 +104,8 @@ export const RequestDetailsContent = ({
           labelVariant='static'
           label='Appointment Time'
           value={form.appointmentTime}
-          className='!h-[45px]'
+          className='h-11.25!'
+          error={errors?.appointmentTime}
           onChange={(event) =>
             onChange({ appointmentTime: event.target.value })
           }
@@ -106,6 +115,7 @@ export const RequestDetailsContent = ({
           label='Transport Type'
           placeholder='Select transport type'
           value={form.transportationType}
+          error={errors?.transportationType}
           onChange={(value) =>
             onChange({ transportationType: value as TransportationType })
           }
@@ -124,6 +134,7 @@ export const RequestDetailsContent = ({
                 ? 'false'
                 : ''
           }
+          error={errors?.oxygenRequired}
           onChange={(value) => onChange({ oxygenRequired: value === 'true' })}
         />
       </div>
@@ -137,12 +148,14 @@ export const RequestDetailsContent = ({
         labelVariant='static'
         label='Diagnosis'
         value={form.primaryDiagnosis}
+        error={errors?.primaryDiagnosis}
         onChange={(event) => onChange({ primaryDiagnosis: event.target.value })}
       />
       <Input
         labelVariant='static'
         label='Medical Necessity'
         value={form.medicalJustification}
+        error={errors?.medicalJustification}
         onChange={(event) =>
           onChange({ medicalJustification: event.target.value })
         }
@@ -152,6 +165,7 @@ export const RequestDetailsContent = ({
           labelVariant='static'
           label='Ordering Physician'
           value={form.orderingPhysician}
+          error={errors?.orderingPhysician}
           onChange={(event) =>
             onChange({ orderingPhysician: event.target.value })
           }
@@ -160,7 +174,7 @@ export const RequestDetailsContent = ({
           labelVariant='static'
           label='Physician Phone'
           value={form.physicianPhone}
-          error={physicianPhoneError}
+          error={errors?.physicianPhone}
           onChange={(event) => onChange({ physicianPhone: event.target.value })}
         />
       </div>

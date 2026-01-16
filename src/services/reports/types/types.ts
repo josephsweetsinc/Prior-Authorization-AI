@@ -27,8 +27,7 @@ export interface ILatestReports {
 
 export interface IGenerateReportParams {
   format: ReportFileFormat;
-  start_date: string;
-  end_date: string;
+  days: number;
 }
 
 export interface IGenerateReportResponse {
