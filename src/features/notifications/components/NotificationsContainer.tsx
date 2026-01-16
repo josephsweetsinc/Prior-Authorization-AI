@@ -22,6 +22,7 @@ import {
   statusUpdatesCount,
   documentsCount,
   requirementsCount,
+  getFilteredTotal,
 } from '../utils/filters';
 
 import { FilterTabs } from './FilterTabs';
@@ -39,7 +40,7 @@ export const NotificationsContainer = () => {
 
   const { isConnected } = useWebSocket();
 
-  const { data, isLoading } = useGetNotificationsQuery(
+  const { data, isFetching } = useGetNotificationsQuery(
     buildNotificationsParams(pagination.pageIndex + 1, filters.category),
     {
       pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
@@ -66,6 +67,17 @@ export const NotificationsContainer = () => {
   const requirementsCountValue = requirementsCount(
     allNotificationsData?.items || [],
   );
+
+  const filteredTotal = getFilteredTotal({
+    category: filters.category,
+    unreadCount: unreadCountValue,
+    statusUpdatesCount: statusUpdatesCountValue,
+    documentsCount: documentsCountValue,
+    requirementsCount: requirementsCountValue,
+    backendTotal: data?.total || 0,
+  });
+
+  const filteredTotalPages = Math.ceil(filteredTotal / pagination.pageSize);
 
   const [mark] = useMarkNotificationAsReadMutation();
 
@@ -98,16 +110,16 @@ export const NotificationsContainer = () => {
 
       <NotificationsFeed
         notifications={filteredNotificationsList}
-        isLoading={isLoading}
+        isLoading={isFetching}
         onNotificationClick={handleMarkAsRead}
       />
 
-      {data && data.total > 0 && (
+      {filteredTotal > 0 && filteredTotalPages > 1 && (
         <NotificationsPagination
           pagination={pagination}
           onPaginationChange={setPagination}
-          total={data.total}
-          totalPages={data.total_pages}
+          total={filteredTotal}
+          totalPages={filteredTotalPages}
         />
       )}
     </div>
