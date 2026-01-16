@@ -1,4 +1,9 @@
-import { ChevronLeft, ChevronRight, SquarePen } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  LoaderCircle,
+  SquarePen,
+} from 'lucide-react';
 
 import type { FormState } from '@/features/new-request';
 import { Button } from '@/shared/components/button';
@@ -155,8 +160,20 @@ export const ReviewStep = ({
           disabled={isSubmitting}
           className='w-fit px-10! py-3! font-medium'
         >
-          Create Request
-          <ChevronRight className='text-white' strokeWidth={1.5} />
+          {isSubmitting ? (
+            <>
+              <span>Creating...</span>
+              <LoaderCircle
+                className='animate-spin text-white'
+                strokeWidth={1.5}
+              />
+            </>
+          ) : (
+            <>
+              <span>Create Request</span>
+              <ChevronRight className='text-white' strokeWidth={1.5} />
+            </>
+          )}
         </Button>
       </div>
     </div>
