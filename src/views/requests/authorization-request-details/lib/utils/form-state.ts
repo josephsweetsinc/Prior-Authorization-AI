@@ -19,16 +19,9 @@ export const resolveFormState = (params: {
 }) => {
   const { data, formState, defaultFormState } = params;
   const baseState = getBaseFormState(data, defaultFormState);
-
-  if (!formState) {
-    return baseState;
-  }
-
-  if (formState.requestId !== data.id) {
-    return baseState;
-  }
-
-  return formState.state;
+  return !formState || formState.requestId !== data.id
+    ? baseState
+    : formState.state;
 };
 
 export const getPhysicianPhoneError = (formState: RequestDetailsFormState) => {
@@ -37,9 +30,5 @@ export const getPhysicianPhoneError = (formState: RequestDetailsFormState) => {
     return '';
   }
 
-  if (phonePattern.test(value)) {
-    return '';
-  }
-
-  return PHONE_ERROR_MESSAGE;
+  return phonePattern.test(value) ? '' : PHONE_ERROR_MESSAGE;
 };
