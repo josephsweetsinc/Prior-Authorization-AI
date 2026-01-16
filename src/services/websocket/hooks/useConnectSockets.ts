@@ -27,7 +27,7 @@ export const useConnectSockets = (
     connect(url.toString(), token);
 
     const unsubscribe = on('notification', (payload: WebSocketEvent) => {
-      safeNotificationHandler(payload.data, handleNotification, 'socket');
+      safeNotificationHandler(payload.data, handleNotification);
     });
 
     return () => {
