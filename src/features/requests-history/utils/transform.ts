@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 
 import { type RequestStatus } from '@/services/dashboard';
 import { type IRequestDetails } from '@/services/requests';
-import { clearParams } from '@/shared/lib/utils';
+import { buildRequestsParams } from '@/services/requests/utils/params';
 
 import { TIMELINE_STATUS_TITLE } from '../constants';
 import { type IDetail, type IFilters } from '../types';
@@ -13,19 +13,14 @@ export const filtersToParams = ({
   searchQuery,
   status,
 }: { pageIndex: number } & IFilters) => {
-  const page = pageIndex + 1;
-  const search = searchQuery.trim();
-  const transformedDate = date === 'all' ? undefined : parseInt(date);
-  const transformedStatus = status === 'all' ? undefined : status;
-
-  const params = clearParams({
-    page,
-    search: search.length > 0 ? search : undefined,
-    days: transformedDate,
-    status: transformedStatus,
+  return buildRequestsParams({
+    page: pageIndex + 1,
+    filters: {
+      date,
+      searchQuery,
+      status,
+    },
   });
-
-  return params;
 };
 
 export const getRequestDetailsBlocks = (data?: IRequestDetails): IDetail[] => {
