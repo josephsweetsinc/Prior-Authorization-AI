@@ -55,9 +55,9 @@
 
   --color-brand-dark: var(--brand-dark);
   --color-gray-dark: var(--gray-dark);
-  --color-dialog-backdrop: #D5D5D51A;
   --color-request-link: #047cb4;
   --color-request-link-hover: #035a85;
+  --color-dialog-backdrop: #d5d5d51a;
 }
 
 :root {

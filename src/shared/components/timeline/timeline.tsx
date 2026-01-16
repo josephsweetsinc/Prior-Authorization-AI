@@ -1,9 +1,13 @@
 'use client';
 
-import { CircleX, ClockFading } from 'lucide-react';
+import {
+  CircleX,
+  ClockFading,
+  FileCheckCorner,
+  CircleCheck,
+} from 'lucide-react';
 
 import { type RequestStatus } from '@/services/dashboard';
-import { SuccessFilledIcon } from '@/shared/assets/icons';
 import { cn } from '@/shared/lib/utils';
 
 interface TimelineItem {
@@ -26,7 +30,11 @@ const StatusTimelineIcon = ({ status }: { status: RequestStatus }) => {
     return <ClockFading size={14} color='#F59E0B' strokeWidth={1.25} />;
   }
 
-  return <SuccessFilledIcon />;
+  if (status === 'approved') {
+    return <FileCheckCorner size={14} color='#24B200' strokeWidth={1.25} />;
+  }
+
+  return <CircleCheck size={14} color='#4C00FE' strokeWidth={1.25} />;
 };
 
 export function StatusTimeline({ items }: StatusTimelineProps) {
@@ -40,9 +48,10 @@ export function StatusTimeline({ items }: StatusTimelineProps) {
           <div
             className={cn(
               'flex h-7.5 w-7.5 items-center justify-center rounded-full',
-              item.status === 'submitted' && 'bg-[#24B2001A]',
+              item.status === 'submitted' && 'bg-[#4C00FE1A]',
               item.status === 'pending' && 'bg-[#FC9D001A]',
               item.status === 'denied' && 'bg-[#FC2A001A]',
+              item.status === 'approved' && 'bg-[#24B2001A]',
             )}
           >
             <StatusTimelineIcon status={item.status} />

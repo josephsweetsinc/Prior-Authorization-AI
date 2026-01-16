@@ -20,6 +20,7 @@ import { type RequestDetailsFormState } from '../lib/types';
 type Props = {
   data: IRequestDetails;
   form: RequestDetailsFormState;
+  physicianPhoneError?: string;
   onChange: (_next: Partial<RequestDetailsFormState>) => void;
   onSave: () => void;
   isSaving: boolean;
@@ -28,6 +29,7 @@ type Props = {
 export const RequestDetailsContent = ({
   data,
   form,
+  physicianPhoneError,
   onChange,
   onSave,
   isSaving,
@@ -158,6 +160,7 @@ export const RequestDetailsContent = ({
           labelVariant='static'
           label='Physician Phone'
           value={form.physicianPhone}
+          error={physicianPhoneError}
           onChange={(event) => onChange({ physicianPhone: event.target.value })}
         />
       </div>
