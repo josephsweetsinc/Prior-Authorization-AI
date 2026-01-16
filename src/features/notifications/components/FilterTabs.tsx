@@ -1,6 +1,7 @@
+import { useGetCurrentUserQuery } from '@/services/auth';
 import { FilterTab } from '@/shared/components/filter-tab/FilterTab';
 
-import { FILTER_TABS } from '../constants';
+import { PROVIDER_FILTER_TABS, ADMIN_FILTER_TABS } from '../constants';
 import { type FilterTabsProps } from '../types';
 
 export const FilterTabs = ({
@@ -13,6 +14,10 @@ export const FilterTabs = ({
     requirements: 0,
   },
 }: FilterTabsProps) => {
+  const { data: currentUser } = useGetCurrentUserQuery();
+  const FILTER_TABS =
+    currentUser?.role === 'admin' ? ADMIN_FILTER_TABS : PROVIDER_FILTER_TABS;
+
   const getTabTitle = (tab: (typeof FILTER_TABS)[number]) => {
     if (tab.value === 'all') {
       return tab.label;

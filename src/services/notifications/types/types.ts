@@ -27,4 +27,5 @@ export type NotificationsResponse = {
 export type NotificationsParams = {
   page?: number;
   category?: NotificationCategory;
+  filter?: 'all' | 'unread';
 };

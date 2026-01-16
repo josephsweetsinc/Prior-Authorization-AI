@@ -46,6 +46,7 @@ export interface NotificationFeedItemProps extends Omit<
 > {
   notification: INotification;
   onClick?: (_id: number) => void;
+  isAdmin?: boolean;
 }
 
 export interface NotificationsPaginationProps {

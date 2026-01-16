@@ -1,3 +1,5 @@
+import { useIsAdmin } from '@/services/auth';
+
 import { type NotificationsFeedProps } from '../types/types';
 
 import { NotificationFeedItem } from './NotificationFeedItem';
@@ -8,6 +10,8 @@ export const NotificationsFeed = ({
   isLoading,
   onNotificationClick,
 }: NotificationsFeedProps) => {
+  const { isAdmin } = useIsAdmin();
+
   if (isLoading) {
     return <NotificationFeedSkeleton />;
   }
@@ -27,6 +31,7 @@ export const NotificationsFeed = ({
           notification={notification}
           key={notification.id}
           onClick={() => onNotificationClick?.(notification.id)}
+          isAdmin={isAdmin}
         />
       ))}
     </div>

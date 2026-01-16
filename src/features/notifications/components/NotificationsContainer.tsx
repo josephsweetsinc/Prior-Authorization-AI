@@ -4,6 +4,9 @@ import { type PaginationState } from '@tanstack/react-table';
 import { useState } from 'react';
 
 import { useGetNotificationsQuery } from '@/services/notifications/';
+import { buildNotificationsParams } from '@/services/websocket';
+import { POLLING_INTERVAL } from '@/services/websocket/constants';
+import { useWebSocket } from '@/services/websocket/hooks';
 import { TitleAndDesc } from '@/shared/components';
 import { useFilters } from '@/shared/hooks/useFilters';
 
@@ -13,7 +16,6 @@ import {
   type NotificationCategory,
 } from '../types/types';
 import {
-  apiCategory,
   filteredNotifications,
   unreadCount,
   statusUpdatesCount,
@@ -34,17 +36,21 @@ export const NotificationsContainer = () => {
     pageSize: DEFAULT_PAGE_SIZE,
   });
 
-  const apiCategoryValue = apiCategory(filters.category);
+  const { isConnected } = useWebSocket();
 
-  const { data, isLoading } = useGetNotificationsQuery({
-    page: pagination.pageIndex + 1,
-    category: apiCategoryValue,
-  });
+  const { data, isLoading } = useGetNotificationsQuery(
+    buildNotificationsParams(pagination.pageIndex + 1, filters.category),
+    {
+      pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
+    },
+  );
 
-  const { data: allNotificationsData } = useGetNotificationsQuery({
-    page: 1,
-    category: undefined,
-  });
+  const { data: allNotificationsData } = useGetNotificationsQuery(
+    buildNotificationsParams(1, 'all'),
+    {
+      pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
+    },
+  );
 
   const filteredNotificationsList = filteredNotifications(
     data?.items || [],

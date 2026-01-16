@@ -1,4 +1,5 @@
 import { api as baseApi } from '@/services/api/api';
+import { clearParams } from '@/shared/lib/utils';
 
 import { type NotificationsResponse, type NotificationsParams } from '../types';
 
@@ -6,12 +7,18 @@ export const notificationApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getNotifications: builder.query<NotificationsResponse, NotificationsParams>(
       {
-        query: ({ page = 1, category }) => ({
+        query: ({ page = 1, category, filter }) => ({
           url: '/notification/',
-          params: {
+          params: clearParams({
             page,
-            category: category !== 'all' ? category : undefined,
-          },
+            category:
+              category !== 'all' &&
+              category !== 'unread' &&
+              filter !== 'all' &&
+              filter !== 'unread'
+                ? category
+                : undefined,
+          }),
         }),
         providesTags: (result) =>
           result
@@ -23,6 +30,7 @@ export const notificationApi = baseApi.injectEndpoints({
                 { type: 'Notifications', id: 'LIST' },
               ]
             : [{ type: 'Notifications', id: 'LIST' }],
+        keepUnusedDataFor: 60,
       },
     ),
   }),

@@ -6,10 +6,15 @@ export const DEFAULT_FILTERS: INotificationFilters = {
 
 export const DEFAULT_PAGE_SIZE = 8;
 
-export const FILTER_TABS = [
+export const PROVIDER_FILTER_TABS = [
   { value: 'all' as const, label: 'All' },
   { value: 'unread' as const, label: 'Unread' },
   { value: 'status_updates' as const, label: 'Status Updates' },
   { value: 'documents' as const, label: 'Documents' },
   { value: 'requirements' as const, label: 'Requirements' },
+];
+
+export const ADMIN_FILTER_TABS = [
+  { value: 'all' as const, label: 'All' },
+  { value: 'unread' as const, label: 'Unread' },
 ];

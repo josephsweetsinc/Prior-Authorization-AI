@@ -67,6 +67,7 @@ export {
 } from './attached-document';
 export { DiagnosisCell } from './diagnosis-cell';
 export { SearchFilter } from './search-filter';
+export { NotificationBadge } from './notification-badge';
 export { RequestAction } from './request-action';
 export * from './tooltip';
 export * from './metrics';
