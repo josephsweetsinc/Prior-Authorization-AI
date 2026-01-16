@@ -23,7 +23,7 @@ export const usePolling = ({
   handleNotification,
   isConnected,
   page = 1,
-  category = 'all',
+  category = 'unread',
 }: Params) => {
   const lastNotificationIdRef = useRef<number | null>(null);
 
@@ -40,13 +40,12 @@ export const usePolling = ({
       return;
     }
 
-    data.items.forEach((notification) => {
-      safeNotificationHandler(
-        notification,
-        handleNotification,
-        'polling',
-        lastNotificationIdRef,
-      );
-    });
+    const latestNotification = data.items[0];
+
+    safeNotificationHandler(
+      latestNotification,
+      handleNotification,
+      lastNotificationIdRef,
+    );
   }, [data, isConnected, handleNotification]);
 };
