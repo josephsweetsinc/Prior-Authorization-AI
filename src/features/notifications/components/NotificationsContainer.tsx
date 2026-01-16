@@ -40,7 +40,7 @@ export const NotificationsContainer = () => {
 
   const { isConnected } = useWebSocket();
 
-  const { data, isLoading } = useGetNotificationsQuery(
+  const { data, isFetching } = useGetNotificationsQuery(
     buildNotificationsParams(pagination.pageIndex + 1, filters.category),
     {
       pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
@@ -68,16 +68,15 @@ export const NotificationsContainer = () => {
     allNotificationsData?.items || [],
   );
 
-  const filteredTotal = (() => {
-    return getFilteredTotal({
-      category: filters.category,
-      unreadCount: unreadCountValue,
-      statusUpdatesCount: statusUpdatesCountValue,
-      documentsCount: documentsCountValue,
-      requirementsCount: requirementsCountValue,
-      backendTotal: data?.total || 0,
-    });
-  })();
+  const filteredTotal = getFilteredTotal({
+    category: filters.category,
+    unreadCount: unreadCountValue,
+    statusUpdatesCount: statusUpdatesCountValue,
+    documentsCount: documentsCountValue,
+    requirementsCount: requirementsCountValue,
+    backendTotal: data?.total || 0,
+  });
+
   const filteredTotalPages = Math.ceil(filteredTotal / pagination.pageSize);
 
   const [mark] = useMarkNotificationAsReadMutation();
@@ -111,7 +110,7 @@ export const NotificationsContainer = () => {
 
       <NotificationsFeed
         notifications={filteredNotificationsList}
-        isLoading={isLoading}
+        isLoading={isFetching}
         onNotificationClick={handleMarkAsRead}
       />
 
