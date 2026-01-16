@@ -10,13 +10,15 @@ type RequestFilters = {
   date: AuthorizationRequestsDateFilter | string;
 };
 
+type BuildRequestsParamsArgs = {
+  page: number;
+  filters?: RequestFilters;
+};
+
 export const buildRequestsParams = ({
   page,
   filters,
-}: {
-  page: number;
-  filters?: RequestFilters;
-}): {
+}: BuildRequestsParamsArgs): {
   page: number;
   search?: string;
   status?: RequestStatus;

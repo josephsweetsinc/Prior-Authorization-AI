@@ -13,6 +13,7 @@ import {
   RequestDetailsSidebar,
 } from '@/views/requests/authorization-request-details/components';
 
+import { EMPTY_FORM_STATE } from './authorization-request-details/lib/constants';
 import { useRequestDetailsActions } from './authorization-request-details/lib/hooks/useRequestDetailsActions';
 import { type RequestDetailsFormState } from './authorization-request-details/lib/types';
 import {
@@ -27,23 +28,6 @@ import {
 
 type Props = {
   requestId: string;
-};
-
-const EMPTY_FORM_STATE: RequestDetailsFormState = {
-  patientName: '',
-  patientDob: '',
-  patientId: '',
-  ambulatoryStatus: '',
-  pickupAddress: '',
-  destinationAddress: '',
-  appointmentDate: '',
-  appointmentTime: '',
-  transportationType: '',
-  oxygenRequired: undefined,
-  primaryDiagnosis: '',
-  medicalJustification: '',
-  orderingPhysician: '',
-  physicianPhone: '',
 };
 
 const AuthorizationRequestDetails = ({ requestId }: Props) => {
@@ -72,6 +56,30 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     const result = validateRequestDetailsForm(resolvedFormState);
     setFormErrors(result.errors);
     return result.isValid;
+  };
+  const handleFormChange = (next: Partial<RequestDetailsFormState>) => {
+    setFormErrors((prev) => {
+      const keys = Object.keys(next) as Array<keyof RequestDetailsFormState>;
+      if (keys.length === 0) {
+        return prev;
+      }
+      const updated = { ...prev };
+      keys.forEach((key) => {
+        delete updated[key];
+      });
+      return updated;
+    });
+    setFormState((prev) => {
+      const baseState =
+        prev?.requestId === data?.id ? prev.state : resolvedFormState;
+      return {
+        requestId: data?.id ?? 0,
+        state: {
+          ...baseState,
+          ...next,
+        },
+      };
+    });
   };
   const {
     isApproveModalOpen,
@@ -138,32 +146,7 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
           data={data}
           form={resolvedFormState}
           errors={formErrors}
-          onChange={(next) => {
-            setFormErrors((prev) => {
-              const keys = Object.keys(next) as Array<
-                keyof RequestDetailsFormState
-              >;
-              if (keys.length === 0) {
-                return prev;
-              }
-              const updated = { ...prev };
-              keys.forEach((key) => {
-                delete updated[key];
-              });
-              return updated;
-            });
-            setFormState((prev) => {
-              const baseState =
-                prev?.requestId === data.id ? prev.state : resolvedFormState;
-              return {
-                requestId: data.id,
-                state: {
-                  ...baseState,
-                  ...next,
-                },
-              };
-            });
-          }}
+          onChange={handleFormChange}
           onSave={handleUpdateRequest}
           isSaving={isSaving}
         />
