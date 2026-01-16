@@ -42,3 +42,20 @@ class NotificationMissingRequestException(NotificationException):
             status_code=400,
             detail=f'{category} notifications must be associated with a request',  # noqa: E501
         )
+
+
+class NotificationNotFoundException(NotificationException):
+    """Exception raised when notification is not found.
+
+    Attributes:
+        status_code (int): HTTP status code for exception (404 Not Found).
+        detail (str): Human-readable explanation of the error.
+
+    """
+
+    def __init__(self) -> None:
+        """Initialize NotificationNotFoundException with default message."""
+        super().__init__(
+            status_code=404,
+            detail='Notification was not found by given id.',
+        )
