@@ -49,8 +49,7 @@ async def generate_report(
     """
     return await service.generate_report(
         file_format=request_data.format,
-        start_date=request_data.start_date,
-        end_date=request_data.end_date,
+        days=request_data.days,
         created_by_id=user.id,
     )
 

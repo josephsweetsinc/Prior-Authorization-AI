@@ -2,7 +2,7 @@
 
 import io
 import logging
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from openpyxl import Workbook
@@ -64,23 +64,27 @@ class ReportService(BaseService):
         self._dashboard_dao = dashboard_dao or DashboardDAO(db_session)
         self._s3_actions = s3_actions or S3Actions()
 
-    def _validate_period_dates(
+    def _calculate_period_dates(
         self,
-        start_date: date,
-        end_date: date,
-    ) -> None:
-        """Validate period start and end dates.
+        days: int,
+    ) -> tuple[date, date]:
+        """Calculate period start and end dates from days parameter.
 
         Args:
-            start_date: Start date.
-            end_date: End date.
+            days: Number of days for report period (0=today, >0=last N days).
 
-        Raises:
-            ValueError: If period parameters are invalid.
+        Returns:
+            Tuple of (start_date, end_date).
 
         """
-        if start_date > end_date:
-            raise ValueError('start_date must be <= end_date')  # noqa: TRY003
+        today = datetime.now(UTC).date()
+
+        if days == 0:
+            # Only today
+            return today, today
+        # Last N days including today
+        start_date = today - timedelta(days=days - 1)
+        return start_date, today
 
     async def _get_current_statistics(self) -> RequestCountDTO:
         """Get current statistics for all requests.
@@ -238,26 +242,21 @@ class ReportService(BaseService):
         self,
         *,
         file_format: ReportFormat,
-        start_date: date,
-        end_date: date,
+        days: int,
         created_by_id: int,
     ) -> GenerateReportResponseSchema:
         """Generate a report.
 
         Args:
             file_format: Report format (PDF or Excel).
-            start_date: Start date for report period.
-            end_date: End date for report period.
+            days: Number of days for report period (0=today, >0=last N days).
             created_by_id: ID of the user creating the report.
 
         Returns:
             GenerateReportResponseSchema with report ID and download URL.
 
-        Raises:
-            ValueError: If start_date > end_date.
-
         """
-        self._validate_period_dates(start_date, end_date)
+        start_date, end_date = self._calculate_period_dates(days)
 
         # Get current statistics
         statistics = await self._get_current_statistics()
