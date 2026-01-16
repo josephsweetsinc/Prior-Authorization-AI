@@ -11,7 +11,7 @@ import {
   onSingleton,
   sendSingleton,
   subscribeConnection,
-} from '../api/websocket-service';
+} from '../api';
 import { type UseWebSocketReturn } from '../types';
 
 export const useWebSocket = (): UseWebSocketReturn => {
@@ -19,7 +19,9 @@ export const useWebSocket = (): UseWebSocketReturn => {
 
   const acquiredRef = useRef(false);
 
-  useEffect(() => subscribeConnection(setIsConnected), []);
+  useEffect(() => {
+    subscribeConnection(setIsConnected);
+  }, []);
 
   const connect = useCallback((websocketUrl: string, _token: string) => {
     if (!acquiredRef.current) {

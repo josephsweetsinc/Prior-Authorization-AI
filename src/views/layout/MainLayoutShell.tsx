@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { useWebSocketNotifications } from '@/services/websocket/hooks';
+import { useNotifications } from '@/services/websocket/hooks';
 import { AppHeader, AppSidebar } from '@/views/layout';
 
 type MainLayoutShellProps = {
@@ -10,7 +10,7 @@ type MainLayoutShellProps = {
 };
 
 export const MainLayoutShell = ({ children }: MainLayoutShellProps) => {
-  useWebSocketNotifications();
+  useNotifications();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   return (

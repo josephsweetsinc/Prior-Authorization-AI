@@ -1,2 +1,2 @@
 export * from './useWebSocket';
-export * from './useWebSocketNotifications';
+export * from './useNotifications';

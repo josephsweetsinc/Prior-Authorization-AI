@@ -4,6 +4,7 @@ import { type PaginationState } from '@tanstack/react-table';
 import { useState } from 'react';
 
 import { useGetNotificationsQuery } from '@/services/notifications/';
+import { buildNotificationsParams } from '@/services/websocket';
 import { POLLING_INTERVAL } from '@/services/websocket/constants';
 import { useWebSocket } from '@/services/websocket/hooks';
 import { TitleAndDesc } from '@/shared/components';
@@ -15,7 +16,6 @@ import {
   type NotificationCategory,
 } from '../types/types';
 import {
-  buildNotificationsParams,
   filteredNotifications,
   unreadCount,
   statusUpdatesCount,

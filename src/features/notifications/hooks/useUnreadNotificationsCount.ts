@@ -1,8 +1,11 @@
 import { useGetNotificationsQuery } from '@/services/notifications/';
-import { POLLING_INTERVAL } from '@/services/websocket/constants';
-import { useWebSocket } from '@/services/websocket/hooks';
+import {
+  buildNotificationsParams,
+  useWebSocket,
+  POLLING_INTERVAL,
+} from '@/services/websocket';
 
-import { buildNotificationsParams, unreadCount } from '../utils/filters';
+import { unreadCount } from '../utils/filters';
 
 export const useUnreadNotificationsCount = () => {
   const { isConnected } = useWebSocket();
