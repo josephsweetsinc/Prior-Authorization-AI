@@ -4,6 +4,7 @@ import { type PaginationState } from '@tanstack/react-table';
 import { useState } from 'react';
 
 import { useGetNotificationsQuery } from '@/services/notifications/';
+import { useMarkNotificationAsReadMutation } from '@/services/notifications/api/notifications-api';
 import { buildNotificationsParams } from '@/services/websocket';
 import { POLLING_INTERVAL } from '@/services/websocket/constants';
 import { useWebSocket } from '@/services/websocket/hooks';
@@ -11,7 +12,6 @@ import { TitleAndDesc } from '@/shared/components';
 import { useFilters } from '@/shared/hooks/useFilters';
 
 import { DEFAULT_FILTERS, DEFAULT_PAGE_SIZE } from '../constants';
-import { useMarkNotificationAsRead } from '../hooks/useMarkNotificationAsRead';
 import {
   type INotificationFilters,
   type NotificationCategory,
@@ -67,7 +67,9 @@ export const NotificationsContainer = () => {
     allNotificationsData?.items || [],
   );
 
-  const markNotificationAsRead = useMarkNotificationAsRead();
+  const [mark] = useMarkNotificationAsReadMutation();
+
+  const handleMarkAsRead = (notificationId: number) => mark(notificationId);
 
   const handleFilterChange = (category: NotificationCategory) => {
     handleFiltersChange('category', category);
@@ -97,7 +99,7 @@ export const NotificationsContainer = () => {
       <NotificationsFeed
         notifications={filteredNotificationsList}
         isLoading={isLoading}
-        onNotificationClick={markNotificationAsRead}
+        onNotificationClick={handleMarkAsRead}
       />
 
       {data && data.total > 0 && (
