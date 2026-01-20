@@ -8,7 +8,6 @@ from config.settings import Settings
 from core import BaseService
 from dao import AmbulanceRequestDAO, NotificationDAO, UserDAO
 from models.notification import NotificationCategory
-from models.user import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -68,9 +67,10 @@ class ExpirationReminderService(BaseService):
                     summary['notifications_sent'] += sent
 
         logger.info(
-            f'Expiration reminders check completed: '
-            f'{summary["total_requests"]} requests found, '
-            f'{summary["notifications_sent"]} notifications sent'
+            'Expiration reminders check completed: '
+            '%s requests found, %s notifications sent',
+            summary['total_requests'],
+            summary['notifications_sent'],
         )
 
         return summary
@@ -109,7 +109,7 @@ class ExpirationReminderService(BaseService):
 
         if already_sent:
             logger.debug(
-                f'Reminder already sent today for request {request_id}'
+                'Reminder already sent today for request %s', request_id
             )
             return 0
 
@@ -133,10 +133,11 @@ class ExpirationReminderService(BaseService):
             )
             notifications_sent += 1
             await self._session.flush()
-        except Exception as e:
-            logger.error(
-                f'Failed to send reminder to provider {user_id} '
-                f'for request {request_id}: {e}'
+        except Exception:
+            logger.exception(
+                'Failed to send reminder to provider %s for request %s',
+                user_id,
+                request_id,
             )
 
         # Send to all admins
@@ -152,17 +153,19 @@ class ExpirationReminderService(BaseService):
                 )
                 notifications_sent += 1
                 await self._session.flush()
-            except Exception as e:
-                logger.error(
-                    f'Failed to send reminder to admin {admin.id} '
-                    f'for request {request_id}: {e}'
+            except Exception:
+                logger.exception(
+                    'Failed to send reminder to admin %s for request %s',
+                    admin.id,
+                    request_id,
                 )
 
         if notifications_sent > 0:
             await self._session.commit()
             logger.info(
-                f'Sent {notifications_sent} reminder notifications '
-                f'for request {request_id}'
+                'Sent %s reminder notifications for request %s',
+                notifications_sent,
+                request_id,
             )
 
         return notifications_sent

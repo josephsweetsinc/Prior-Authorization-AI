@@ -3,8 +3,8 @@
 import logging
 import os
 
-from celery import Celery
-from celery.schedules import crontab
+from celery import Celery  # type: ignore[import-untyped]
+from celery.schedules import crontab  # type: ignore[import-untyped]
 
 from config.settings import Settings
 
