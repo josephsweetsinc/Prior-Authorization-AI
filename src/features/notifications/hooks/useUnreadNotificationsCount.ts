@@ -5,19 +5,19 @@ import {
   POLLING_INTERVAL,
 } from '@/services/websocket';
 
-import { unreadCount } from '../utils/filters';
-
 export const useUnreadNotificationsCount = () => {
   const { isConnected } = useWebSocket();
 
   const { data: allNotificationsData, isLoading } = useGetNotificationsQuery(
-    buildNotificationsParams(1, 'all'),
+    buildNotificationsParams(1, 'unread'),
     {
       pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
     },
   );
 
-  const count = unreadCount(allNotificationsData?.items || []);
+  const count = allNotificationsData?.items
+    ? allNotificationsData?.items.length
+    : 0;
 
   return {
     count,

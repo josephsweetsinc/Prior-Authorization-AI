@@ -1,15 +1,21 @@
+import { type PaginationState } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
 import { getVisiblePages } from '@/shared/components/table';
 
-import { type UseNotificationsPaginationProps } from '../types';
+export interface Params {
+  pagination: PaginationState;
+  onPaginationChange: (_pagination: PaginationState) => void;
+  total: number;
+  totalPages: number;
+}
 
 export const useNotificationsPagination = ({
   pagination,
   onPaginationChange,
   total,
   totalPages,
-}: UseNotificationsPaginationProps) => {
+}: Params) => {
   const { pageIndex, pageSize } = pagination;
 
   const start = total === 0 ? 0 : pageIndex * pageSize + 1;

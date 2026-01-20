@@ -1,16 +1,23 @@
+import { type PaginationState } from '@tanstack/react-table';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { cn } from '@/shared/lib/utils';
+import { PageButton } from '@/shared/components';
 
 import { useNotificationsPagination } from '../hooks';
-import { type NotificationsPaginationProps } from '../types';
+
+export interface Props {
+  pagination: PaginationState;
+  onPaginationChange: (_state: PaginationState) => void;
+  total: number;
+  totalPages: number;
+}
 
 export const NotificationsPagination = ({
   pagination,
   onPaginationChange,
   total,
   totalPages,
-}: NotificationsPaginationProps) => {
+}: Props) => {
   const {
     start,
     end,
@@ -67,31 +74,3 @@ export const NotificationsPagination = ({
     </div>
   );
 };
-
-function PageButton({
-  children,
-  active,
-  disabled,
-  onClick,
-}: {
-  children: React.ReactNode;
-  active?: boolean;
-  disabled?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        'flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-sm transition-colors',
-        disabled && 'cursor-not-allowed opacity-40',
-        active
-          ? 'bg-accent-foreground text-primary-foreground'
-          : 'hover:bg-muted text-muted-foreground',
-      )}
-    >
-      {children}
-    </button>
-  );
-}

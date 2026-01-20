@@ -1,11 +1,11 @@
-import { type AppDispatch } from '@/store';
+import type { AppDispatch } from '@/store';
 
 import { updateNotificationCache } from '../actions';
 import { notificationApi } from '../api/notifications-api';
-import { type NotificationCategory, type NotificationItem } from '../types';
+import type { INotification, NotificationCategory } from '../types';
 
 export const addNotificationToCache = (
-  notification: NotificationItem,
+  notification: INotification,
   dispatch: AppDispatch,
 ) => {
   updateNotificationCache({ page: 1, filter: 'all' }, notification, dispatch);
@@ -25,7 +25,7 @@ export const addNotificationToCache = (
 
   dispatch(
     notificationApi.util.invalidateTags([
-      { type: 'Notifications', id: notification.id },
+      { type: 'Notifications', id: 'LIST' },
       { type: 'RequestsHistory', id: notification.request_id },
       { type: 'AuthorizationRequests', id: notification.request_id },
       { type: 'RequestDetails', id: notification.request_id },

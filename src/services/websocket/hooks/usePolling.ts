@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 
 import { useGetNotificationsQuery } from '@/services/notifications';
 import type {
-  NotificationItem,
+  INotification,
   NotificationCategory,
 } from '@/services/notifications/types/types';
 
@@ -13,7 +13,7 @@ import { safeNotificationHandler } from '../utils/checks';
 import { buildNotificationsParams } from '../utils/params';
 
 interface Params {
-  handleNotification: (_notification: NotificationItem) => void;
+  handleNotification: (_notification: INotification) => void;
   isConnected: boolean;
   page?: number;
   category?: NotificationCategory;

@@ -11,7 +11,7 @@ export {
   type SensitiveMessageProps,
 } from './sensitiveMessage';
 export { Chip, type ChipProps } from './chip';
-export { DataTable, TableHeadCell, getVisiblePages } from './table';
+export * from './table';
 export { Checkbox } from './checkbox';
 export { StatusTimeline } from './timeline';
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
@@ -72,3 +72,4 @@ export { RequestAction } from './request-action';
 export * from './tooltip';
 export * from './metrics';
 export * from './popover';
+export * from './filter-tab';
