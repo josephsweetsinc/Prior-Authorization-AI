@@ -1,3 +1,4 @@
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import Select, func, select, update
@@ -286,3 +287,40 @@ class NotificationDAO(BaseDAO):
         )
         result = await self._session.execute(stmt)
         return result.scalar_one() or 0
+
+    async def exists_today_by_request_and_category(
+        self,
+        request_id: int,
+        category: NotificationCategory,
+    ) -> bool:
+        """Check if notification exists for request today with given category.
+
+        Args:
+            request_id: Request ID.
+            category: Notification category.
+
+        Returns:
+            bool: True if notification exists, False otherwise.
+
+        """
+        today = datetime.now(tz=UTC).date()
+        today_start = datetime.combine(today, datetime.min.time()).replace(
+            tzinfo=UTC
+        )
+        today_end = datetime.combine(today, datetime.max.time()).replace(
+            tzinfo=UTC
+        )
+
+        stmt = (
+            select(func.count())
+            .select_from(Notification)
+            .where(
+                Notification.request_id == request_id,
+                Notification.category == category,
+                Notification.created_at >= today_start,
+                Notification.created_at <= today_end,
+            )
+        )
+        result = await self._session.execute(stmt)
+        count = result.scalar_one() or 0
+        return count > 0

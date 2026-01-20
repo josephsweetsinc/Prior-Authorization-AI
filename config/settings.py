@@ -264,6 +264,10 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = 'INFO'
     DEBUG: bool = False
 
+    # Expiration reminder settings
+    REMINDER_DAYS: list[int] = [30, 15, 7]
+    """Days before expiration to send reminders."""
+
     # Nested settings
     token_settings: TokenSettings = Field(default_factory=TokenSettings)
     database_settings: DatabaseSettings = Field(
