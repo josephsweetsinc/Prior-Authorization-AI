@@ -209,6 +209,11 @@ class AmbulanceRequest(BaseIdMixin, BaseTimeStampMixin, SoftDelete):
         nullable=True,
         comment='Phone number of the ordering physician',
     )
+    expiration_date: Mapped[date | None] = mapped_column(
+        Date,
+        nullable=True,
+        comment='Prior authorization expiration date',
+    )
 
     # Relationships
     reviewer: Mapped['User | None'] = relationship(
