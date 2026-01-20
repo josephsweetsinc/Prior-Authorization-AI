@@ -14,6 +14,67 @@ services:
     networks:
       - container
 
+  redis:
+    image: redis:7-alpine
+    container_name: "local_redis"
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - container
+
+  celery_worker:
+    container_name: "local_celery_worker"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - .:/app
+      - /app/.venv
+    networks:
+      - container
+    depends_on:
+      - redis
+      - paai_database
+    command: uv run celery -A config.celery worker --loglevel=info
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_URL=redis://redis:6379/0
+      - DB_HOST=paai_database
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=qwerty123
+      - DB_NAME=paai_db
+
+  celery_beat:
+    container_name: "local_celery_beat"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - .:/app
+      - /app/.venv
+    networks:
+      - container
+    depends_on:
+      - redis
+      - paai_database
+    command: uv run celery -A config.celery beat --loglevel=info
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_URL=redis://redis:6379/0
+      - DB_HOST=paai_database
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=qwerty123
+      - DB_NAME=paai_db
+
 volumes:
   postgres_data:
 networks:
