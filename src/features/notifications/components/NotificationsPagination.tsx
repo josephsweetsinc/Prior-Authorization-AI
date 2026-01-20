@@ -1,16 +1,23 @@
+import { type PaginationState } from '@tanstack/react-table';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { PageButton } from '@/shared/components';
 
 import { useNotificationsPagination } from '../hooks';
-import { type NotificationsPaginationProps } from '../types';
+
+export interface Props {
+  pagination: PaginationState;
+  onPaginationChange: (_state: PaginationState) => void;
+  total: number;
+  totalPages: number;
+}
 
 export const NotificationsPagination = ({
   pagination,
   onPaginationChange,
   total,
   totalPages,
-}: NotificationsPaginationProps) => {
+}: Props) => {
   const {
     start,
     end,

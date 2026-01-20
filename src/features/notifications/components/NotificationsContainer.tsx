@@ -10,7 +10,7 @@ import { useWebSocket } from '@/services/websocket/hooks';
 import { TitleAndDesc } from '@/shared/components';
 
 import { useNotificationsControls } from '../hooks';
-import { useNotificationStats } from '../hooks/useNotificationStats';
+import { getNotificationStats } from '../utils';
 
 import { FilterTabs } from './FilterTabs';
 import { NotificationsFeed } from './NotificationsFeed';
@@ -34,7 +34,8 @@ export const NotificationsContainer = () => {
       pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
     },
   );
-  const stats = useNotificationStats(allNotifications?.items);
+
+  const stats = getNotificationStats(allNotifications?.items);
 
   const totalPages = notifications?.total_pages || 0;
   const total = notifications?.total || 0;

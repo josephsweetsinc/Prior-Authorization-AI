@@ -5,9 +5,9 @@ import {
   requirementsCount,
   statusUpdatesCount,
   unreadCount,
-} from '../utils';
+} from './filters';
 
-export const useNotificationStats = (notifications: INotification[] = []) => {
+export const getNotificationStats = (notifications: INotification[] = []) => {
   const stats = {
     unread: 0,
     status_updates: 0,

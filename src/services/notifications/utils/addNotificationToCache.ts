@@ -1,8 +1,8 @@
-import { type AppDispatch } from '@/store';
+import type { AppDispatch } from '@/store';
 
 import { updateNotificationCache } from '../actions';
 import { notificationApi } from '../api/notifications-api';
-import { type INotification, type NotificationCategory } from '../types';
+import type { INotification, NotificationCategory } from '../types';
 
 export const addNotificationToCache = (
   notification: INotification,
