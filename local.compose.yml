@@ -43,11 +43,7 @@ services:
       - REDIS_PORT=6379
       - REDIS_DB=0
       - REDIS_URL=redis://redis:6379/0
-      - DB_HOST=paai_database
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=qwerty123
-      - DB_NAME=paai_db
+      - DB_URL=postgresql+asyncpg://postgres:qwerty123@paai_database:5432/paai_db
 
   celery_beat:
     container_name: "local_celery_beat"
@@ -69,11 +65,7 @@ services:
       - REDIS_PORT=6379
       - REDIS_DB=0
       - REDIS_URL=redis://redis:6379/0
-      - DB_HOST=paai_database
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=qwerty123
-      - DB_NAME=paai_db
+      - DB_URL=postgresql+asyncpg://postgres:qwerty123@paai_database:5432/paai_db
 
 volumes:
   postgres_data:

@@ -354,6 +354,31 @@ class AmbulanceRequestDAO(BaseDAO):
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
+    async def get_expiring_requests(self, days: int) -> list[AmbulanceRequest]:
+        """Get active requests expiring in exactly N days.
+
+        Args:
+            days: Number of days until expiration.
+
+        Returns:
+            list[AmbulanceRequest]: List of requests expiring in N days.
+
+        """
+        today = datetime.now(tz=UTC).date()
+        target_date = today + timedelta(days=days)
+
+        stmt = (
+            select(AmbulanceRequest)
+            .where(AmbulanceRequest.status == RequestStatus.APPROVED)
+            .where(AmbulanceRequest.expiration_date.isnot(None))
+            .where(AmbulanceRequest.expiration_date == target_date)
+            .where(AmbulanceRequest.is_active.is_(True))
+            .where(AmbulanceRequest.deleted_at.is_(None))
+        )
+
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
 
 class RequestStatusHistoryDAO(BaseDAO):
     """DAO for RequestStatusHistory model."""
@@ -385,31 +410,6 @@ class RequestStatusHistoryDAO(BaseDAO):
         await self._session.flush()
         await self._session.refresh(status_history)
         return status_history
-
-    async def get_expiring_requests(self, days: int) -> list[AmbulanceRequest]:
-        """Get active requests expiring in exactly N days.
-
-        Args:
-            days: Number of days until expiration.
-
-        Returns:
-            list[AmbulanceRequest]: List of requests expiring in N days.
-
-        """
-        today = datetime.now(tz=UTC).date()
-        target_date = today + timedelta(days=days)
-
-        stmt = (
-            select(AmbulanceRequest)
-            .where(AmbulanceRequest.status == RequestStatus.APPROVED)
-            .where(AmbulanceRequest.expiration_date.isnot(None))
-            .where(AmbulanceRequest.expiration_date == target_date)
-            .where(AmbulanceRequest.is_active.is_(True))
-            .where(AmbulanceRequest.deleted_at.is_(None))
-        )
-
-        result = await self._session.execute(stmt)
-        return list(result.scalars().all())
 
     async def get_by_request_id(
         self,
