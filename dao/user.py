@@ -374,3 +374,25 @@ class UserDAO(BaseDAO):
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def get_all_admins(self, limit: int = 100) -> list[User]:
+        """Get all admin users.
+
+        Args:
+            limit: Maximum number of admin users to return.
+
+        Returns:
+            list[User]: List of admin users ordered by creation date.
+
+        """
+        stmt = (
+            select(User)
+            .where(
+                User.is_active.is_(True),
+                User.role == UserRole.ADMIN,
+            )
+            .order_by(User.created_at.desc(), User.id.desc())
+            .limit(limit)
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())

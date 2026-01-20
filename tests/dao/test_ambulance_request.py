@@ -1,6 +1,6 @@
 """Tests for AmbulanceRequestDAO, RequestStatusHistoryDAO, RequestFileDAO."""
 
-from datetime import date, time
+from datetime import UTC, date, datetime, time, timedelta
 
 import pytest
 
@@ -325,6 +325,179 @@ class TestAmbulanceRequestDAO:
         third_page = await dao.get_all(offset=4, limit=2)
         # Should get remaining 1 item
         assert len(third_page) == 1
+
+    @pytest.mark.asyncio
+    async def test_get_expiring_requests(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test getting requests expiring in N days."""
+        user = await user_factory()
+        await db_session.commit()
+
+        dao = AmbulanceRequestDAO(db_session)
+        today = datetime.now(tz=UTC).date()
+
+        # Create request expiring in 30 days (APPROVED)
+        request_30 = await dao.create(
+            user_id=user.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='John',
+            patient_last_name='Doe',
+            patient_date_of_birth=date(1980, 1, 1),
+            patient_id='DA123456789HY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(13, 40),
+            pickup_address='123 Main St',
+            destination_address='456 Medical Dr',
+            status=RequestStatus.APPROVED,
+        )
+        request_30.expiration_date = today + timedelta(days=30)
+
+        # Create request expiring in 15 days (APPROVED)
+        request_15 = await dao.create(
+            user_id=user.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='Jane',
+            patient_last_name='Smith',
+            patient_date_of_birth=date(1990, 1, 1),
+            patient_id='DA987654321XY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(14, 0),
+            pickup_address='456 Oak Ave',
+            destination_address='789 Pine St',
+            status=RequestStatus.APPROVED,
+        )
+        request_15.expiration_date = today + timedelta(days=15)
+
+        # Create request expiring in 30 days but DENIED (should not be returned)
+        request_denied = await dao.create(
+            user_id=user.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='Bob',
+            patient_last_name='Brown',
+            patient_date_of_birth=date(1985, 1, 1),
+            patient_id='DA555555555AA',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(15, 0),
+            pickup_address='789 Elm St',
+            destination_address='321 Maple Dr',
+            status=RequestStatus.DENIED,
+        )
+        request_denied.expiration_date = today + timedelta(days=30)
+
+        await db_session.commit()
+
+        # Test getting requests expiring in 30 days
+        expiring_30 = await dao.get_expiring_requests(days=30)
+        assert len(expiring_30) == 1
+        assert expiring_30[0].id == request_30.id
+
+        # Test getting requests expiring in 15 days
+        expiring_15 = await dao.get_expiring_requests(days=15)
+        assert len(expiring_15) == 1
+        assert expiring_15[0].id == request_15.id
+
+        # Test getting requests expiring in 7 days (none)
+        expiring_7 = await dao.get_expiring_requests(days=7)
+        assert len(expiring_7) == 0
+
+    @pytest.mark.asyncio
+    async def test_get_expiring_requests_only_approved(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test that only APPROVED requests are returned."""
+        user = await user_factory()
+        await db_session.commit()
+
+        dao = AmbulanceRequestDAO(db_session)
+        today = datetime.now(tz=UTC).date()
+
+        # Create requests with different statuses
+        statuses = [
+            RequestStatus.DRAFT,
+            RequestStatus.SUBMITTED,
+            RequestStatus.PENDING,
+            RequestStatus.APPROVED,
+            RequestStatus.DENIED,
+        ]
+
+        for status in statuses:
+            request = await dao.create(
+                user_id=user.id,
+                transportation_type=TransportationType.AMBULANCE,
+                patient_first_name='Test',
+                patient_last_name='User',
+                patient_date_of_birth=date(1980, 1, 1),
+                patient_id=f'DA{status.value}',
+                date_of_transport=date(2025, 12, 6),
+                time_of_transport=time(13, 40),
+                pickup_address='123 Main St',
+                destination_address='456 Medical Dr',
+                status=status,
+            )
+            request.expiration_date = today + timedelta(days=30)
+
+        await db_session.commit()
+
+        # Only APPROVED should be returned
+        expiring = await dao.get_expiring_requests(days=30)
+        assert len(expiring) == 1
+        assert expiring[0].status == RequestStatus.APPROVED
+
+    @pytest.mark.asyncio
+    async def test_get_expiring_requests_no_expiration_date(
+        self,
+        db_session,
+        user_factory,
+    ):
+        """Test that requests without expiration_date are not returned."""
+        user = await user_factory()
+        await db_session.commit()
+
+        dao = AmbulanceRequestDAO(db_session)
+        today = datetime.now(tz=UTC).date()
+
+        # Create request with expiration_date
+        request_with_exp = await dao.create(
+            user_id=user.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='John',
+            patient_last_name='Doe',
+            patient_date_of_birth=date(1980, 1, 1),
+            patient_id='DA123456789HY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(13, 40),
+            pickup_address='123 Main St',
+            destination_address='456 Medical Dr',
+            status=RequestStatus.APPROVED,
+        )
+        request_with_exp.expiration_date = today + timedelta(days=30)
+
+        # Create request without expiration_date
+        request_no_exp = await dao.create(
+            user_id=user.id,
+            transportation_type=TransportationType.AMBULANCE,
+            patient_first_name='Jane',
+            patient_last_name='Smith',
+            patient_date_of_birth=date(1990, 1, 1),
+            patient_id='DA987654321XY',
+            date_of_transport=date(2025, 12, 6),
+            time_of_transport=time(14, 0),
+            pickup_address='456 Oak Ave',
+            destination_address='789 Pine St',
+            status=RequestStatus.APPROVED,
+        )
+        # expiration_date is None
+
+        await db_session.commit()
+
+        expiring = await dao.get_expiring_requests(days=30)
+        assert len(expiring) == 1
+        assert expiring[0].id == request_with_exp.id
 
 
 class TestRequestStatusHistoryDAO:

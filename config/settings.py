@@ -192,6 +192,43 @@ class LLMSettings(BaseSettings):
     PDF_MAX_PAGES: int = 15
 
 
+class RedisSettings(BaseSettings):
+    """Settings for Redis connection.
+
+    All settings are prefixed with 'REDIS_' in environment variables.
+
+    Attributes:
+        URL: Full Redis URL (default: redis://localhost:6379/0).
+        HOST: Redis host (default: localhost).
+        PORT: Redis port (default: 6379).
+        DB: Redis database number (default: 0).
+
+    """
+
+    model_config = SettingsConfigDict(
+        env_prefix='REDIS_', env_file=env_file, extra='ignore'
+    )
+
+    URL: str | None = None
+    HOST: str = 'localhost'
+    PORT: int = 6379
+    DB: int = 0
+
+    def url(self) -> str:
+        """Generate Redis connection URL.
+
+        If URL is provided directly, returns it. Otherwise, constructs
+        the URL from individual connection parameters.
+
+        Returns:
+            Redis connection URL string.
+
+        """
+        if self.URL:
+            return self.URL
+        return f'redis://{self.HOST}:{self.PORT}/{self.DB}'
+
+
 class Settings(BaseSettings):
     """Main application settings class.
 
@@ -227,6 +264,10 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = 'INFO'
     DEBUG: bool = False
 
+    # Expiration reminder settings
+    REMINDER_DAYS: list[int] = [30, 15, 7]
+    """Days before expiration to send reminders."""
+
     # Nested settings
     token_settings: TokenSettings = Field(default_factory=TokenSettings)
     database_settings: DatabaseSettings = Field(
@@ -236,6 +277,7 @@ class Settings(BaseSettings):
     aws_settings: AwsSettings = Field(default_factory=AwsSettings)  # type: ignore
     email_settings: EmailSettings = Field(default_factory=EmailSettings)
     llm_settings: LLMSettings = Field(default_factory=LLMSettings)
+    redis_settings: RedisSettings = Field(default_factory=RedisSettings)
 
     @classmethod
     @cache
