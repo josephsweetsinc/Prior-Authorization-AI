@@ -1,95 +1,47 @@
 'use client';
 
-import { type PaginationState } from '@tanstack/react-table';
-import { useState } from 'react';
-
-import { useGetNotificationsQuery } from '@/services/notifications/';
-import { useMarkNotificationAsReadMutation } from '@/services/notifications/api/notifications-api';
+import {
+  useGetNotificationsQuery,
+  useMarkNotificationAsReadMutation,
+} from '@/services/notifications';
 import { buildNotificationsParams } from '@/services/websocket';
 import { POLLING_INTERVAL } from '@/services/websocket/constants';
 import { useWebSocket } from '@/services/websocket/hooks';
 import { TitleAndDesc } from '@/shared/components';
-import { useFilters } from '@/shared/hooks/useFilters';
 
-import { DEFAULT_FILTERS, DEFAULT_PAGE_SIZE } from '../constants';
-import {
-  type INotificationFilters,
-  type NotificationCategory,
-} from '../types/types';
-import {
-  filteredNotifications,
-  unreadCount,
-  statusUpdatesCount,
-  documentsCount,
-  requirementsCount,
-  getFilteredTotal,
-} from '../utils/filters';
+import { useNotificationsControls } from '../hooks';
+import { useNotificationStats } from '../hooks/useNotificationStats';
 
 import { FilterTabs } from './FilterTabs';
 import { NotificationsFeed } from './NotificationsFeed';
 import { NotificationsPagination } from './NotificationsPagination';
 
 export const NotificationsContainer = () => {
-  const { filters, handleFiltersChange } =
-    useFilters<INotificationFilters>(DEFAULT_FILTERS);
-
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: DEFAULT_PAGE_SIZE,
-  });
-
+  const { filters, pagination, setPagination, onCategoryChange } =
+    useNotificationsControls();
   const { isConnected } = useWebSocket();
 
-  const { data, isFetching } = useGetNotificationsQuery(
+  const { data: notifications, isFetching } = useGetNotificationsQuery(
     buildNotificationsParams(pagination.pageIndex + 1, filters.category),
     {
       pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
     },
   );
 
-  const { data: allNotificationsData } = useGetNotificationsQuery(
+  const { data: allNotifications } = useGetNotificationsQuery(
     buildNotificationsParams(1, 'all'),
     {
       pollingInterval: isConnected ? 0 : POLLING_INTERVAL,
     },
   );
+  const stats = useNotificationStats(allNotifications?.items);
 
-  const filteredNotificationsList = filteredNotifications(
-    data?.items || [],
-    filters.category,
-  );
-
-  const unreadCountValue = unreadCount(allNotificationsData?.items || []);
-  const statusUpdatesCountValue = statusUpdatesCount(
-    allNotificationsData?.items || [],
-  );
-  const documentsCountValue = documentsCount(allNotificationsData?.items || []);
-  const requirementsCountValue = requirementsCount(
-    allNotificationsData?.items || [],
-  );
-
-  const filteredTotal = getFilteredTotal({
-    category: filters.category,
-    unreadCount: unreadCountValue,
-    statusUpdatesCount: statusUpdatesCountValue,
-    documentsCount: documentsCountValue,
-    requirementsCount: requirementsCountValue,
-    backendTotal: data?.total || 0,
-  });
-
-  const filteredTotalPages = Math.ceil(filteredTotal / pagination.pageSize);
+  const totalPages = notifications?.total_pages || 0;
+  const total = notifications?.total || 0;
 
   const [mark] = useMarkNotificationAsReadMutation();
 
   const handleMarkAsRead = (notificationId: number) => mark(notificationId);
-
-  const handleFilterChange = (category: NotificationCategory) => {
-    handleFiltersChange('category', category);
-    setPagination((prev) => ({
-      ...prev,
-      pageIndex: 0,
-    }));
-  };
 
   return (
     <div className='space-y-4'>
@@ -99,27 +51,22 @@ export const NotificationsContainer = () => {
       />
       <FilterTabs
         activeCategory={filters.category}
-        onCategoryChange={handleFilterChange}
-        categoryCounts={{
-          unread: unreadCountValue,
-          status_updates: statusUpdatesCountValue,
-          documents: documentsCountValue,
-          requirements: requirementsCountValue,
-        }}
+        onCategoryChange={onCategoryChange}
+        stats={stats}
       />
 
       <NotificationsFeed
-        notifications={filteredNotificationsList}
+        notifications={notifications?.items || []}
         isLoading={isFetching}
         onNotificationClick={handleMarkAsRead}
       />
 
-      {filteredTotal > 0 && filteredTotalPages > 1 && (
+      {totalPages > 1 && (
         <NotificationsPagination
           pagination={pagination}
           onPaginationChange={setPagination}
-          total={filteredTotal}
-          totalPages={filteredTotalPages}
+          total={total}
+          totalPages={totalPages}
         />
       )}
     </div>

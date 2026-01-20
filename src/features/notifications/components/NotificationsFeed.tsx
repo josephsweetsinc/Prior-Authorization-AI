@@ -1,31 +1,47 @@
-import { useIsAdmin } from '@/services/auth';
+import { type HTMLProps } from 'react';
 
-import { type NotificationsFeedProps } from '../types/types';
+import { useIsAdmin } from '@/services/auth';
+import { type INotification } from '@/services/notifications';
+import { cn } from '@/shared/lib/utils';
 
 import { NotificationFeedItem } from './NotificationFeedItem';
 import { NotificationFeedSkeleton } from './NotificationFeedSkeleton';
+
+export type Props = {
+  notifications?: INotification[];
+  isLoading?: boolean;
+  onNotificationClick: (_notificationId: number) => void;
+} & HTMLProps<HTMLElement>;
 
 export const NotificationsFeed = ({
   notifications,
   isLoading,
   onNotificationClick,
-}: NotificationsFeedProps) => {
+  className,
+  ...props
+}: Props) => {
   const { isAdmin } = useIsAdmin();
 
   if (isLoading) {
     return <NotificationFeedSkeleton />;
   }
 
-  if (notifications.length === 0) {
+  if (!notifications || notifications.length === 0) {
     return (
-      <div className='flex min-h-[200px] items-center justify-center rounded-xl border bg-white p-8'>
+      <section
+        className={cn(
+          'flex min-h-[200px] items-center justify-center rounded-xl border bg-white p-8',
+          className,
+        )}
+        {...props}
+      >
         <p className='text-gray-dark text-sm'>No notifications found</p>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className='space-y-3'>
+    <section className={cn('space-y-3', className)} {...props}>
       {notifications.map((notification) => (
         <NotificationFeedItem
           notification={notification}
@@ -34,6 +50,6 @@ export const NotificationsFeed = ({
           isAdmin={isAdmin}
         />
       ))}
-    </div>
+    </section>
   );
 };

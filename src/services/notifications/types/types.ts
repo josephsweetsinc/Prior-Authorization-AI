@@ -5,7 +5,7 @@ export type NotificationCategory =
   | 'documents'
   | 'requirements';
 
-export type NotificationItem = {
+export interface INotification {
   id: number;
   user_id: number;
   category: string;
@@ -14,18 +14,18 @@ export type NotificationItem = {
   request_id: number;
   is_read: boolean;
   created_at: string;
-};
+}
 
-export type NotificationsResponse = {
-  items: NotificationItem[];
+export interface IGetNotificationsResponse {
+  items: INotification[];
   page: number;
   total: number;
   showing: number;
   total_pages: number;
-};
+}
 
-export type NotificationsParams = {
+export interface IGetNotificationsParams {
   page?: number;
   category?: NotificationCategory;
-  filter?: 'all' | 'unread';
-};
+  is_read?: boolean;
+}

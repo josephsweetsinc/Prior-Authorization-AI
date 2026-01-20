@@ -1,1 +1,1 @@
-export { useGetNotificationsQuery } from './notifications-api';
+export * from './notifications-api';
