@@ -36,11 +36,18 @@ def mock_notification_dao():
 
 
 @pytest.fixture
+def mock_notification_service():
+    """Mock NotificationService."""
+    return AsyncMock()
+
+
+@pytest.fixture
 def expiration_reminder_service(
     mock_session,
     mock_request_dao,
     mock_user_dao,
     mock_notification_dao,
+    mock_notification_service,
 ):
     """Create ExpirationReminderService instance with mocks."""
     return ExpirationReminderService(
@@ -48,6 +55,7 @@ def expiration_reminder_service(
         request_dao=mock_request_dao,
         user_dao=mock_user_dao,
         notification_dao=mock_notification_dao,
+        notification_service=mock_notification_service,
     )
 
 
@@ -76,7 +84,7 @@ class TestExpirationReminderService:
         mock_request_dao,
         mock_user_dao,
         mock_notification_dao,
-        mock_session,
+        mock_notification_service,
     ):
         """Test sending reminders for expiring requests."""
         # Create mock request expiring in 30 days
@@ -102,14 +110,17 @@ class TestExpirationReminderService:
         mock_notification_dao.exists_today_by_request_and_category.return_value = (
             False
         )
-        mock_notification_dao.create.return_value = MagicMock()
+        # Mock NotificationService to return a mock notification
+        mock_notification = MagicMock()
+        mock_notification_service.create_requirement_notification.return_value = (
+            mock_notification
+        )
 
         result = await expiration_reminder_service.check_and_send_reminders()
 
         assert result['total_requests'] == 2
         # 2 requests * (1 provider + 1 admin) = 4 notifications
         assert result['notifications_sent'] == 4
-        assert mock_session.commit.call_count == 2  # Once per request
 
     @pytest.mark.asyncio
     async def test_check_and_send_reminders_skips_duplicates(
@@ -117,7 +128,7 @@ class TestExpirationReminderService:
         expiration_reminder_service,
         mock_request_dao,
         mock_notification_dao,
-        mock_session,
+        mock_notification_service,
     ):
         """Test that reminders already sent today are skipped."""
         request = MagicMock(spec=AmbulanceRequest)
@@ -134,9 +145,8 @@ class TestExpirationReminderService:
 
         assert result['total_requests'] == 3  # Found in all 3 checks
         assert result['notifications_sent'] == 0
-        # Should not create notifications or commit
-        mock_notification_dao.create.assert_not_awaited()
-        mock_session.commit.assert_not_awaited()
+        # Should not create notifications
+        mock_notification_service.create_requirement_notification.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_send_reminder_for_request_sends_to_provider_and_admins(
@@ -144,7 +154,7 @@ class TestExpirationReminderService:
         expiration_reminder_service,
         mock_user_dao,
         mock_notification_dao,
-        mock_session,
+        mock_notification_service,
     ):
         """Test that reminder is sent to provider and all admins."""
         request_id = 1
@@ -160,7 +170,10 @@ class TestExpirationReminderService:
             False
         )
         mock_user_dao.get_all_admins.return_value = [admin1, admin2]
-        mock_notification_dao.create.return_value = MagicMock()
+        mock_notification = MagicMock()
+        mock_notification_service.create_requirement_notification.return_value = (
+            mock_notification
+        )
 
         result = await expiration_reminder_service._send_reminder_for_request(
             request_id=request_id,
@@ -170,22 +183,25 @@ class TestExpirationReminderService:
 
         # Should send to provider + 2 admins = 3 notifications
         assert result == 3
-        assert mock_notification_dao.create.await_count == 3
-        mock_session.commit.assert_awaited_once()
+        assert (
+            mock_notification_service.create_requirement_notification.await_count
+            == 3
+        )
 
         # Verify notification details
-        create_calls = mock_notification_dao.create.await_args_list
+        create_calls = (
+            mock_notification_service.create_requirement_notification.await_args_list
+        )
         assert create_calls[0].kwargs['user_id'] == provider_id
         assert create_calls[1].kwargs['user_id'] == admin1.id
         assert create_calls[2].kwargs['user_id'] == admin2.id
 
-        # All should have same request_id and category
+        # All should have same request_id
         for call in create_calls:
             assert call.kwargs['request_id'] == request_id
-            assert (
-                call.kwargs['category'] == NotificationCategory.REQUIREMENT
-            )
-            assert 'will expire in 30 day(s)' in call.kwargs['message']
+            assert 'will expire in 30 day(s)' in call.kwargs[
+                'requirement_message'
+            ]
 
     @pytest.mark.asyncio
     async def test_send_reminder_for_request_no_admins(
@@ -193,7 +209,7 @@ class TestExpirationReminderService:
         expiration_reminder_service,
         mock_user_dao,
         mock_notification_dao,
-        mock_session,
+        mock_notification_service,
     ):
         """Test sending reminder when there are no admins."""
         request_id = 1
@@ -204,7 +220,10 @@ class TestExpirationReminderService:
             False
         )
         mock_user_dao.get_all_admins.return_value = []
-        mock_notification_dao.create.return_value = MagicMock()
+        mock_notification = MagicMock()
+        mock_notification_service.create_requirement_notification.return_value = (
+            mock_notification
+        )
 
         result = await expiration_reminder_service._send_reminder_for_request(
             request_id=request_id,
@@ -214,15 +233,17 @@ class TestExpirationReminderService:
 
         # Should send only to provider
         assert result == 1
-        assert mock_notification_dao.create.await_count == 1
-        mock_session.commit.assert_awaited_once()
+        assert (
+            mock_notification_service.create_requirement_notification.await_count
+            == 1
+        )
 
     @pytest.mark.asyncio
     async def test_send_reminder_for_request_already_sent_today(
         self,
         expiration_reminder_service,
         mock_notification_dao,
-        mock_session,
+        mock_notification_service,
     ):
         """Test that reminder is not sent if already sent today."""
         mock_notification_dao.exists_today_by_request_and_category.return_value = (
@@ -236,5 +257,4 @@ class TestExpirationReminderService:
         )
 
         assert result == 0
-        mock_notification_dao.create.assert_not_awaited()
-        mock_session.commit.assert_not_awaited()
+        mock_notification_service.create_requirement_notification.assert_not_awaited()
