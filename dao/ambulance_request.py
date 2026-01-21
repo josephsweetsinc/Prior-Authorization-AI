@@ -314,12 +314,14 @@ class AmbulanceRequestDAO(BaseDAO):
         *,
         patient_id: str | None = None,
         patient_name: str | None = None,
+        user_id: int | None = None,
     ) -> list[int]:
         """Search request IDs by patient ID and/or name.
 
         Args:
             patient_id: Optional patient ID to search for.
             patient_name: Optional patient name to search for (matches name).
+            user_id: Optional user ID to filter by. If None, returns all.
 
         Returns:
             List of request IDs matching the criteria.
@@ -328,6 +330,10 @@ class AmbulanceRequestDAO(BaseDAO):
         stmt = select(AmbulanceRequest.id).where(
             AmbulanceRequest.is_active == True  # noqa: E712
         )
+
+        # Filter by user_id if provided (for non-admin users)
+        if user_id is not None:
+            stmt = stmt.where(AmbulanceRequest.user_id == user_id)
 
         if patient_id is not None:
             stmt = stmt.where(

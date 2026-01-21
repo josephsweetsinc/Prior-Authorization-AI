@@ -196,6 +196,7 @@ async def search_requests(
         raise AmbulanceRequestSearchParametersMissingException
 
     request_ids = await service.search_by_patient_id_and_name(
+        user=user,
         patient_id=patient_id,
         patient_name=patient_name,
     )
