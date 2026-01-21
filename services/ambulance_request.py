@@ -696,12 +696,17 @@ class AmbulanceRequestService(BaseService):
     async def search_by_patient_id_and_name(
         self,
         *,
+        user: User,
         patient_id: str | None = None,
         patient_name: str | None = None,
     ) -> list[int]:
         """Search request IDs by patient ID and/or name.
 
+        Admin users see all matching requests.
+        Provider users see only their own matching requests.
+
         Args:
+            user: User object with role information.
             patient_id: Optional patient ID to search for.
             patient_name: Optional patient name to search for.
 
@@ -709,9 +714,11 @@ class AmbulanceRequestService(BaseService):
             List of request IDs matching the criteria.
 
         """
+        user_id = None if user.role == UserRole.ADMIN else user.id
         return await self._request_dao.search_by_patient_id_and_name(
             patient_id=patient_id,
             patient_name=patient_name,
+            user_id=user_id,
         )
 
     async def update_request_status(
