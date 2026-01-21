@@ -3,7 +3,7 @@
 import { useRef, useCallback } from 'react';
 
 import {
-  type NotificationItem,
+  type INotification,
   addNotificationToCache,
 } from '@/services/notifications';
 import { type AppDispatch } from '@/store';
@@ -14,7 +14,7 @@ export const useHandleNotifications = (dispatch: AppDispatch) => {
   const lastNotificationIdRef = useRef<number | null>(null);
 
   const handleNotification = useCallback(
-    (notification: NotificationItem) => {
+    (notification: INotification) => {
       if (notification.id === lastNotificationIdRef.current) {
         return;
       }

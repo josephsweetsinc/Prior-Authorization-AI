@@ -1,18 +1,16 @@
-import { type NotificationItem } from '@/services/notifications';
+import type { INotification } from '@/services/notifications';
 
-export const isNotificationItem = (
-  value: unknown,
-): value is NotificationItem => {
+export const isNotificationItem = (value: unknown): value is INotification => {
   return (
     typeof value === 'object' &&
     value !== null &&
-    typeof (value as NotificationItem).id === 'number'
+    typeof (value as INotification).id === 'number'
   );
 };
 
 export const safeNotificationHandler = (
   payload: unknown,
-  handleNotification: (_notification: NotificationItem) => void,
+  handleNotification: (_notification: INotification) => void,
 
   lastNotificationIdRef?: { current: number | null },
 ) => {

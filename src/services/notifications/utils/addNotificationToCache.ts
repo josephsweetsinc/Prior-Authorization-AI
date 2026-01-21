@@ -1,25 +1,27 @@
+import { apiCategory } from '@/services/websocket';
 import type { AppDispatch } from '@/store';
 
 import { updateNotificationCache } from '../actions';
 import { notificationApi } from '../api/notifications-api';
-import type { INotification, NotificationCategory } from '../types';
+import type { INotification } from '../types';
 
 export const addNotificationToCache = (
   notification: INotification,
   dispatch: AppDispatch,
 ) => {
-  updateNotificationCache({ page: 1, filter: 'all' }, notification, dispatch);
+  updateNotificationCache({ page: 1, is_read: false }, notification, dispatch);
 
   if (!notification.is_read) {
     updateNotificationCache(
-      { page: 1, filter: 'unread' },
+      { page: 1, is_read: false },
       notification,
       dispatch,
     );
   }
 
-  const category = notification.category as NotificationCategory;
-  if (category && category !== 'all' && category !== 'unread') {
+  const category = apiCategory(notification.category);
+
+  if (category) {
     updateNotificationCache({ page: 1, category }, notification, dispatch);
   }
 

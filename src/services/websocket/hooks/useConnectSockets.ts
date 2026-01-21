@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 
 import { getAccessToken } from '@/services/api/token';
-import type { NotificationItem } from '@/services/notifications';
+import type { INotification } from '@/services/notifications';
 
 import { WEBSOCKET_URL } from '../constants';
 import { type WebSocketEvent } from '../types';
@@ -12,7 +12,7 @@ import { safeNotificationHandler } from '../utils/checks';
 import { useWebSocket } from './useWebSocket';
 
 export const useConnectSockets = (
-  handleNotification: (_n: NotificationItem) => void,
+  handleNotification: (_n: INotification) => void,
 ) => {
   const { connect, disconnect, on, send, isConnected } = useWebSocket();
 
