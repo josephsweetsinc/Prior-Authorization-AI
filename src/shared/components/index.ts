@@ -29,7 +29,6 @@ export {
   SidebarItem,
   SidebarSkeleton,
 } from './sidebar';
-export { GlobalSearch } from './globalSearch';
 export { Separator } from './separator';
 export {
   Header,

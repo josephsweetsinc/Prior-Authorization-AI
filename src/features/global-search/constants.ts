@@ -1,6 +1,8 @@
-import type { GlobalSearchResultGroup } from './types';
+import type { ISearchResultGroup } from './types/types';
 
-export const fallbackResults: GlobalSearchResultGroup[] = [
+export const DEBOUNCE_DELAY_MS = 250;
+
+export const FALLBACK_RESULTS: ISearchResultGroup[] = [
   {
     title: 'Conditions',
     items: [

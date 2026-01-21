@@ -9,8 +9,8 @@ import {
   StatusChip,
   Separator,
   TitleAndDesc,
+  AttachedDocument,
 } from '@/shared/components';
-import { AttachedDocument } from '@/shared/components/attached-document';
 import { cn } from '@/shared/lib/utils';
 
 import { STATUS_TO_TIMELINE_STATUS } from '../constants';

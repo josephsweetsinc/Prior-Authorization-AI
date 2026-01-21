@@ -3,6 +3,7 @@
 import { BellDot, type icons, Settings } from 'lucide-react';
 import Link from 'next/link';
 
+import { GlobalSearch } from '@/features/global-search';
 import { useUnreadNotificationsCount } from '@/features/notifications';
 import {
   getDisplayName,
@@ -13,7 +14,6 @@ import {
 import { useGetCurrentUserQuery, useIsAdmin } from '@/services';
 import {
   Button,
-  GlobalSearch,
   Header,
   HeaderActions,
   HeaderGroup,
