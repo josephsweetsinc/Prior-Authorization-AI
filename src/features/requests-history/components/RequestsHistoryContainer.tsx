@@ -53,6 +53,7 @@ export const RequestsHistoryContainer = ({
     <section className={cn('space-y-5', className)} {...props}>
       <RequestsHeader filters={filters} onFiltersChange={updateFilters} />
       <RequestsTable
+        key={`requests-table-${initialRequestId ?? 'none'}`}
         data={data}
         isLoading={isFetching}
         pagination={pagination}
