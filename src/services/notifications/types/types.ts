@@ -8,7 +8,7 @@ export type NotificationCategory =
 export interface INotification {
   id: number;
   user_id: number;
-  category: string;
+  category: NotificationCategory;
   title: string;
   message: string;
   request_id: number;
