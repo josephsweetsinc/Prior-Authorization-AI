@@ -10,8 +10,7 @@ import {
 } from '@/shared/components';
 
 interface Params {
-  // eslint-disable-next-line no-unused-vars
-  onDetailsClick: (requestId: number) => void;
+  onDetailsClick: (_requestId: number) => void;
 }
 
 export const useGetColumns = ({
