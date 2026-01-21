@@ -10,10 +10,8 @@ import { Uploader, type MediaItem, Button } from '@/shared/components';
 
 interface UploadStepProps {
   onNext: (
-    // eslint-disable-next-line no-unused-vars
-    uploadedFiles: MediaItem[],
-    // eslint-disable-next-line no-unused-vars
-    extractionResult: IExtractionResponse | null,
+    _uploadedFiles: MediaItem[],
+    _extractionResult: IExtractionResponse | null,
   ) => void;
 }
 

@@ -9,8 +9,7 @@ import { type InputProps } from '../inputs/input';
 type Props = {
   value?: string;
   placeholder?: string;
-  // eslint-disable-next-line no-unused-vars
-  onChange: (value: string) => void;
+  onChange: (_value: string) => void;
   debounce?: number;
 } & Omit<InputProps, 'onChange' | 'value'>;
 

@@ -13,8 +13,7 @@ interface Params {
   initialStep?: number;
   initialExtractedData?: Partial<IExtractedData> | null;
   initialExtractionResult?: IUploadAndExtractionResult | null;
-  // eslint-disable-next-line no-unused-vars
-  onExtractionReady?: (data: IUploadAndExtractionResult) => void;
+  onExtractionReady?: (_data: IUploadAndExtractionResult) => void;
 }
 
 export const useNewRequestFlow = ({
