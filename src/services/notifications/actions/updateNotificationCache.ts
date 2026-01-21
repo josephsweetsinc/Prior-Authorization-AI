@@ -2,11 +2,11 @@ import { type AppDispatch } from '@/store';
 
 import { notificationApi } from '../api/notifications-api';
 import { draftStructure } from '../constants';
-import { type NotificationItem, type NotificationsParams } from '../types';
+import type { IGetNotificationsParams, INotification } from '../types';
 
 export const updateNotificationCache = (
-  params: NotificationsParams,
-  notification: NotificationItem,
+  params: IGetNotificationsParams,
+  notification: INotification,
   dispatch: AppDispatch,
 ) => {
   dispatch(
