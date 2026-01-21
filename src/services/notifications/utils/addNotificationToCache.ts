@@ -9,7 +9,7 @@ export const addNotificationToCache = (
   notification: INotification,
   dispatch: AppDispatch,
 ) => {
-  updateNotificationCache({ page: 1, is_read: false }, notification, dispatch);
+  updateNotificationCache({ page: 1 }, notification, dispatch);
 
   if (!notification.is_read) {
     updateNotificationCache(
