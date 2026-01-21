@@ -3,6 +3,7 @@ from datetime import UTC, datetime, time
 from io import BytesIO
 
 from fastapi import UploadFile
+from langchain_core.messages import HumanMessage, SystemMessage
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import BaseService
@@ -37,6 +38,9 @@ from schemas import (
     AdminUpdateRequestSchema,
     AIExtractionResponse,
     AmbulanceRequestResponseSchema,
+    CompletionStatus,
+    CompletionStatusItem,
+    CompletionStatusSchema,
     CreateAmbulanceRequestParseSchema,
     CreateAmbulanceRequestSchema,
     FileUploadResponseSchema,
@@ -50,6 +54,14 @@ from services.aws.actions import S3Actions
 from services.notification import NotificationService
 
 logger = logging.getLogger(__name__)
+
+# Validation constants
+MIN_NAME_LENGTH = 3
+MIN_ADDRESS_LENGTH = 5
+EMPTY_FILE_SIZE = 0
+MIN_TOTAL_COUNT = 0
+DEFAULT_ADMIN_LIMIT = 1000
+PRESIGNED_URL_EXPIRATION = 3600  # 1 hour in seconds
 
 
 class AmbulanceRequestService(BaseService):
@@ -112,7 +124,7 @@ class AmbulanceRequestService(BaseService):
         content = await file.read()
         file_size = len(content)
 
-        if file_size == 0:
+        if file_size == EMPTY_FILE_SIZE:
             raise AmbulanceRequestEmptyDocumentEmtpyException
 
         # Convert bytes to BytesIO for S3Actions
@@ -316,13 +328,20 @@ class AmbulanceRequestService(BaseService):
                 request_id=draft_request.id,
             )
         await self._session.commit()
+        await self._session.refresh(draft_request)
+
+        # Get completion status
+        completion_status = await self.get_completion_status(
+            request=draft_request
+        )
 
         return FileUploadWithExtractionResponseSchema(
             request_id=draft_request.id,
             extracted_data=ai_response.extracted_data,
+            completion_status=completion_status,
         )
 
-    async def create_request(  # noqa: C901
+    async def create_request(  # noqa: C901,PLR0912, PLR0915
         self,
         user_id: int,
         request_data: CreateAmbulanceRequestSchema,
@@ -350,14 +369,43 @@ class AmbulanceRequestService(BaseService):
                 'Request is not in DRAFT status'
             )
 
+        # Update critical fields needed for completion status check
+        # (form_number and ordering_physician) before validation
+        update_data = request_data.model_dump(
+            exclude_unset=True, exclude={'request_id'}
+        )
+        if (
+            'form_number' in update_data
+            and update_data['form_number'] is not None
+        ):
+            request.form_number = update_data['form_number']
+        if (
+            'ordering_physician' in update_data
+            and update_data['ordering_physician'] is not None
+        ):
+            request.ordering_physician = update_data['ordering_physician']
+
+        # Check if request can be submitted
+        completion_status = await self.get_completion_status(request=request)
+        if not completion_status.can_submit:
+            missing_items = (
+                completion_status.missing_fields
+                + completion_status.missing_documents
+            )
+            missing_names = ', '.join([item.name for item in missing_items])
+            raise AmbulanceRequestInvalidStatusException(  # noqa: TRY003
+                f'Cannot submit request. Missing required items: '
+                f'{missing_names}. Verification of Medical Necessity '
+                'document and Physician Signature are required for '
+                'submission.'
+            )
+
         # Update request with verified data
         # Only update fields that AI returns to user
         # Fields that AI doesn't return (like ai_accuracy)
         # Use model_dump(exclude_unset=True) to only update
         # This ensures fields not sent by user are not updated
-        update_data = request_data.model_dump(
-            exclude_unset=True, exclude={'request_id'}
-        )
+        # (update_data was already extracted above for early field updates)
 
         # Update only fields that are in ExtractedTransportationData
         # These are the fields that AI returns to user after extraction
@@ -440,7 +488,7 @@ class AmbulanceRequestService(BaseService):
         try:
             admin_users = await self._user_dao.get_all(
                 roles=[UserRole.ADMIN],
-                limit=1000,  # Get all admins (reasonable limit)
+                limit=DEFAULT_ADMIN_LIMIT,  # Get all admins
             )
             for admin in admin_users:
                 try:
@@ -548,7 +596,7 @@ class AmbulanceRequestService(BaseService):
             try:
                 download_url = self._s3_actions.get_presigned_url(
                     key=file.s3_key,
-                    expires_in=3600,
+                    expires_in=PRESIGNED_URL_EXPIRATION,
                 )
                 documents.append(
                     RequestDocumentSchema(
@@ -573,18 +621,70 @@ class AmbulanceRequestService(BaseService):
                     )
                 )
 
+        # Get completion status
+        completion_status = await self.get_completion_status(request=request)
+
+        # Get status history
+        status_history = await self._status_history_dao.get_by_request_id(
+            request_id=request_id
+        )
+        status_history_schemas = [
+            RequestStatusHistoryResponseSchema.model_validate(entry)
+            for entry in status_history
+        ]
+
         # Return different schemas based on user role
         if user.role == UserRole.ADMIN:
-            admin_response = AdminRequestWithStatusHistorySchema.model_validate(
-                request
+            return AdminRequestWithStatusHistorySchema(
+                id=request.id,
+                user_id=request.user_id,
+                transportation_type=request.transportation_type,
+                patient_first_name=request.patient_first_name,
+                patient_last_name=request.patient_last_name,
+                patient_date_of_birth=request.patient_date_of_birth,
+                patient_id=request.patient_id,
+                date_of_transport=request.date_of_transport,
+                time_of_transport=request.time_of_transport,
+                pickup_address=request.pickup_address,
+                destination_address=request.destination_address,
+                primary_diagnosis=request.primary_diagnosis,
+                medical_justification=request.medical_justification,
+                status=request.status,
+                form_number=request.form_number,
+                reviewer_id=request.reviewer_id,
+                ambulatory_status=request.ambulatory_status,
+                oxygen_required=request.oxygen_required,
+                ai_accuracy=float(request.ai_accuracy)
+                if request.ai_accuracy
+                else None,
+                ordering_physician=request.ordering_physician,
+                physician_phone=request.physician_phone,
+                denial_reason=request.denial_reason,
+                denial_notes=request.denial_notes,
+                created_at=request.created_at,
+                updated_at=request.updated_at,
+                status_history=status_history_schemas,
+                documents=documents,
+                completion_status=completion_status,
             )
-            admin_response.documents = documents
-            return admin_response
-        provider_response = RequestWithStatusHistorySchema.model_validate(
-            request
+        return RequestWithStatusHistorySchema(
+            id=request.id,
+            user_id=request.user_id,
+            patient_first_name=request.patient_first_name,
+            patient_last_name=request.patient_last_name,
+            primary_diagnosis=request.primary_diagnosis,
+            status=request.status,
+            pickup_address=request.pickup_address,
+            destination_address=request.destination_address,
+            transportation_type=request.transportation_type,
+            patient_id=request.patient_id,
+            form_number=request.form_number,
+            created_at=request.created_at,
+            updated_at=request.updated_at,
+            status_history=status_history_schemas,
+            documents=documents,
+            completion_status=completion_status,
         )
-        provider_response.documents = documents
-        return provider_response
 
     async def get_all_requests(
         self,
@@ -658,7 +758,9 @@ class AmbulanceRequestService(BaseService):
                     days=days,
                 )
 
-        total_pages = (total + limit - 1) // limit if total > 0 else 1
+        total_pages = (
+            (total + limit - 1) // limit if total > MIN_TOTAL_COUNT else 1
+        )
         showing = len(requests)
 
         return (
@@ -720,6 +822,389 @@ class AmbulanceRequestService(BaseService):
             patient_name=patient_name,
             user_id=user_id,
         )
+
+    async def get_completion_status(  # noqa: PLR0912, C901, PLR0915
+        self,
+        request: AmbulanceRequest,
+    ) -> CompletionStatusSchema:
+        """Check completion status of a request.
+
+        Validates required fields and documents to determine if request
+        can be submitted.
+
+        Args:
+            request: AmbulanceRequest to check.
+
+        Returns:
+            CompletionStatusSchema: Completion status with details.
+
+        """
+        required_fields: list[CompletionStatusItem] = []
+        required_documents: list[CompletionStatusItem] = []
+
+        # Check required fields
+        # Basic patient information
+        if (
+            not request.patient_first_name
+            or request.patient_first_name == 'Unknown'
+        ):
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Patient First Name',
+                    status=CompletionStatus.MISSING,
+                    message='Patient first name is required',
+                )
+            )
+        elif len(request.patient_first_name.strip()) < MIN_NAME_LENGTH:
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Patient First Name',
+                    status=CompletionStatus.INCOMPLETE,
+                    message='Patient first name must be at least 3 characters',
+                )
+            )
+        else:
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Patient First Name',
+                    status=CompletionStatus.COMPLETE,
+                )
+            )
+
+        if (
+            not request.patient_last_name
+            or request.patient_last_name == 'Unknown'
+        ):
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Patient Last Name',
+                    status=CompletionStatus.MISSING,
+                    message='Patient last name is required',
+                )
+            )
+        elif len(request.patient_last_name.strip()) < MIN_NAME_LENGTH:
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Patient Last Name',
+                    status=CompletionStatus.INCOMPLETE,
+                    message='Patient last name must be at least 3 characters',
+                )
+            )
+        else:
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Patient Last Name',
+                    status=CompletionStatus.COMPLETE,
+                )
+            )
+
+        if not request.patient_id or request.patient_id == 'TBD':
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Patient ID',
+                    status=CompletionStatus.MISSING,
+                    message=(
+                        'Patient Medicare Beneficiary Identifier (MBI) '
+                        'is required'
+                    ),
+                )
+            )
+        else:
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Patient ID',
+                    status=CompletionStatus.COMPLETE,
+                )
+            )
+
+        if not request.pickup_address or request.pickup_address == 'Pending':
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Pickup Address',
+                    status=CompletionStatus.MISSING,
+                    message='Pickup address is required',
+                )
+            )
+        elif len(request.pickup_address.strip()) < MIN_ADDRESS_LENGTH:
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Pickup Address',
+                    status=CompletionStatus.INCOMPLETE,
+                    message='Pickup address must be at least 5 characters',
+                )
+            )
+        else:
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Pickup Address',
+                    status=CompletionStatus.COMPLETE,
+                )
+            )
+
+        if (
+            not request.destination_address
+            or request.destination_address == 'Pending'
+        ):
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Destination Address',
+                    status=CompletionStatus.MISSING,
+                    message='Destination address is required',
+                )
+            )
+        elif len(request.destination_address.strip()) < MIN_ADDRESS_LENGTH:
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Destination Address',
+                    status=CompletionStatus.INCOMPLETE,
+                    message='Destination address must be at least 5 characters',
+                )
+            )
+        else:
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Destination Address',
+                    status=CompletionStatus.COMPLETE,
+                )
+            )
+
+        # Physician signature (CRITICAL - blocks submission)
+        if (
+            not request.ordering_physician
+            or not request.ordering_physician.strip()
+        ):
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Physician Signature',
+                    status=CompletionStatus.MISSING,
+                    message=(
+                        'Physician signature (Ordering Physician name) '
+                        'is required for submission'
+                    ),
+                )
+            )
+        else:
+            required_fields.append(
+                CompletionStatusItem(
+                    name='Physician Signature',
+                    status=CompletionStatus.COMPLETE,
+                )
+            )
+
+        # Check required documents
+        files = await self._file_dao.get_by_request_id(request_id=request.id)
+
+        # Check for Verification of Medical Necessity document by content
+        has_verification = await self._check_verification_document_by_content(
+            files=files,
+            form_number=request.form_number,
+        )
+
+        if (not has_verification and not files) or not has_verification:
+            required_documents.append(
+                CompletionStatusItem(
+                    name='Verification of Medical Necessity',
+                    status=CompletionStatus.MISSING,
+                    message=(
+                        'Verification of Medical Necessity document '
+                        'is required for submission'
+                    ),
+                )
+            )
+        else:
+            required_documents.append(
+                CompletionStatusItem(
+                    name='Verification of Medical Necessity',
+                    status=CompletionStatus.COMPLETE,
+                )
+            )
+
+        # Filter only missing/incomplete items
+        missing_fields = [
+            item
+            for item in required_fields
+            if item.status
+            in (CompletionStatus.MISSING, CompletionStatus.INCOMPLETE)
+        ]
+        missing_documents = [
+            item
+            for item in required_documents
+            if item.status
+            in (CompletionStatus.MISSING, CompletionStatus.INCOMPLETE)
+        ]
+
+        # Determine overall status
+        all_items = required_fields + required_documents
+        missing_items = [
+            item
+            for item in all_items
+            if item.status == CompletionStatus.MISSING
+        ]
+        incomplete_items = [
+            item
+            for item in all_items
+            if item.status == CompletionStatus.INCOMPLETE
+        ]
+
+        if missing_items:
+            overall_status = CompletionStatus.MISSING
+        elif incomplete_items:
+            overall_status = CompletionStatus.INCOMPLETE
+        else:
+            overall_status = CompletionStatus.COMPLETE
+
+        # Check if can submit (must have physician signature and
+        # verification document)
+        has_physician = any(
+            item.name == 'Physician Signature'
+            and item.status == CompletionStatus.COMPLETE
+            for item in required_fields
+        )
+        has_verification_doc = any(
+            item.name == 'Verification of Medical Necessity'
+            and item.status == CompletionStatus.COMPLETE
+            for item in required_documents
+        )
+
+        can_submit = (
+            has_physician
+            and has_verification_doc
+            and overall_status
+            in (
+                CompletionStatus.COMPLETE,
+                CompletionStatus.INCOMPLETE,
+            )
+        )
+
+        return CompletionStatusSchema(
+            overall_status=overall_status,
+            missing_fields=missing_fields,
+            missing_documents=missing_documents,
+            can_submit=can_submit,
+        )
+
+    async def _check_verification_document_by_content(
+        self,
+        files: list[RequestFile],
+        form_number: str | None,
+    ) -> bool:
+        """Check if Verification of Medical Necessity document exists.
+
+        This method analyzes document content using AI to determine if any
+        of the uploaded files contains Verification of Medical Necessity
+        information.
+
+        Args:
+            files: List of request files to check.
+            form_number: Optional form number from the request.
+
+        Returns:
+            True if Verification of Medical Necessity document is found,
+            False otherwise.
+
+        """
+        if not files:
+            return False
+
+        # Quick check: if form_number contains CMS-13614,
+        # it's likely a Verification form
+        if form_number:
+            form_lower = form_number.lower()
+            if any(keyword in form_lower for keyword in ['13614', 'cms-13614']):
+                logger.info(
+                    (
+                        'Found Verification of Medical Necessity '
+                        'based on form_number: %s'
+                    ),
+                    form_number,
+                )
+                return True
+
+        # Check document content using AI for each file
+        verification_prompt = """You are a medical document analyst.
+Analyze the provided document and determine if it is a "Verification of
+Medical Necessity" form or document.
+
+A Verification of Medical Necessity document typically contains:
+- Form numbers like CMS-13614, CMS-1500, or similar
+- Headers/titles mentioning "Verification of Medical Necessity",
+  "Certificate of Medical Necessity", or "Medical Necessity Statement"
+- Sections about medical justification for transportation
+- Physician signatures related to medical necessity
+- CMS (Centers for Medicare & Medicaid Services) form references
+
+Respond with ONLY one word: "YES" if this is a Verification of Medical
+Necessity document, or "NO" if it is not."""
+
+        for file in files:
+            try:
+                # Download file from S3
+                (
+                    file_bytes,
+                    content_type,
+                ) = await self._ai_extraction_service._download_file_from_s3(  # noqa: SLF001
+                    file.s3_key
+                )
+
+                # Process document to images
+                processor = self._ai_extraction_service._document_processor  # noqa: SLF001
+                images = await processor.process_document(
+                    file_bytes, content_type
+                )
+
+                if not images:
+                    continue
+
+                # Build message for AI
+                message_content = (
+                    self._ai_extraction_service._build_message_content(images)  # noqa: SLF001
+                )
+                messages = [
+                    SystemMessage(content=verification_prompt),
+                    HumanMessage(content=message_content),
+                ]
+
+                # Call LLM
+                response = await self._ai_extraction_service._llm.ainvoke(  # noqa: SLF001
+                    messages
+                )
+                # Handle response content which can be str or list
+                if hasattr(response, 'content'):
+                    content = response.content
+                    if isinstance(content, str):
+                        response_text = content.strip().upper()
+                    else:
+                        # If content is a list, convert to string
+                        response_text = str(content).strip().upper()
+                else:
+                    response_text = str(response).strip().upper()
+
+                logger.info(
+                    'AI verification check for file %s (%s): %s',
+                    file.filename,
+                    file.s3_key,
+                    response_text,
+                )
+
+                if 'YES' in response_text:
+                    logger.info(
+                        'Found Verification of Medical Necessity in file: %s',
+                        file.filename,
+                    )
+                    return True
+
+            except Exception:
+                logger.exception(
+                    (
+                        'Failed to check Verification of Medical Necessity '
+                        'for file %s'
+                    ),
+                    file.filename,
+                )
+                # Continue checking other files if one fails
+                continue
+
+        return False
 
     async def update_request_status(
         self,
@@ -950,7 +1435,7 @@ class AmbulanceRequestService(BaseService):
             try:
                 download_url = self._s3_actions.get_presigned_url(
                     key=file.s3_key,
-                    expires_in=3600,
+                    expires_in=PRESIGNED_URL_EXPIRATION,
                 )
                 documents.append(
                     RequestDocumentSchema(

@@ -72,6 +72,18 @@ class TestAmbulanceRequestService:
                 confidence_score=0.95,
             )
         )
+        # Mock _download_file_from_s3 for verification document checking
+        mock._download_file_from_s3 = AsyncMock(
+            return_value=(b'fake pdf content', 'application/pdf')
+        )
+        # Mock document processor
+        mock._document_processor = MagicMock()
+        mock._document_processor.process_document = AsyncMock(return_value=[])
+        # Mock build_message_content
+        mock._build_message_content = MagicMock(return_value=[])
+        # Mock LLM
+        mock._llm = MagicMock()
+        mock._llm.ainvoke = AsyncMock(return_value=MagicMock(content='NO'))
         return mock
 
     @pytest.fixture
@@ -304,7 +316,8 @@ class TestAmbulanceRequestService:
             destination_address='Memorial Dialysis Center, 456 Medical Dr',
             primary_diagnosis='Chronic heart failure',
             medical_justification='Patient requires transport',
-            form_number='CMS-10344',
+            form_number='CMS-13614',  # This form number indicates Verification of Medical Necessity
+            ordering_physician='Dr. Smith',  # Physician Signature is required
         )
 
         # Get draft request to check ai_accuracy
@@ -404,6 +417,8 @@ class TestAmbulanceRequestService:
             time_of_transport=time(13, 40),
             pickup_address='123 Main St',
             destination_address='456 Medical Dr',
+            form_number='CMS-13614',  # This form number indicates Verification of Medical Necessity
+            ordering_physician='Dr. Smith',  # Physician Signature is required
         )
         created = await service.create_request(
             user_id=user.id, request_data=request_data
@@ -475,6 +490,8 @@ class TestAmbulanceRequestService:
             time_of_transport=time(13, 40),
             pickup_address='123 Main St',
             destination_address='456 Medical Dr',
+            form_number='CMS-13614',  # This form number indicates Verification of Medical Necessity
+            ordering_physician='Dr. Smith',  # Physician Signature is required
         )
         created = await service.create_request(
             user_id=user1.id, request_data=request_data
@@ -528,6 +545,8 @@ class TestAmbulanceRequestService:
             time_of_transport=time(13, 40),
             pickup_address='123 Main St',
             destination_address='456 Medical Dr',
+            form_number='CMS-13614',  # This form number indicates Verification of Medical Necessity
+            ordering_physician='Dr. Smith',  # Physician Signature is required
         )
         created = await service.create_request(
             user_id=user1.id, request_data=request_data
@@ -584,6 +603,8 @@ class TestAmbulanceRequestService:
                 time_of_transport=time(13, 40),
                 pickup_address='123 Main St',
                 destination_address='456 Medical Dr',
+                form_number='CMS-13614',  # This form number indicates Verification of Medical Necessity
+                ordering_physician='Dr. Smith',  # Physician Signature is required
             )
             await service.create_request(
                 user_id=user1.id, request_data=request_data
@@ -618,6 +639,8 @@ class TestAmbulanceRequestService:
             time_of_transport=time(13, 40),
             pickup_address='789 Oak Ave',
             destination_address='321 Pine St',
+            form_number='CMS-13614',  # This form number indicates Verification of Medical Necessity
+            ordering_physician='Dr. Smith',  # Physician Signature is required
         )
         await service.create_request(
             user_id=user2.id, request_data=request_data
@@ -681,6 +704,8 @@ class TestAmbulanceRequestService:
                 time_of_transport=time(13, 40),
                 pickup_address='123 Main St',
                 destination_address='456 Medical Dr',
+                form_number='CMS-13614',  # This form number indicates Verification of Medical Necessity
+                ordering_physician='Dr. Smith',  # Physician Signature is required
             )
             await service.create_request(
                 user_id=user.id, request_data=request_data
@@ -747,6 +772,8 @@ class TestAmbulanceRequestService:
                 time_of_transport=time(13, 40),
                 pickup_address='123 Main St',
                 destination_address='456 Medical Dr',
+                form_number='CMS-13614',  # This form number indicates Verification of Medical Necessity
+                ordering_physician='Dr. Smith',  # Physician Signature is required
             )
             await service.create_request(
                 user_id=user.id, request_data=request_data
@@ -823,6 +850,8 @@ class TestAmbulanceRequestService:
             time_of_transport=time(13, 40),
             pickup_address='123 Main St',
             destination_address='456 Medical Dr',
+            form_number='CMS-13614',  # This form number indicates Verification of Medical Necessity
+            ordering_physician='Dr. Smith',  # Physician Signature is required
         )
         created = await service.create_request(
             user_id=user.id, request_data=request_data
@@ -930,8 +959,19 @@ class TestAmbulanceRequestService:
         service._request_dao = AsyncMock()
         service._request_dao.get_by_id.return_value = request
         service._status_history_dao = AsyncMock()
+        service._status_history_dao.get_by_request_id.return_value = []
         service._file_dao = AsyncMock()
         service._file_dao.get_by_request_id.return_value = []
+
+        # Mock get_completion_status
+        from schemas.ambulance_request import CompletionStatus, CompletionStatusSchema
+        mock_completion_status = CompletionStatusSchema(
+            overall_status=CompletionStatus.COMPLETE,
+            missing_fields=[],
+            missing_documents=[],
+            can_submit=True,
+        )
+        service.get_completion_status = AsyncMock(return_value=mock_completion_status)
 
         # Action
         await service.get_request_by_id(user=admin, request_id=1)
