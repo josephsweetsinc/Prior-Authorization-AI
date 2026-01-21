@@ -6,7 +6,6 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    computed_field,
     field_serializer,
 )
 
@@ -29,7 +28,7 @@ class CompletionStatus(StrEnum):
 
     MISSING = 'missing'  # Required item is missing
     INCOMPLETE = 'incomplete'  # Item exists but is incomplete
-    COMPLETE = 'complete'  #Item is complete and valid
+    COMPLETE = 'complete'  # Item is complete and valid
 
 
 def get_denial_reason_display_name(reason: DenialReason) -> str:
