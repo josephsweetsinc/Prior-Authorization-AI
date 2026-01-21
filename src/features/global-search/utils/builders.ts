@@ -1,5 +1,3 @@
-export const DEBOUNCE_DELAY_MS = 250;
-
 export const isNumericQuery = (value: string) => /^[0-9]+$/.test(value);
 
 export const buildSearchPayload = (query: string) =>
