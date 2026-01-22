@@ -30,12 +30,21 @@ const isExtractionComplete = (extracted: Partial<IExtractedData>): boolean => {
   });
 };
 
+const getCompletionFlags = (
+  extracted: Partial<IExtractedData>,
+  files?: MediaItem[] | null,
+): { hasFiles: boolean; isComplete: boolean } => {
+  return {
+    hasFiles: Boolean(files?.length),
+    isComplete: isExtractionComplete(extracted),
+  };
+};
+
 const buildCompletionStatus = (
   extracted: Partial<IExtractedData>,
   files?: MediaItem[] | null,
 ): CompletionStatus => {
-  const hasFiles = Boolean(files?.length);
-  const isComplete = isExtractionComplete(extracted);
+  const { hasFiles, isComplete } = getCompletionFlags(extracted, files);
 
   return {
     overall_status: hasFiles

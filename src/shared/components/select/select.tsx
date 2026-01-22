@@ -177,9 +177,10 @@ export function Select({
         <span
           className={cn(
             'font-nunito-sans truncate text-left text-sm transition-colors',
-            !selectedOption
-              ? 'text-muted-foreground font-normal'
-              : 'text-primary font-medium',
+            {
+              'text-muted-foreground font-normal': !selectedOption,
+              'text-primary font-medium': !!selectedOption,
+            },
           )}
         >
           {selectedOption ? selectedOption.label : placeholder}

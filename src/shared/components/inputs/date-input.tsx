@@ -79,7 +79,7 @@ export function DateInput({
               id='date-picker'
               className={cn(
                 'w-full justify-between px-6! text-sm font-normal',
-                error ? 'border-destructive' : null,
+                { 'border-destructive': !!error },
               )}
             >
               {resolved ? formatDateToDisplay(resolved) : 'Select date'}
