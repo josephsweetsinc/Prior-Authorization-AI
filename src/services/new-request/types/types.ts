@@ -1,6 +1,7 @@
 import { type FormState } from '@/features/new-request';
 import {
   type AmbulatoryStatus,
+  type CompletionStatus,
   type TransportationType,
 } from '@/services/requests';
 import { type MediaItem } from '@/shared/components';
@@ -62,5 +63,6 @@ export interface IExtractedData {
 export type IExtractionResponse = {
   request_id: number;
   extracted_data: Partial<IExtractedData>;
+  completion_status?: CompletionStatus;
   is_complete?: boolean;
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import { Eye, EyeOff, Search } from 'lucide-react';
+import { CircleAlert, Eye, EyeOff, Search } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/shared/lib/utils';
@@ -39,7 +39,6 @@ function Input({
           htmlFor={inputId}
           className={cn(
             'font-nunito-sans mb-1 block text-[16px] leading-[150%] font-medium text-black',
-            invalid && 'text-destructive',
           )}
         >
           {label?.trim()}
@@ -54,15 +53,14 @@ function Input({
           placeholder={placeholderProp}
           aria-invalid={invalid}
           className={cn(
-            'file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+            'file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
             'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
             className,
-            // add peer only for floating labels (floating relies on peer classes)
             labelVariant === 'floating'
-              ? 'peer ease focus:border-accent-foreground w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm text-slate-700 shadow-sm transition duration-300 placeholder:text-slate-400 focus:shadow-none focus:outline-none'
-              : 'ease focus:border-accent-foreground w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm text-slate-700 shadow-sm transition duration-300 focus:shadow-none focus:outline-none',
+              ? 'peer ease focus:border-accent-foreground border-gray-separator w-full rounded-md border bg-transparent px-3 py-2 text-sm text-slate-700 transition duration-300 placeholder:text-slate-400 focus:outline-none'
+              : 'ease focus:border-accent-foreground border-gray-separator w-full rounded-md border bg-transparent px-3 py-2 text-sm text-slate-700 transition duration-300 focus:outline-none',
             'h-9 rounded-md px-6 py-6 has-[>svg]:px-3',
-            isTime && 'appearance-none py-0 leading-[1]',
+            isTime && 'h-12.5 appearance-none py-0 leading-[1]',
             isSearch && 'rounded-xl pl-11',
           )}
           {...props}
@@ -102,9 +100,12 @@ function Input({
       </div>
 
       {error && (
-        <p className='text-destructive mt-1 text-sm' role='alert'>
-          {error}
-        </p>
+        <div
+          className='text-destructive mt-1 flex items-center gap-1 text-sm'
+          role='alert'
+        >
+          <CircleAlert size={13} /> {error}
+        </div>
       )}
     </div>
   );

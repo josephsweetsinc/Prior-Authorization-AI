@@ -1,8 +1,10 @@
 'use client';
 
+import { CircleAlert } from 'lucide-react';
 import * as React from 'react';
 
 import { CalendarIcon } from '@/shared/assets/icons';
+import { cn } from '@/shared/lib/utils';
 
 import { Button } from '../button';
 import { Calendar } from '../calendar';
@@ -65,9 +67,9 @@ export function DateInput({
   };
 
   return (
-    <div className='flex w-full gap-4'>
-      <div className='flex w-full flex-col gap-3'>
-        <Label htmlFor='date-picker' className='px-1'>
+    <div className='font-nunito-sans flex w-full gap-4'>
+      <div className='flex w-full flex-col gap-1'>
+        <Label htmlFor='date-picker' className='px-1 text-base font-medium'>
           {label}
         </Label>
         <Popover open={open} onOpenChange={setOpen}>
@@ -75,7 +77,10 @@ export function DateInput({
             <Button
               variant='default'
               id='date-picker'
-              className='w-full justify-between font-normal'
+              className={cn(
+                'w-full justify-between px-6! text-sm font-normal',
+                { 'border-destructive': !!error },
+              )}
             >
               {resolved ? formatDateToDisplay(resolved) : 'Select date'}
               <CalendarIcon />
@@ -92,10 +97,14 @@ export function DateInput({
             />
           </PopoverContent>
         </Popover>
+
         {error && (
-          <p className='text-destructive mt-1 text-sm' role='alert'>
-            {error}
-          </p>
+          <div
+            className='text-destructive flex items-center gap-1 text-sm'
+            role='alert'
+          >
+            <CircleAlert size={13} /> {error}
+          </div>
         )}
       </div>
     </div>
