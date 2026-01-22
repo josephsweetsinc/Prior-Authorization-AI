@@ -70,7 +70,6 @@ export const useNewRequestFlow = ({
     extractedData,
     extractionResult,
     isExtractionComplete:
-      extractionResult?.completion_status?.overall_status === 'complete' ||
-      Boolean(extractionResult?.is_complete),
+      extractionResult?.completion_status?.overall_status === 'complete',
   };
 };
