@@ -69,6 +69,8 @@ export const useNewRequestFlow = ({
     finishReviewEdit: () => setIsReviewEditing(false),
     extractedData,
     extractionResult,
-    isExtractionComplete: Boolean(extractionResult?.is_complete),
+    isExtractionComplete:
+      extractionResult?.completion_status?.overall_status === 'complete' ||
+      Boolean(extractionResult?.is_complete),
   };
 };

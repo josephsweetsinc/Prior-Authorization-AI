@@ -64,7 +64,6 @@ export function NewRequestFlow({ draftId }: Props) {
     finishReviewEdit,
     extractedData,
     extractionResult,
-    isExtractionComplete,
   } = useNewRequestFlow({
     totalSteps: TOTAL_STEPS,
     initialStep: draftId ? 2 : 1,
@@ -115,6 +114,14 @@ export function NewRequestFlow({ draftId }: Props) {
     finishReviewEdit();
   };
 
+  const extractionOverallStatus =
+    extractionResult?.completion_status?.overall_status ??
+    (extractionResult
+      ? extractionResult.is_complete
+        ? 'complete'
+        : 'incomplete'
+      : undefined);
+
   function renderStep() {
     if (step === 1) {
       return <UploadStep onNext={next} />;
@@ -134,7 +141,7 @@ export function NewRequestFlow({ draftId }: Props) {
               ? draftExtractionResult.extracted_data
               : extractedData
           }
-          isComplete={Boolean(extractionResult?.is_complete)}
+          overallStatus={extractionOverallStatus}
           hideBackButton={isSuccess ? true : false}
         />
       );
@@ -150,7 +157,7 @@ export function NewRequestFlow({ draftId }: Props) {
               stored?.form ? formToExtracted(stored.form) : extractedData
             }
             mode='review-edit'
-            isComplete={isExtractionComplete}
+            overallStatus={extractionResult?.completion_status?.overall_status}
           />
         );
       }

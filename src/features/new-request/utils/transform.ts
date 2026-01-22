@@ -54,7 +54,14 @@ export function transformRequestToExtraction(
   return {
     request_id: request.id,
     extracted_data,
-    is_complete: isExtractionComplete(extracted_data),
+    completion_status: request.completion_status ?? {
+      overall_status: isExtractionComplete(extracted_data)
+        ? 'complete'
+        : 'incomplete',
+      missing_fields: [],
+      missing_documents: [],
+      can_submit: isExtractionComplete(extracted_data),
+    },
     files: transformDocumentsToMediaItems(request.documents),
   };
 }

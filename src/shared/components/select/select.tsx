@@ -1,6 +1,7 @@
 'use client';
 
 import { cva, type VariantProps } from 'class-variance-authority';
+import { CircleAlert } from 'lucide-react';
 import { useEffect, useRef, useState, useId } from 'react';
 
 import ArrowDownIcon from '@/shared/assets/icons/arrow_down';
@@ -17,7 +18,7 @@ const selectTriggerVariants = cva(
       },
       size: {
         default: 'h-12 px-6 py-3',
-        sm: 'h-9 px-3 text-sm',
+        sm: 'h-9 px-6 text-sm',
         lg: 'h-14 px-6 text-lg',
       },
     },
@@ -148,7 +149,10 @@ export function Select({
       {trimmedLabel ? (
         <label
           htmlFor={triggerId}
-          className={cn('mb-2 block text-sm font-medium', labelClassName)}
+          className={cn(
+            'font-nunito-sans mb-2 block text-base font-medium',
+            labelClassName,
+          )}
         >
           {trimmedLabel}
         </label>
@@ -172,10 +176,10 @@ export function Select({
       >
         <span
           className={cn(
-            'truncate text-left transition-colors',
+            'font-nunito-sans truncate text-left text-sm transition-colors',
             !selectedOption
-              ? 'text-muted-foreground text-sm font-normal'
-              : 'text-primary text-md font-medium',
+              ? 'text-muted-foreground font-normal'
+              : 'text-primary font-medium',
           )}
         >
           {selectedOption ? selectedOption.label : placeholder}
@@ -223,9 +227,12 @@ export function Select({
       )}
 
       {error && (
-        <p className='text-destructive mt-1 text-sm' role='alert'>
-          {error}
-        </p>
+        <div
+          className='text-destructive flex items-center gap-1 text-sm'
+          role='alert'
+        >
+          <CircleAlert size={13} /> {error}
+        </div>
       )}
     </div>
   );
