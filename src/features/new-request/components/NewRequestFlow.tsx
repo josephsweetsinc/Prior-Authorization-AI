@@ -78,6 +78,8 @@ export function NewRequestFlow({ draftId }: Props) {
   const reviewForm: Partial<FormState> | null =
     stored?.form ?? extractedToForm(extractedData);
 
+  const overallStatus = extractionResult?.completion_status?.overall_status;
+
   const handleCreate = async () => {
     try {
       await createRequest();
@@ -114,14 +116,6 @@ export function NewRequestFlow({ draftId }: Props) {
     finishReviewEdit();
   };
 
-  const extractionOverallStatus =
-    extractionResult?.completion_status?.overall_status ??
-    (extractionResult
-      ? extractionResult.is_complete
-        ? 'complete'
-        : 'incomplete'
-      : undefined);
-
   function renderStep() {
     if (step === 1) {
       return <UploadStep onNext={next} />;
@@ -141,7 +135,7 @@ export function NewRequestFlow({ draftId }: Props) {
               ? draftExtractionResult.extracted_data
               : extractedData
           }
-          overallStatus={extractionOverallStatus}
+          overallStatus={overallStatus}
           hideBackButton={isSuccess ? true : false}
         />
       );
@@ -157,7 +151,7 @@ export function NewRequestFlow({ draftId }: Props) {
               stored?.form ? formToExtracted(stored.form) : extractedData
             }
             mode='review-edit'
-            overallStatus={extractionResult?.completion_status?.overall_status}
+            overallStatus={overallStatus}
           />
         );
       }
