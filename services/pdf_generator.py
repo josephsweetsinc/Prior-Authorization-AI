@@ -179,8 +179,8 @@ class PDFGeneratorService:
 
             # Coordinates for Left part
             # wrap(available_width, available_height)
-            title_w, title_h = title_p.wrap(page_width * 0.6, header_height)
-            subtitle_w, subtitle_h = subtitle_p.wrap(
+            _title_w, title_h = title_p.wrap(page_width * 0.6, header_height)
+            _subtitle_w, subtitle_h = subtitle_p.wrap(
                 page_width * 0.6, header_height
             )
 
