@@ -1,9 +1,14 @@
 import { format } from 'date-fns';
+import { Download } from 'lucide-react';
 import { type HTMLProps } from 'react';
 
 import { formatFileSize } from '@/services/media';
-import { useGetRequestDetailsQuery } from '@/services/requests';
 import {
+  useGetRequestDetailsQuery,
+  useLazyDownloadRequestPdfQuery,
+} from '@/services/requests';
+import {
+  Button,
   Modal,
   StatusTimeline,
   StatusChip,
@@ -36,6 +41,8 @@ export const RequestDetails = ({
   ...props
 }: Props) => {
   const { data, isLoading } = useGetRequestDetailsQuery(requestId);
+  const [downloadRequestPdf, { isFetching: isDownloading }] =
+    useLazyDownloadRequestPdfQuery();
 
   if (isLoading) {
     return (
@@ -59,6 +66,34 @@ export const RequestDetails = ({
     description: item.notes ?? undefined,
     status: STATUS_TO_TIMELINE_STATUS[item.status],
   }));
+  const canDownload = data.status !== 'draft';
+  const handleDownload = async () => {
+    if (!canDownload) {
+      return;
+    }
+
+    try {
+      const url = await downloadRequestPdf(data.id).unwrap();
+      if (!url) {
+        return;
+      }
+      const formNumber = data.form_number?.trim() || 'request';
+      const safeFormNumber = formNumber.replace(/[^a-zA-Z0-9-_]+/g, '-');
+      const filename =
+        safeFormNumber.length > 0
+          ? `${safeFormNumber}-${data.id}.pdf`
+          : `request-${data.id}.pdf`;
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download PDF', error);
+    }
+  };
 
   return (
     <Modal
@@ -76,7 +111,9 @@ export const RequestDetails = ({
         />
         <section className='my-5 flex flex-wrap items-end justify-between gap-8'>
           <DataBlock label='MRN' value={data.patient_id.toString()} />
-          <StatusChip status={data.status} />
+          <div className='flex items-center gap-3'>
+            <StatusChip status={data.status} />
+          </div>
         </section>
         <Separator className='bg-gray-separator' />
 
@@ -121,6 +158,17 @@ export const RequestDetails = ({
               </div>
             </section>
           </>
+        )}
+        {canDownload && (
+          <Button
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className='mt-10 w-auto rounded-xl px-10!'
+            size='lg'
+            variant='secondary'
+          >
+            Download PDF <Download color='#047CB4' />
+          </Button>
         )}
       </div>
     </Modal>

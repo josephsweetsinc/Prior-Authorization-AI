@@ -137,6 +137,15 @@ export const requestsApi = baseApi.injectEndpoints({
         { type: 'AuthorizationRequests', id: 'LIST' },
       ],
     }),
+    downloadRequestPdf: builder.query<string, number>({
+      query: (id) => ({
+        url: `/ambulance-request/${id}/download-pdf`,
+        method: 'GET',
+        responseHandler: (response) => response.blob() as Promise<Blob>,
+      }),
+      transformResponse: (blob: Blob) =>
+        typeof window === 'undefined' ? '' : window.URL.createObjectURL(blob),
+    }),
   }),
   overrideExisting: false,
 });
@@ -148,6 +157,7 @@ export const {
   useApproveRequestMutation,
   useDenyRequestMutation,
   useUpdateRequestMutation,
+  useLazyDownloadRequestPdfQuery,
 } = requestsApi;
 
 export const useSearchRequestsByPatientQuery =

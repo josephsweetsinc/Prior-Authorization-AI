@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from 'react';
 
-import { useGetRequestDetailsQuery } from '@/services/requests';
+import {
+  useGetRequestDetailsQuery,
+  useLazyDownloadRequestPdfQuery,
+} from '@/services/requests';
 import { Chip, SensitiveMessage } from '@/shared/components';
 import {
   ApproveRequestModal,
@@ -41,6 +44,8 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     state: RequestDetailsFormState;
   } | null>(null);
   const [formErrors, setFormErrors] = useState<RequestDetailsFormErrors>({});
+  const [downloadRequestPdf, { isFetching: isDownloading }] =
+    useLazyDownloadRequestPdfQuery();
   const defaultFormState = useMemo(
     () => (data ? buildRequestDetailsFormState(data) : null),
     [data],
@@ -81,6 +86,35 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
       };
     });
   };
+
+  const handleDownload = async () => {
+    if (!data?.id) {
+      return;
+    }
+
+    try {
+      const url = await downloadRequestPdf(data.id).unwrap();
+      if (!url) {
+        return;
+      }
+      const formNumber = data.form_number?.trim() || 'request';
+      const safeFormNumber = formNumber.replace(/[^a-zA-Z0-9-_]+/g, '-');
+      const filename =
+        safeFormNumber.length > 0
+          ? `${safeFormNumber}-${data.id}.pdf`
+          : `request-${data.id}.pdf`;
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download PDF', error);
+    }
+  };
+
   const {
     isApproveModalOpen,
     isDenyModalOpen,
@@ -148,6 +182,8 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
           errors={formErrors}
           onChange={handleFormChange}
           onSave={handleUpdateRequest}
+          onDownload={handleDownload}
+          isDownloading={isDownloading}
           isSaving={isSaving}
         />
 

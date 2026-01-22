@@ -1,3 +1,5 @@
+import { Download } from 'lucide-react';
+
 import { TRANSPORTATION_TYPE_OPTIONS } from '@/features/new-request/constants';
 import {
   type AmbulatoryStatus,
@@ -24,6 +26,8 @@ type Props = {
   errors?: RequestDetailsFormErrors;
   onChange: (_next: Partial<RequestDetailsFormState>) => void;
   onSave: () => void;
+  onDownload: () => void;
+  isDownloading?: boolean;
   isSaving: boolean;
 };
 
@@ -33,6 +37,8 @@ export const RequestDetailsContent = ({
   errors,
   onChange,
   onSave,
+  onDownload,
+  isDownloading = false,
   isSaving,
 }: Props) => (
   <Window className='space-y-8'>
@@ -185,10 +191,20 @@ export const RequestDetailsContent = ({
       title={`AI Confidence Score: ${data.ai_accuracy ?? 0}%`}
       description='This form was automatically populated by our AI engine. All fields have been verified against patient records and physician notes.'
     />
-    <div className='flex w-auto justify-end'>
+    <div className='flex w-auto justify-end gap-3'>
+      <Button
+        onClick={onDownload}
+        disabled={isDownloading}
+        className='w-auto rounded-xl px-10!'
+        size='lg'
+        variant='secondary'
+      >
+        Download PDF <Download color='#047CB4' />
+      </Button>
       <Button
         variant='primary'
-        className='w-auto rounded-3xl'
+        className='w-auto rounded-xl'
+        size='lg'
         onClick={onSave}
         disabled={isSaving}
       >
