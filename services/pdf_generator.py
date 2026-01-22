@@ -7,8 +7,9 @@ from typing import TYPE_CHECKING, Any
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
+from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import (
     HRFlowable,
     Paragraph,
@@ -17,7 +18,6 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
-from reportlab.pdfgen.canvas import Canvas
 
 if TYPE_CHECKING:
     from reportlab.platypus.doctemplate import BaseDocTemplate
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class PDFGeneratorService:
     """Service for generating CMS-10344 PDF forms."""
 
-    def generate_cms_10344_pdf(
+    def generate_cms_10344_pdf(  # noqa: PLR0915
         self,
         request: AmbulanceRequest,
     ) -> bytes:
@@ -48,7 +48,7 @@ class PDFGeneratorService:
         # --- CONFIGURATION ---
 
         # Header color (matched to screenshot - saturated blue, not black)
-        HEADER_BLUE = colors.HexColor('#1E407C')
+        header_blue = colors.HexColor('#1E407C')
 
         # Margins for main content
         # topMargin is large to prevent text from overlapping the blue header
@@ -137,27 +137,35 @@ class PDFGeneratorService:
         def draw_header_on_canvas(
             canvas: Canvas, doc: 'BaseDocTemplate'
         ) -> None:
-            """Draws the blue header directly on the page canvas to ignore margins."""
+            """Draw blue header on page canvas to ignore margins."""
             page_width, page_height = A4
             header_height = 30 * mm  # Blue header height
 
             # 1. Draw blue rectangle from the very top (Full Bleed)
             canvas.saveState()
-            canvas.setFillColor(HEADER_BLUE)
+            canvas.setFillColor(header_blue)
             # rect(x, y, width, height)
             # y starts from bottom, so we calculate from top of page downward
             canvas.rect(
-                0, page_height - header_height, page_width, header_height, stroke=0, fill=1
+                0,
+                page_height - header_height,
+                page_width,
+                header_height,
+                stroke=0,
+                fill=1,
             )
 
             # 2. Prepare header text
-            generation_time = datetime.now(UTC).strftime('%b %d, %Y at %H:%M:%S UTC')
+            generation_time = datetime.now(UTC).strftime(
+                '%b %d, %Y at %H:%M:%S UTC'
+            )
 
             # Left part (Titles)
             # Use Paragraph for styling, but draw it on canvas
             title_p = Paragraph('CMS-10344', header_title_style)
             subtitle_p = Paragraph(
-                'Medicare Prior Authorization Request Form', header_subtitle_style
+                'Medicare Prior Authorization Request Form',
+                header_subtitle_style,
             )
 
             # Right part (Time)
@@ -172,7 +180,9 @@ class PDFGeneratorService:
             # Coordinates for Left part
             # wrap(available_width, available_height)
             title_w, title_h = title_p.wrap(page_width * 0.6, header_height)
-            subtitle_w, subtitle_h = subtitle_p.wrap(page_width * 0.6, header_height)
+            subtitle_w, subtitle_h = subtitle_p.wrap(
+                page_width * 0.6, header_height
+            )
 
             # Draw Title
             title_y = page_height - padding_top - title_h
@@ -186,7 +196,9 @@ class PDFGeneratorService:
             time_w, time_h = time_p.wrap(page_width * 0.3, header_height)
             time_x = page_width - padding_right - time_w
             # Align time approximately at center of header height or at top
-            time_y = page_height - padding_top - time_h - 2 * mm  # Slightly below top
+            time_y = (
+                page_height - padding_top - time_h - 2 * mm
+            )  # Slightly below top
             time_p.drawOn(canvas, time_x, time_y)
 
             canvas.restoreState()
@@ -227,7 +239,9 @@ class PDFGeneratorService:
         col1_data: list[Any] = []
         col1_data.extend(create_field('FIRST NAME', request.patient_first_name))
         col1_data.extend(create_field('DATE OF BIRTH', p_dob))
-        col1_data.extend(create_field('PRIMARY DIAGNOSIS', request.primary_diagnosis))
+        col1_data.extend(
+            create_field('PRIMARY DIAGNOSIS', request.primary_diagnosis)
+        )
 
         col2_data: list[Any] = []
         col2_data.extend(create_field('LAST NAME', request.patient_last_name))
@@ -250,7 +264,9 @@ class PDFGeneratorService:
 
         story.append(Spacer(1, 5 * mm))
         story.append(
-            HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#E5E7EB'))
+            HRFlowable(
+                width='100%', thickness=0.5, color=colors.HexColor('#E5E7EB')
+            )
         )
         story.append(Spacer(1, 5 * mm))
 
@@ -276,7 +292,9 @@ class PDFGeneratorService:
         trans_col1: list[Any] = []
         trans_col1.extend(create_field('TRANSPORTATION TYPE', t_type))
         trans_col1.extend(create_field('DATE OF TRANSPORT', t_date))
-        trans_col1.extend(create_field('PICKUP ADDRESS', request.pickup_address))
+        trans_col1.extend(
+            create_field('PICKUP ADDRESS', request.pickup_address)
+        )
 
         trans_col2: list[Any] = []
         trans_col2.append(Spacer(1, 13 * mm))  # Align under Type
@@ -297,7 +315,9 @@ class PDFGeneratorService:
         )
         story.append(s2_table_top)
 
-        dest_data = create_field('DESTINATION ADDRESS', request.destination_address)
+        dest_data = create_field(
+            'DESTINATION ADDRESS', request.destination_address
+        )
         s2_table_bot = Table(
             [[dest_data]],
             colWidths=[available_width],
@@ -315,7 +335,9 @@ class PDFGeneratorService:
 
         story.append(Spacer(1, 2 * mm))
         story.append(
-            HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#E5E7EB'))
+            HRFlowable(
+                width='100%', thickness=0.5, color=colors.HexColor('#E5E7EB')
+            )
         )
         story.append(Spacer(1, 5 * mm))
 
@@ -323,18 +345,25 @@ class PDFGeneratorService:
         story.append(Paragraph('3. MEDICAL NECESSITY', section_style))
 
         med_justification_content: list[Any] = []
-        med_justification_content.append(Paragraph('MEDICAL JUSTIFICATION', label_style))
+        med_justification_content.append(
+            Paragraph('MEDICAL JUSTIFICATION', label_style)
+        )
 
         if request.medical_justification:
-            for line in request.medical_justification.split('\n'):
-                if line.strip():
-                    med_justification_content.append(Paragraph(line.strip(), value_style))
+            justification_paragraphs = [
+                Paragraph(line.strip(), value_style)
+                for line in request.medical_justification.split('\n')
+                if line.strip()
+            ]
+            med_justification_content.extend(justification_paragraphs)
         else:
             med_justification_content.append(Paragraph('N/A', value_style))
 
         med_justification_content.append(Spacer(1, 8 * mm))
 
-        signature_status = 'Signed' if request.ordering_physician else 'Not Signed'
+        signature_status = (
+            'Signed' if request.ordering_physician else 'Not Signed'
+        )
         med_justification_content.extend(
             create_field('PHYSICIAN SIGNATURE', signature_status)
         )

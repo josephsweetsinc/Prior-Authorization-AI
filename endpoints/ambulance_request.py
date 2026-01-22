@@ -1,4 +1,5 @@
 import logging
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import (
@@ -235,14 +236,13 @@ async def download_pdf(
         Response: PDF file as downloadable attachment.
 
     Raises:
-        HTTPException: If request not found, permission denied, or validation fails.
+        HTTPException: If request not found, permission denied,
+            or validation fails.
 
     """
     pdf_bytes = await service.generate_pdf(request_id=request_id, user=user)
 
     # Generate filename with request ID and timestamp
-    from datetime import UTC, datetime
-
     timestamp = datetime.now(UTC).strftime('%Y%m%d_%H%M%S')
     filename = f'CMS-10344_Request-{request_id}_{timestamp}.pdf'
 

@@ -1486,8 +1486,10 @@ Necessity document, or "NO" if it is not."""
 
         Raises:
             AmbulanceRequestNotFoundException: If request not found.
-            AmbulanceRequestPermissionException: If user doesn't have permission.
-            AmbulanceRequestPDFGenerationException: If request has missing fields.
+            AmbulanceRequestPermissionException: If user doesn't have
+                permission.
+            AmbulanceRequestPDFGenerationException: If request has missing
+                fields.
 
         """
         # Get request
@@ -1499,7 +1501,8 @@ Necessity document, or "NO" if it is not."""
         if request.user_id != user.id and user.role != UserRole.ADMIN:
             raise AmbulanceRequestPermissionException
 
-        # Check completion status - PDF can only be generated if all validations pass
+        # Check completion status - PDF can only be generated
+        # if all validations pass
         completion_status = await self.get_completion_status(request=request)
         if not completion_status.can_submit:
             missing_items = (
@@ -1507,11 +1510,12 @@ Necessity document, or "NO" if it is not."""
                 + completion_status.missing_documents
             )
             missing_names = ', '.join([item.name for item in missing_items])
-            raise AmbulanceRequestPDFGenerationException(
-                f'Cannot generate PDF. Missing required items: {missing_names}. '
-                'All required fields and documents must be completed before '
-                'PDF can be generated.'
+            error_msg = (
+                f'Cannot generate PDF. Missing required items: '
+                f'{missing_names}. All required fields and documents '
+                f'must be completed before PDF can be generated.'
             )
+            raise AmbulanceRequestPDFGenerationException(error_msg)
 
         # Generate PDF
         pdf_bytes = self._pdf_generator_service.generate_cms_10344_pdf(
