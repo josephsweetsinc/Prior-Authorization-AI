@@ -21,6 +21,7 @@ from exceptions import (
     AmbulanceRequestInvalidFileIdsException,
     AmbulanceRequestInvalidStatusException,
     AmbulanceRequestNotFoundException,
+    AmbulanceRequestPDFGenerationException,
     AmbulanceRequestPermissionException,
     IncorrectFileSizeException,
     UnknownFiletypeException,
@@ -52,6 +53,7 @@ from schemas import (
 from services.ai.extractor import AIExtractionService
 from services.aws.actions import S3Actions
 from services.notification import NotificationService
+from services.pdf_generator import PDFGeneratorService
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +80,7 @@ class AmbulanceRequestService(BaseService):
         ai_extraction_service: AIExtractionService | None = None,
         notification_service: NotificationService | None = None,
         user_dao: UserDAO | None = None,
+        pdf_generator_service: PDFGeneratorService | None = None,
     ):
         """Initialize AmbulanceRequestService."""
         super().__init__(db_session)
@@ -95,6 +98,9 @@ class AmbulanceRequestService(BaseService):
             notification_service or NotificationService(db_session)
         )
         self._user_dao = user_dao or UserDAO(db_session)
+        self._pdf_generator_service = (
+            pdf_generator_service or PDFGeneratorService()
+        )
 
     async def upload_file(
         self,
@@ -1463,3 +1469,59 @@ Necessity document, or "NO" if it is not."""
         response = AdminRequestWithStatusHistorySchema.model_validate(request)
         response.documents = documents
         return response
+
+    async def generate_pdf(
+        self,
+        request_id: int,
+        user: User,
+    ) -> bytes:
+        """Generate CMS-10344 PDF for a request.
+
+        Args:
+            request_id: ID of the request to generate PDF for.
+            user: Current authenticated user.
+
+        Returns:
+            bytes: PDF file bytes.
+
+        Raises:
+            AmbulanceRequestNotFoundException: If request not found.
+            AmbulanceRequestPermissionException: If user doesn't have permission.
+            AmbulanceRequestPDFGenerationException: If request has missing fields.
+
+        """
+        # Get request
+        request = await self._request_dao.get_by_id(request_id=request_id)
+        if not request:
+            raise AmbulanceRequestNotFoundException
+
+        # Check permissions: admin can download any, provider only their own
+        if request.user_id != user.id and user.role != UserRole.ADMIN:
+            raise AmbulanceRequestPermissionException
+
+        # Check completion status - PDF can only be generated if all validations pass
+        completion_status = await self.get_completion_status(request=request)
+        if not completion_status.can_submit:
+            missing_items = (
+                completion_status.missing_fields
+                + completion_status.missing_documents
+            )
+            missing_names = ', '.join([item.name for item in missing_items])
+            raise AmbulanceRequestPDFGenerationException(
+                f'Cannot generate PDF. Missing required items: {missing_names}. '
+                'All required fields and documents must be completed before '
+                'PDF can be generated.'
+            )
+
+        # Generate PDF
+        pdf_bytes = self._pdf_generator_service.generate_cms_10344_pdf(
+            request=request
+        )
+
+        logger.info(
+            'Generated CMS-10344 PDF for request %s (size: %d bytes)',
+            request_id,
+            len(pdf_bytes),
+        )
+
+        return pdf_bytes

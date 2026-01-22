@@ -130,3 +130,14 @@ class AmbulanceRequestSearchParametersMissingException(
             detail='At least one of patient_id or patient_name'
             ' must be provided',
         )
+
+
+class AmbulanceRequestPDFGenerationException(AmbulanceRequestException):
+    """Exception raised when PDF cannot be generated due to missing fields."""
+
+    def __init__(self, detail: str) -> None:
+        """Initialize AmbulanceRequestPDFGenerationException."""
+        super().__init__(
+            status_code=400,
+            detail=detail,
+        )
