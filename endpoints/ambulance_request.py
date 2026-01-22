@@ -1,4 +1,5 @@
 import logging
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import (
@@ -6,6 +7,7 @@ from fastapi import (
     Depends,
     File,
     Query,
+    Response,
     UploadFile,
 )
 from fastapi.params import Security
@@ -201,6 +203,56 @@ async def search_requests(
         patient_name=patient_name,
     )
     return SearchRequestsResponseSchema(request_ids=request_ids)
+
+
+@ambulance_request_router.get(
+    '/{request_id}/download-pdf',
+    description='Download CMS-10344 PDF form for a request',
+    summary='Download CMS-10344 PDF',
+    response_class=Response,
+)
+@exception_handler
+async def download_pdf(
+    request_id: int,
+    user: Annotated[User, Security(get_current_user)],
+    service: Annotated[
+        AmbulanceRequestService, Depends(get_service(AmbulanceRequestService))
+    ],
+) -> Response:
+    """Download CMS-10344 PDF form for a request.
+
+    Admin users can download PDF for any request.
+    Provider users can only download PDF for their own requests.
+
+    PDF is only generated if all validation checks pass (all required fields
+    and documents are present).
+
+    Args:
+        request_id: Request ID to generate PDF for.
+        user: Current authenticated user (admin or provider).
+        service: Ambulance request service.
+
+    Returns:
+        Response: PDF file as downloadable attachment.
+
+    Raises:
+        HTTPException: If request not found, permission denied,
+            or validation fails.
+
+    """
+    pdf_bytes = await service.generate_pdf(request_id=request_id, user=user)
+
+    # Generate filename with request ID and timestamp
+    timestamp = datetime.now(UTC).strftime('%Y%m%d_%H%M%S')
+    filename = f'CMS-10344_Request-{request_id}_{timestamp}.pdf'
+
+    return Response(
+        content=pdf_bytes,
+        media_type='application/pdf',
+        headers={
+            'Content-Disposition': f'attachment; filename="{filename}"',
+        },
+    )
 
 
 @ambulance_request_router.get(

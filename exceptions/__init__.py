@@ -7,6 +7,7 @@ from .ambulance_request import (
     AmbulanceRequestInvalidStatusException,
     AmbulanceRequestNoDocumentsUploadedException,
     AmbulanceRequestNotFoundException,
+    AmbulanceRequestPDFGenerationException,
     AmbulanceRequestPermissionException,
     AmbulanceRequestSearchParametersMissingException,
 )
@@ -47,6 +48,7 @@ __all__ = [
     'AmbulanceRequestInvalidStatusException',
     'AmbulanceRequestNoDocumentsUploadedException',
     'AmbulanceRequestNotFoundException',
+    'AmbulanceRequestPDFGenerationException',
     'AmbulanceRequestPermissionException',
     'AmbulanceRequestSearchParametersMissingException',
     'BadPasswordSchemaException',
