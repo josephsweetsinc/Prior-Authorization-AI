@@ -5,9 +5,9 @@ import logging
 from datetime import UTC, datetime
 
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
+from reportlab.lib.units import mm
 from reportlab.platypus import (
     HRFlowable,
     Paragraph,
@@ -17,7 +17,14 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from models.ambulance_request import AmbulanceRequest
+# Mocking the model for the script to run standalone if needed
+# In your project, keep your original import: from models.ambulance_request import AmbulanceRequest
+try:
+    from models.ambulance_request import AmbulanceRequest
+except ImportError:
+    # Fallback for testing purely the layout without the app context
+    class AmbulanceRequest:
+        pass
 
 logger = logging.getLogger(__name__)
 
@@ -39,298 +46,264 @@ class PDFGeneratorService:
 
         """
         buffer = io.BytesIO()
+
+        # Setup margins to match the clean look (approx 20mm margins)
+        left_margin = 20 * mm
+        right_margin = 20 * mm
+        top_margin = 15 * mm
+        bottom_margin = 20 * mm
+
         doc = SimpleDocTemplate(
             buffer,
-            pagesize=letter,
-            rightMargin=0.75 * inch,
-            leftMargin=0.75 * inch,
-            topMargin=0.5 * inch,
-            bottomMargin=0.75 * inch,
+            pagesize=A4,
+            rightMargin=right_margin,
+            leftMargin=left_margin,
+            topMargin=top_margin,
+            bottomMargin=bottom_margin,
         )
+
         story: list = []
         styles = getSampleStyleSheet()
 
-        # Custom styles
-        section_style = ParagraphStyle(
-            'SectionHeader',
+        # --- Custom Styles ---
+
+        # Header Styles
+        header_title_style = ParagraphStyle(
+            'HeaderTitle',
             parent=styles['Normal'],
-            fontSize=14,
-            textColor=colors.HexColor('#000000'),
-            spaceAfter=12,
-            spaceBefore=12,
+            fontSize=22,
+            leading=26,
+            textColor=colors.white,
             fontName='Helvetica-Bold',
         )
 
+        header_subtitle_style = ParagraphStyle(
+            'HeaderSubtitle',
+            parent=styles['Normal'],
+            fontSize=11,
+            leading=14,
+            textColor=colors.HexColor('#E2E8F0'), # Off-white
+            fontName='Helvetica',
+        )
+
+        header_time_style = ParagraphStyle(
+            'HeaderTime',
+            parent=styles['Normal'],
+            fontSize=9,
+            textColor=colors.HexColor('#CBD5E1'),
+            fontName='Helvetica',
+            alignment=2, # Right align
+        )
+
+        # Section Header (1. PATIENT INFORMATION)
+        section_style = ParagraphStyle(
+            'SectionHeader',
+            parent=styles['Normal'],
+            fontSize=12,
+            leading=16,
+            textColor=colors.HexColor('#111827'), # Dark text
+            spaceAfter=10,
+            spaceBefore=15,
+            fontName='Helvetica-Bold',
+            textTransform='uppercase',
+        )
+
+        # Field Label (Tiny grey text above value)
         label_style = ParagraphStyle(
             'Label',
             parent=styles['Normal'],
-            fontSize=10,
-            textColor=colors.HexColor('#000000'),
-            fontName='Helvetica',
+            fontSize=7.5,
+            leading=10,
+            textColor=colors.HexColor('#6B7280'), # Cool gray
+            fontName='Helvetica-Bold',
+            textTransform='uppercase',
+            spaceAfter=2,
         )
 
+        # Field Value (The actual data)
         value_style = ParagraphStyle(
             'Value',
             parent=styles['Normal'],
-            fontSize=10,
+            fontSize=11,
+            leading=14,
             textColor=colors.HexColor('#000000'),
             fontName='Helvetica',
         )
 
-        # Header with dark blue background
+        # --- Helper for "Label over Value" blocks ---
+        def create_field(label_text, value_text):
+            if value_text is None:
+                value_text = 'N/A'
+            return [
+                Paragraph(label_text, label_style),
+                Paragraph(str(value_text), value_style),
+                Spacer(1, 4 * mm) # Space between fields vertically
+            ]
+
+        # --- Header Section ---
+
         generation_time = datetime.now(UTC).strftime('%b %d, %Y at %H:%M:%S UTC')
-        
-        # Header layout: CMS-10344 and form name on left, timestamp on right
-        header_left = (
-            f'<font size="20" color="white"><b>CMS-10344</b></font><br/>'
-            f'<font size="14" color="white">'
-            f'Medicare Prior Authorization Request Form</font>'
-        )
-        header_right = (
-            f'<font size="10" color="white">{generation_time}</font>'
-        )
-        
-        header_table = Table(
+
+        # Calculate available width for the table
+        available_width = A4[0] - left_margin - right_margin
+
+        header_content = [
             [
+                # Left Cell: Title + Subtitle
                 [
-                    Paragraph(header_left, styles['Normal']),
-                    Paragraph(header_right, styles['Normal']),
+                    Paragraph('CMS-10344', header_title_style),
+                    Paragraph('Medicare Prior Authorization Request Form', header_subtitle_style),
+                ],
+                # Right Cell: Timestamp
+                [
+                    Paragraph(generation_time, header_time_style),
                 ]
-            ],
-            colWidths=[5.5 * inch, 1.5 * inch],
+            ]
+        ]
+
+        header_table = Table(
+            header_content,
+            colWidths=[available_width * 0.7, available_width * 0.3],
         )
+
+        header_bg_color = colors.HexColor('#1B3369') # The specific deep blue from screenshot
+
         header_table.setStyle(
             TableStyle(
                 [
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a365d')),
-                    ('VALIGN', (0, 0), (-1, 0), 'TOP'),
-                    ('LEFTPADDING', (0, 0), (0, 0), 12),
-                    ('RIGHTPADDING', (1, 0), (1, 0), 12),
-                    ('TOPPADDING', (0, 0), (-1, -1), 12),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-                    ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+                    ('BACKGROUND', (0, 0), (-1, -1), header_bg_color),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('LEFTPADDING', (0, 0), (0, 0), 15), # Padding inside blue box
+                    ('RIGHTPADDING', (-1, 0), (-1, 0), 15),
+                    ('TOPPADDING', (0, 0), (-1, -1), 15),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
                 ]
             )
         )
         story.append(header_table)
-        story.append(Spacer(1, 0.3 * inch))
+        story.append(Spacer(1, 10 * mm))
 
-        # 1. PATIENT INFORMATION
-        story.append(
-            Paragraph(
-                '1. PATIENT INFORMATION:',
-                section_style,
-            )
-        )
+        # --- 1. PATIENT INFORMATION ---
 
-        # Two-column layout for patient information
-        # Left column: FIRST NAME, DATE OF BIRTH, PRIMARY DIAGNOSIS
-        # Right column: LAST NAME, PATIENT ID
-        patient_left_data = [
-            [
-                Paragraph('FIRST NAME:', label_style),
-                Paragraph(request.patient_first_name or 'N/A', value_style),
-            ],
-            [
-                Paragraph('DATE OF BIRTH:', label_style),
-                Paragraph(
-                    request.patient_date_of_birth.strftime('%m-%d-%Y')
-                    if request.patient_date_of_birth
-                    else 'N/A',
-                    value_style,
-                ),
-            ],
-            [
-                Paragraph('PRIMARY DIAGNOSIS:', label_style),
-                Paragraph(
-                    request.primary_diagnosis or 'N/A',
-                    value_style,
-                ),
-            ],
-        ]
-        
-        patient_right_data = [
-            [
-                Paragraph('LAST NAME:', label_style),
-                Paragraph(request.patient_last_name or 'N/A', value_style),
-            ],
-            [
-                Paragraph('PATIENT ID:', label_style),
-                Paragraph(request.patient_id or 'N/A', value_style),
-            ],
-        ]
+        story.append(Paragraph('1. PATIENT INFORMATION', section_style))
 
-        patient_table = Table(
-            [
-                [
-                    Table(patient_left_data, colWidths=[1.8 * inch, 1.7 * inch]),
-                    Table(patient_right_data, colWidths=[1.8 * inch, 1.7 * inch]),
-                ]
-            ],
-            colWidths=[3.5 * inch, 3.5 * inch],
-        )
-        patient_table.setStyle(
-            TableStyle(
-                [
-                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-                    ('TOPPADDING', (0, 0), (-1, -1), 0),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-                ]
-            )
-        )
-        story.append(patient_table)
-        story.append(Spacer(1, 0.2 * inch))
-        story.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#000000')))
-        story.append(Spacer(1, 0.2 * inch))
+        # Data preparation
+        p_dob = request.patient_date_of_birth.strftime('%m-%d-%Y') if request.patient_date_of_birth else 'N/A'
 
-        # 2. TRANSPORTATION INFORMATION
-        story.append(
-            Paragraph(
-                '2. TRANSPORTATION INFORMATION:',
-                section_style,
-            )
-        )
+        # We use a 2-column layout.
+        # Column 1 fields
+        col1_data = []
+        col1_data.extend(create_field('FIRST NAME', request.patient_first_name))
+        col1_data.extend(create_field('DATE OF BIRTH', p_dob))
+        col1_data.extend(create_field('PRIMARY DIAGNOSIS', request.primary_diagnosis))
 
-        # Two-column layout for transportation information
-        # Left column: TRANSPORTATION TYPE, DATE OF TRANSPORT, PICKUP ADDRESS
-        # Right column: TIME OF TRANSPORT
-        transport_left_data = [
-            [
-                Paragraph('TRANSPORTATION TYPE:', label_style),
-                Paragraph(
-                    request.transportation_type.value.upper()
-                    if request.transportation_type
-                    else 'N/A',
-                    value_style,
-                ),
-            ],
-            [
-                Paragraph('DATE OF TRANSPORT:', label_style),
-                Paragraph(
-                    request.date_of_transport.strftime('%m-%d-%Y')
-                    if request.date_of_transport
-                    else 'N/A',
-                    value_style,
-                ),
-            ],
-            [
-                Paragraph('PICKUP ADDRESS:', label_style),
-                Paragraph(request.pickup_address or 'N/A', value_style),
-            ],
-        ]
-        
-        transport_right_data = [
-            [
-                Paragraph('TIME OF TRANSPORT:', label_style),
-                Paragraph(
-                    request.time_of_transport.strftime('%H:%M')
-                    if request.time_of_transport
-                    else 'N/A',
-                    value_style,
-                ),
-            ],
-        ]
+        # Column 2 fields
+        col2_data = []
+        col2_data.extend(create_field('LAST NAME', request.patient_last_name))
+        col2_data.extend(create_field('PATIENT ID', request.patient_id))
+        # Add empty spacer to align with Primary Diagnosis if needed, or leave empty
 
-        transport_table = Table(
-            [
-                [
-                    Table(transport_left_data, colWidths=[1.8 * inch, 1.7 * inch]),
-                    Table(transport_right_data, colWidths=[1.8 * inch, 1.7 * inch]),
-                ]
-            ],
-            colWidths=[3.5 * inch, 3.5 * inch],
+        # Master table for Section 1
+        s1_table = Table(
+            [[col1_data, col2_data]],
+            colWidths=[available_width * 0.5, available_width * 0.5]
         )
-        transport_table.setStyle(
-            TableStyle(
-                [
-                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-                    ('TOPPADDING', (0, 0), (-1, -1), 0),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-                ]
-            )
-        )
-        story.append(transport_table)
-        
-        # DESTINATION ADDRESS on full width
-        story.append(Spacer(1, 0.1 * inch))
-        destination_table = Table(
-            [
-                [
-                    Paragraph('DESTINATION ADDRESS:', label_style),
-                    Paragraph(request.destination_address or 'N/A', value_style),
-                ]
-            ],
-            colWidths=[1.8 * inch, 5.2 * inch],
-        )
-        destination_table.setStyle(
-            TableStyle(
-                [
-                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-                    ('TOPPADDING', (0, 0), (-1, -1), 0),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-                ]
-            )
-        )
-        story.append(destination_table)
-        story.append(Spacer(1, 0.2 * inch))
-        story.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#000000')))
-        story.append(Spacer(1, 0.2 * inch))
+        s1_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        story.append(s1_table)
 
-        # 3. MEDICAL NECESSITY
-        story.append(
-            Paragraph(
-                '3. MEDICAL NECESSITY:',
-                section_style,
-            )
-        )
+        # Separator line
+        story.append(Spacer(1, 5 * mm))
+        story.append(HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#E5E7EB')))
+        story.append(Spacer(1, 5 * mm))
 
-        # Medical Justification
-        story.append(Paragraph('MEDICAL JUSTIFICATION:', label_style))
+        # --- 2. TRANSPORTATION INFORMATION ---
+
+        story.append(Paragraph('2. TRANSPORTATION INFORMATION', section_style))
+
+        t_type = request.transportation_type.value.upper() if request.transportation_type else 'N/A'
+        t_date = request.date_of_transport.strftime('%m-%d-%Y') if request.date_of_transport else 'N/A'
+        t_time = request.time_of_transport.strftime('%H:%M') if request.time_of_transport else 'N/A'
+
+        # Row 1: Type & nothing (or full width if desired, but image implies columns)
+        # Based on image, it looks like a grid.
+
+        trans_col1 = []
+        trans_col1.extend(create_field('TRANSPORTATION TYPE', t_type))
+        trans_col1.extend(create_field('DATE OF TRANSPORT', t_date))
+        trans_col1.extend(create_field('PICKUP ADDRESS', request.pickup_address))
+
+        trans_col2 = []
+        # Time aligns with Date in the image (2nd row of this section)
+        # So we need a blank spacer for the first slot if we want to align strictly
+        trans_col2.append(Spacer(1, 13 * mm)) # Approximate height of the first field
+        trans_col2.extend(create_field('TIME OF TRANSPORT', t_time))
+
+        s2_table_top = Table(
+            [[trans_col1, trans_col2]],
+            colWidths=[available_width * 0.5, available_width * 0.5]
+        )
+        s2_table_top.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        story.append(s2_table_top)
+
+        # Destination Address (Full Width)
+        # Using a 1-column table to keep alignment consistent
+        dest_data = create_field('DESTINATION ADDRESS', request.destination_address)
+        s2_table_bot = Table(
+            [[dest_data]],
+            colWidths=[available_width]
+        )
+        s2_table_bot.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        story.append(s2_table_bot)
+
+        # Separator line
+        story.append(Spacer(1, 2 * mm))
+        story.append(HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#E5E7EB')))
+        story.append(Spacer(1, 5 * mm))
+
+        # --- 3. MEDICAL NECESSITY ---
+
+        story.append(Paragraph('3. MEDICAL NECESSITY', section_style))
+
+        # Justification
+        med_justification_content = []
+        med_justification_content.append(Paragraph('MEDICAL JUSTIFICATION', label_style))
+
         if request.medical_justification:
-            # Split long text into multiple paragraphs if needed
-            justification_lines = request.medical_justification.split('\n')
-            for line in justification_lines:
+            for line in request.medical_justification.split('\n'):
                 if line.strip():
-                    story.append(
-                        Paragraph(
-                            line.strip(),
-                            value_style,
-                        )
-                    )
+                    med_justification_content.append(Paragraph(line.strip(), value_style))
         else:
-            story.append(Paragraph('N/A', value_style))
+            med_justification_content.append(Paragraph('N/A', value_style))
 
-        story.append(Spacer(1, 0.2 * inch))
+        med_justification_content.append(Spacer(1, 8 * mm))
 
-        # Physician Signature - just "Signed" if present
+        # Signature
         signature_status = 'Signed' if request.ordering_physician else 'Not Signed'
-        signature_table = Table(
-            [
-                [
-                    Paragraph('PHYSICIAN SIGNATURE:', label_style),
-                    Paragraph(signature_status, value_style),
-                ]
-            ],
-            colWidths=[1.8 * inch, 5.2 * inch],
+        med_justification_content.extend(create_field('PHYSICIAN SIGNATURE', signature_status))
+
+        # Render section 3
+        s3_table = Table(
+            [[med_justification_content]],
+            colWidths=[available_width]
         )
-        signature_table.setStyle(
-            TableStyle(
-                [
-                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-                    ('TOPPADDING', (0, 0), (-1, -1), 0),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-                ]
-            )
-        )
-        story.append(signature_table)
+        s3_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        story.append(s3_table)
 
         # Build PDF
         doc.build(story)
@@ -339,7 +312,7 @@ class PDFGeneratorService:
 
         logger.info(
             'Generated CMS-10344 PDF for request %s (size: %d bytes)',
-            request.id,
+            getattr(request, 'id', 'unknown'),
             len(pdf_bytes),
         )
 
