@@ -5,7 +5,7 @@ import { type HTMLProps } from 'react';
 import { formatFileSize } from '@/services/media';
 import {
   useGetRequestDetailsQuery,
-  useLazyDownloadRequestPdfQuery,
+  useRequestPdfDownload,
 } from '@/services/requests';
 import {
   Button,
@@ -41,8 +41,7 @@ export const RequestDetails = ({
   ...props
 }: Props) => {
   const { data, isLoading } = useGetRequestDetailsQuery(requestId);
-  const [downloadRequestPdf, { isFetching: isDownloading }] =
-    useLazyDownloadRequestPdfQuery();
+  const { downloadRequestPdf, isDownloading } = useRequestPdfDownload();
 
   if (isLoading) {
     return (
@@ -72,27 +71,10 @@ export const RequestDetails = ({
       return;
     }
 
-    try {
-      const url = await downloadRequestPdf(data.id).unwrap();
-      if (!url) {
-        return;
-      }
-      const formNumber = data.form_number?.trim() || 'request';
-      const safeFormNumber = formNumber.replace(/[^a-zA-Z0-9-_]+/g, '-');
-      const filename =
-        safeFormNumber.length > 0
-          ? `${safeFormNumber}-${data.id}.pdf`
-          : `request-${data.id}.pdf`;
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Failed to download PDF', error);
-    }
+    await downloadRequestPdf({
+      requestId: data.id,
+      formNumber: data.form_number,
+    });
   };
 
   return (

@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 
 import {
   useGetRequestDetailsQuery,
-  useLazyDownloadRequestPdfQuery,
+  useRequestPdfDownload,
 } from '@/services/requests';
 import { Chip, SensitiveMessage } from '@/shared/components';
 import {
@@ -44,8 +44,7 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     state: RequestDetailsFormState;
   } | null>(null);
   const [formErrors, setFormErrors] = useState<RequestDetailsFormErrors>({});
-  const [downloadRequestPdf, { isFetching: isDownloading }] =
-    useLazyDownloadRequestPdfQuery();
+  const { downloadRequestPdf, isDownloading } = useRequestPdfDownload();
   const defaultFormState = useMemo(
     () => (data ? buildRequestDetailsFormState(data) : null),
     [data],
@@ -91,28 +90,10 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     if (!data?.id) {
       return;
     }
-
-    try {
-      const url = await downloadRequestPdf(data.id).unwrap();
-      if (!url) {
-        return;
-      }
-      const formNumber = data.form_number?.trim() || 'request';
-      const safeFormNumber = formNumber.replace(/[^a-zA-Z0-9-_]+/g, '-');
-      const filename =
-        safeFormNumber.length > 0
-          ? `${safeFormNumber}-${data.id}.pdf`
-          : `request-${data.id}.pdf`;
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Failed to download PDF', error);
-    }
+    await downloadRequestPdf({
+      requestId: data.id,
+      formNumber: data.form_number,
+    });
   };
 
   const {
