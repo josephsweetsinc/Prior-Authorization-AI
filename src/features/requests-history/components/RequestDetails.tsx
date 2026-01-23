@@ -1,9 +1,14 @@
 import { format } from 'date-fns';
+import { Download } from 'lucide-react';
 import { type HTMLProps } from 'react';
 
 import { formatFileSize } from '@/services/media';
-import { useGetRequestDetailsQuery } from '@/services/requests';
 import {
+  useGetRequestDetailsQuery,
+  useRequestPdfDownload,
+} from '@/services/requests';
+import {
+  Button,
   Modal,
   StatusTimeline,
   StatusChip,
@@ -36,6 +41,7 @@ export const RequestDetails = ({
   ...props
 }: Props) => {
   const { data, isLoading } = useGetRequestDetailsQuery(requestId);
+  const { downloadRequestPdf, isDownloading } = useRequestPdfDownload();
 
   if (isLoading) {
     return (
@@ -59,6 +65,17 @@ export const RequestDetails = ({
     description: item.notes ?? undefined,
     status: STATUS_TO_TIMELINE_STATUS[item.status],
   }));
+  const canDownload = data.status !== 'draft';
+  const handleDownload = async () => {
+    if (!canDownload) {
+      return;
+    }
+
+    await downloadRequestPdf({
+      requestId: data.id,
+      formNumber: data.form_number,
+    });
+  };
 
   return (
     <Modal
@@ -76,7 +93,9 @@ export const RequestDetails = ({
         />
         <section className='my-5 flex flex-wrap items-end justify-between gap-8'>
           <DataBlock label='MRN' value={data.patient_id.toString()} />
-          <StatusChip status={data.status} />
+          <div className='flex items-center gap-3'>
+            <StatusChip status={data.status} />
+          </div>
         </section>
         <Separator className='bg-gray-separator' />
 
@@ -121,6 +140,17 @@ export const RequestDetails = ({
               </div>
             </section>
           </>
+        )}
+        {canDownload && (
+          <Button
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className='mt-10 w-auto rounded-xl px-10!'
+            size='lg'
+            variant='secondary'
+          >
+            Download PDF <Download color='#047CB4' />
+          </Button>
         )}
       </div>
     </Modal>

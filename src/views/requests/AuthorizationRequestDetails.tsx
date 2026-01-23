@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from 'react';
 
-import { useGetRequestDetailsQuery } from '@/services/requests';
+import {
+  useGetRequestDetailsQuery,
+  useRequestPdfDownload,
+} from '@/services/requests';
 import { Chip, SensitiveMessage } from '@/shared/components';
 import {
   ApproveRequestModal,
@@ -41,6 +44,7 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
     state: RequestDetailsFormState;
   } | null>(null);
   const [formErrors, setFormErrors] = useState<RequestDetailsFormErrors>({});
+  const { downloadRequestPdf, isDownloading } = useRequestPdfDownload();
   const defaultFormState = useMemo(
     () => (data ? buildRequestDetailsFormState(data) : null),
     [data],
@@ -81,6 +85,17 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
       };
     });
   };
+
+  const handleDownload = async () => {
+    if (!data?.id) {
+      return;
+    }
+    await downloadRequestPdf({
+      requestId: data.id,
+      formNumber: data.form_number,
+    });
+  };
+
   const {
     isApproveModalOpen,
     isDenyModalOpen,
@@ -148,6 +163,8 @@ const AuthorizationRequestDetails = ({ requestId }: Props) => {
           errors={formErrors}
           onChange={handleFormChange}
           onSave={handleUpdateRequest}
+          onDownload={handleDownload}
+          isDownloading={isDownloading}
           isSaving={isSaving}
         />
 
