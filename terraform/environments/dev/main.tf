@@ -41,3 +41,8 @@ module "ec2" {
   FULL_REPO_NAME = var.FULL_REPO_NAME
   tags           = local.common_tags
 }
+
+module "s3" {
+  source = "../../modules/s3"
+  name   = "${local.name_prefix}-upload"
+}

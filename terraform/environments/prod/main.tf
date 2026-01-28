@@ -33,3 +33,8 @@ module "ec2" {
 
   depends_on = [module.vpc]
 }
+
+module "s3" {
+  source = "../../modules/s3"
+  name   = "${local.name_prefix}-upload"
+}
