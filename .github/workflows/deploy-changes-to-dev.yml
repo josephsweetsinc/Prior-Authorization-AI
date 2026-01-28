@@ -6,7 +6,7 @@ on:
        - main
   workflow_dispatch:
 env:
-  ENVIRONMENT: dev
+  ENVIRONMENT: prod
 jobs:
   code_quality:
     name: Code Quality Checks

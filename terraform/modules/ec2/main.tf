@@ -35,14 +35,14 @@ data "aws_ami" "ubuntu_24_04" {
 
 # Local values
 locals {
-  ubuntu_ami     = data.aws_ami.ubuntu_24_04.id
+  ubuntu_ami = data.aws_ami.ubuntu_24_04.id
   ubuntu_version = "24.04 LTS (Noble)"
 }
 
 module "key_pair" {
   source = "terraform-aws-modules/key-pair/aws"
 
-  key_name   = "${var.name}-key"
+  key_name           = "${var.name}-key"
   public_key = var.SSH_KEY_PUB
 }
 
