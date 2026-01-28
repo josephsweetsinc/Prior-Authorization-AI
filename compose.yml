@@ -1,4 +1,13 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: "local_redis"
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - container
+
   paai_api:
     container_name: "local_paai_api"
     build:
@@ -14,7 +23,60 @@ services:
       - /app/.venv  # Exclude .venv from host mount to preserve installed packages
     networks:
       - container
+    depends_on:
+      - redis
     command: uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_URL=redis://redis:6379/0
+
+  celery_worker:
+    container_name: "local_celery_worker"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - ../prior-authorizationai/.env
+    volumes:
+      - .:/app
+      - /app/.venv
+    networks:
+      - container
+    depends_on:
+      - redis
+      - paai_api
+    command: uv run celery -A config.celery worker --loglevel=info
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_URL=redis://redis:6379/0
+
+  celery_beat:
+    container_name: "local_celery_beat"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - ../prior-authorizationai/.env
+    volumes:
+      - .:/app
+      - /app/.venv
+    networks:
+      - container
+    depends_on:
+      - redis
+      - paai_api
+    command: uv run celery -A config.celery beat --loglevel=info
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_URL=redis://redis:6379/0
 
 networks:
   container:

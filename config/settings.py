@@ -35,8 +35,6 @@ class TokenSettings(BaseSettings):
         ALGORITHM: Algorithm used for token signing (default: HS256).
         ACCESS_TOKEN_EXPIRE_MINUTES: Access token expiration time in minutes.
         REFRESH_TOKEN_EXPIRE_DAYS: Refresh token expiration time in days.
-        REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME: Refresh token expiration when
-         remember me is enabled.
 
     """
 
@@ -47,8 +45,7 @@ class TokenSettings(BaseSettings):
     SECRET_KEY: str = ''
     ALGORITHM: str = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # Default session (no remember me)
-    REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME: int = 30  # Remember me session
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
 
 class DatabaseSettings(BaseSettings):
@@ -195,29 +192,41 @@ class LLMSettings(BaseSettings):
     PDF_MAX_PAGES: int = 15
 
 
-class CookieSettings(BaseSettings):
-    """Settings for HTTP cookies.
+class RedisSettings(BaseSettings):
+    """Settings for Redis connection.
 
-    All settings are prefixed with 'COOKIE_' in environment variables.
+    All settings are prefixed with 'REDIS_' in environment variables.
 
     Attributes:
-        ACCESS_TOKEN_COOKIE_NAME: Name of the access token cookie.
-        REFRESH_TOKEN_COOKIE_NAME: Name of the refresh token cookie.
-        DOMAIN: Cookie domain (optional).
-        SECURE: Whether cookies should only be sent over HTTPS.
-        SAME_SITE: SameSite attribute for cookies.
+        URL: Full Redis URL (default: redis://localhost:6379/0).
+        HOST: Redis host (default: localhost).
+        PORT: Redis port (default: 6379).
+        DB: Redis database number (default: 0).
 
     """
 
     model_config = SettingsConfigDict(
-        env_prefix='COOKIE_', env_file=env_file, extra='ignore'
+        env_prefix='REDIS_', env_file=env_file, extra='ignore'
     )
 
-    ACCESS_TOKEN_COOKIE_NAME: str = 'access_token'  # noqa: S105
-    REFRESH_TOKEN_COOKIE_NAME: str = 'refresh_token'  # noqa: S105
-    DOMAIN: str | None = None
-    SECURE: bool = True  # Set to False for local development without HTTPS
-    SAME_SITE: str = 'lax'  # lax, strict, or none
+    URL: str | None = None
+    HOST: str = 'localhost'
+    PORT: int = 6379
+    DB: int = 0
+
+    def url(self) -> str:
+        """Generate Redis connection URL.
+
+        If URL is provided directly, returns it. Otherwise, constructs
+        the URL from individual connection parameters.
+
+        Returns:
+            Redis connection URL string.
+
+        """
+        if self.URL:
+            return self.URL
+        return f'redis://{self.HOST}:{self.PORT}/{self.DB}'
 
 
 class Settings(BaseSettings):
@@ -234,7 +243,6 @@ class Settings(BaseSettings):
         LOG_LEVEL: Logging level (DEBUG, INFO, WARNING, ERROR).
         DEBUG: Whether debug mode is enabled.
         token_settings: Nested token configuration.
-        cookie_settings: Nested cookie configuration.
         database_settings: Nested database configuration.
         logging_settings: Nested logging configuration.
         aws_settings: Nested AWS configuration.
@@ -256,9 +264,12 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = 'INFO'
     DEBUG: bool = False
 
+    # Expiration reminder settings
+    REMINDER_DAYS: list[int] = [30, 15, 7]
+    """Days before expiration to send reminders."""
+
     # Nested settings
     token_settings: TokenSettings = Field(default_factory=TokenSettings)
-    cookie_settings: CookieSettings = Field(default_factory=CookieSettings)
     database_settings: DatabaseSettings = Field(
         default_factory=DatabaseSettings
     )
@@ -266,6 +277,7 @@ class Settings(BaseSettings):
     aws_settings: AwsSettings = Field(default_factory=AwsSettings)  # type: ignore
     email_settings: EmailSettings = Field(default_factory=EmailSettings)
     llm_settings: LLMSettings = Field(default_factory=LLMSettings)
+    redis_settings: RedisSettings = Field(default_factory=RedisSettings)
 
     @classmethod
     @cache

@@ -1,11 +1,11 @@
 from datetime import date, datetime, time
+from enum import StrEnum
 from typing import Annotated
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    computed_field,
     field_serializer,
 )
 
@@ -21,6 +21,14 @@ from schemas.ai_extraction import ExtractedTransportationData
 DENIAL_NOTES_REQUIRED_MSG = (
     'denial_notes is required when denial_reason is OTHER_REASON'
 )
+
+
+class CompletionStatus(StrEnum):
+    """Enumeration of completion statuses for request validation."""
+
+    MISSING = 'missing'  # Required item is missing
+    INCOMPLETE = 'incomplete'  # Item exists but is incomplete
+    COMPLETE = 'complete'  # Item is complete and valid
 
 
 def get_denial_reason_display_name(reason: DenialReason) -> str:
@@ -127,6 +135,36 @@ class FileUploadResponseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class CompletionStatusItem(BaseModel):
+    """Schema for a single completion status item."""
+
+    name: str = Field(description='Name of the item being checked')
+    status: CompletionStatus = Field(description='Completion status')
+    message: str | None = Field(
+        default=None,
+        description='Helper message explaining what is needed',
+    )
+
+
+class CompletionStatusSchema(BaseModel):
+    """Schema for overall completion status of a request."""
+
+    overall_status: CompletionStatus = Field(
+        description='Overall completion status (missing/incomplete/complete)'
+    )
+    missing_fields: list[CompletionStatusItem] = Field(
+        default_factory=list,
+        description='List of missing or incomplete required fields only',
+    )
+    missing_documents: list[CompletionStatusItem] = Field(
+        default_factory=list,
+        description='List of missing or incomplete required documents only',
+    )
+    can_submit: bool = Field(
+        description='Whether the request can be submitted',
+    )
+
+
 class FileUploadWithExtractionResponseSchema(BaseModel):
     """Response schema for file upload with AI-extracted data."""
 
@@ -140,14 +178,9 @@ class FileUploadWithExtractionResponseSchema(BaseModel):
     extracted_data: 'ExtractedTransportationData' = Field(
         description='Data extracted by AI from uploaded documents',
     )
-
-    @computed_field
-    def is_complete(self) -> bool:
-        """Check if all required fields are populated."""
-        return all(
-            getattr(self.extracted_data, field) is not None
-            for field in self.extracted_data.model_fields
-        )
+    completion_status: 'CompletionStatusSchema' = Field(
+        description='Completion status of the request',
+    )
 
 
 class CreateAmbulanceRequestParseSchema(BaseModel):
@@ -460,6 +493,9 @@ class RequestWithStatusHistorySchema(AmbulanceRequestResponseSchema):
         default_factory=list,
         description='List of documents attached to the request',
     )
+    completion_status: 'CompletionStatusSchema' = Field(
+        description='Completion status of the request',
+    )
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -495,6 +531,9 @@ class AdminRequestWithStatusHistorySchema(BaseModel):
     documents: list[RequestDocumentSchema] = Field(
         default_factory=list,
         description='List of documents attached to the request',
+    )
+    completion_status: 'CompletionStatusSchema' = Field(
+        description='Completion status of the request',
     )
 
     @field_serializer('denial_reason')

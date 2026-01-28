@@ -50,13 +50,13 @@ async def get_user_notifications(
 ) -> NotificationsListResponseSchema:
     """Get all notifications for the current user with pagination.
 
-    Only provider users can access this endpoint.
+    Available for both admin and provider users.
 
     Args:
         page: Page number (1-based).
         category: Notification category to filter by (optional).
         is_read: Filter by read status (optional).
-        user: Current authenticated user (must be provider).
+        user: Current authenticated user (admin or provider).
         service: Notification service.
 
     Returns:
@@ -84,15 +84,7 @@ async def get_user_notifications(
         is_read=is_read,
     )
 
-    # Collect unread notification IDs for batch marking
-    unread_notification_ids = [
-        notification.id
-        for notification in notifications
-        if not notification.is_read
-    ]
-
-    # Return notifications with their original read status
-    response = NotificationsListResponseSchema(
+    return NotificationsListResponseSchema(
         items=[
             NotificationResponseSchema.model_validate(notification)
             for notification in notifications
@@ -103,16 +95,37 @@ async def get_user_notifications(
         total_pages=total_pages,
     )
 
-    # Mark unread notifications as read after response is forme
-    if unread_notification_ids:
-        try:
-            await service.mark_notifications_as_read(
-                unread_notification_ids, user_id=user.id
-            )
-        except Exception:
-            logger.exception(
-                'Failed to mark notifications as read: %s',
-                unread_notification_ids,
-            )
 
-    return response
+@notification_router.patch(
+    '/{notification_id}',
+    description='Mark notification as read by ID',
+    summary='Mark notification as read',
+    response_model=NotificationResponseSchema,
+)
+@exception_handler
+async def mark_notification_as_read(
+    notification_id: int,
+    user: Annotated[User, Security(get_current_user)],
+    service: Annotated[
+        NotificationService, Depends(get_service(NotificationService))
+    ],
+) -> NotificationResponseSchema:
+    """Mark a notification as read by its ID.
+
+    Available for both admin and provider users.
+    Users can only mark their own notifications as read.
+
+    Args:
+        notification_id: ID of the notification to mark as read.
+        user: Current authenticated user (admin or provider).
+        service: Notification service.
+
+    Returns:
+        NotificationResponseSchema: Updated notification instance.
+
+    """
+    notification = await service.mark_notification_as_read(
+        notification_id=notification_id,
+        user_id=user.id,
+    )
+    return NotificationResponseSchema.model_validate(notification)

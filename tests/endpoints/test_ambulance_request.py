@@ -241,6 +241,8 @@ class TestAmbulanceRequestEndpoints:
             new_callable=AsyncMock,
         ) as mock_get:
             from schemas.ambulance_request import (
+                CompletionStatus,
+                CompletionStatusSchema,
                 RequestDocumentSchema,
                 RequestStatusHistoryResponseSchema,
                 RequestWithStatusHistorySchema,
@@ -277,6 +279,12 @@ class TestAmbulanceRequestEndpoints:
                         download_url='https://s3.example.com/presigned-url',
                     )
                 ],
+                completion_status=CompletionStatusSchema(
+                    overall_status=CompletionStatus.COMPLETE,
+                    missing_fields=[],
+                    missing_documents=[],
+                    can_submit=True,
+                ),
             )
 
             response = client.get(

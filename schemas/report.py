@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 from typing import Annotated
 
 from pydantic import BaseModel, Field
@@ -13,13 +13,13 @@ class GenerateReportRequestSchema(BaseModel):
         ReportFormat,
         Field(description='Report format (PDF or Excel)'),
     ]
-    start_date: Annotated[
-        date,
-        Field(description='Start date for report period'),
-    ]
-    end_date: Annotated[
-        date,
-        Field(description='End date for report period'),
+    days: Annotated[
+        int,
+        Field(
+            ge=0,
+            description='Number of days for report period (0=today, 7, 30, 90)',
+            examples=[7],
+        ),
     ]
 
 
@@ -92,7 +92,9 @@ class ReportItemSchema(BaseModel):
         str,
         Field(description='Full name of the user who created the report'),
     ]
-    s3_key: Annotated[str, Field(description='S3 key for the report file')]
+    download_url: Annotated[
+        str, Field(description='Presigned URL for downloading the report file')
+    ]
 
 
 class LatestReportsResponseSchema(BaseModel):

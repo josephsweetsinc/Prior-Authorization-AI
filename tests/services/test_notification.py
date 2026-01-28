@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from exceptions.notification import NotificationNotFoundException
 from models import Notification
 from models.notification import NotificationCategory
 from services.notification import NotificationService
@@ -153,3 +154,72 @@ class TestNotificationService:
         assert result == notification
         mock_notification_dao.create.assert_awaited_once()
         mock_session.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_mark_notification_as_read_success(
+        self,
+        notification_service,
+        mock_notification_dao,
+        mock_session,
+    ):
+        """Test marking a single notification as read."""
+        notification_id = 101
+        user_id = 1
+
+        notification = MagicMock(spec=Notification)
+        notification.id = notification_id
+        notification.user_id = user_id
+
+        mock_notification_dao.get_by_id.return_value = notification
+        mock_notification_dao.mark_as_read.return_value = notification
+
+        result = await notification_service.mark_notification_as_read(
+            notification_id=notification_id,
+            user_id=user_id,
+        )
+
+        assert result == notification
+        mock_notification_dao.get_by_id.assert_awaited_once_with(notification_id)
+        mock_notification_dao.mark_as_read.assert_awaited_once_with(notification_id)
+        mock_session.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_mark_notification_as_read_not_found(
+        self,
+        notification_service,
+        mock_notification_dao,
+    ):
+        """Test marking notification as read when notification not found."""
+        notification_id = 999
+        user_id = 1
+
+        mock_notification_dao.get_by_id.return_value = None
+
+        with pytest.raises(NotificationNotFoundException):
+            await notification_service.mark_notification_as_read(
+                notification_id=notification_id,
+                user_id=user_id,
+            )
+
+    @pytest.mark.asyncio
+    async def test_mark_notification_as_read_wrong_owner(
+        self,
+        notification_service,
+        mock_notification_dao,
+    ):
+        """Test marking notification as read when notification belongs to another user."""
+        notification_id = 101
+        user_id = 1
+        other_user_id = 2
+
+        notification = MagicMock(spec=Notification)
+        notification.id = notification_id
+        notification.user_id = other_user_id
+
+        mock_notification_dao.get_by_id.return_value = notification
+
+        with pytest.raises(NotificationNotFoundException):
+            await notification_service.mark_notification_as_read(
+                notification_id=notification_id,
+                user_id=user_id,
+            )

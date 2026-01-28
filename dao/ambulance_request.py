@@ -314,12 +314,14 @@ class AmbulanceRequestDAO(BaseDAO):
         *,
         patient_id: str | None = None,
         patient_name: str | None = None,
+        user_id: int | None = None,
     ) -> list[int]:
         """Search request IDs by patient ID and/or name.
 
         Args:
             patient_id: Optional patient ID to search for.
             patient_name: Optional patient name to search for (matches name).
+            user_id: Optional user ID to filter by. If None, returns all.
 
         Returns:
             List of request IDs matching the criteria.
@@ -328,6 +330,10 @@ class AmbulanceRequestDAO(BaseDAO):
         stmt = select(AmbulanceRequest.id).where(
             AmbulanceRequest.is_active == True  # noqa: E712
         )
+
+        # Filter by user_id if provided (for non-admin users)
+        if user_id is not None:
+            stmt = stmt.where(AmbulanceRequest.user_id == user_id)
 
         if patient_id is not None:
             stmt = stmt.where(
@@ -351,6 +357,31 @@ class AmbulanceRequestDAO(BaseDAO):
         stmt = stmt.order_by(
             AmbulanceRequest.created_at.desc(), AmbulanceRequest.id.desc()
         )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_expiring_requests(self, days: int) -> list[AmbulanceRequest]:
+        """Get active requests expiring in exactly N days.
+
+        Args:
+            days: Number of days until expiration.
+
+        Returns:
+            list[AmbulanceRequest]: List of requests expiring in N days.
+
+        """
+        today = datetime.now(tz=UTC).date()
+        target_date = today + timedelta(days=days)
+
+        stmt = (
+            select(AmbulanceRequest)
+            .where(AmbulanceRequest.status == RequestStatus.APPROVED)
+            .where(AmbulanceRequest.expiration_date.isnot(None))
+            .where(AmbulanceRequest.expiration_date == target_date)
+            .where(AmbulanceRequest.is_active.is_(True))
+            .where(AmbulanceRequest.deleted_at.is_(None))
+        )
+
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 

@@ -7,6 +7,7 @@ from .ambulance_request import (
     AmbulanceRequestInvalidStatusException,
     AmbulanceRequestNoDocumentsUploadedException,
     AmbulanceRequestNotFoundException,
+    AmbulanceRequestPDFGenerationException,
     AmbulanceRequestPermissionException,
     AmbulanceRequestSearchParametersMissingException,
 )
@@ -20,6 +21,7 @@ from .auth import (
 from .file import IncorrectFileSizeException, UnknownFiletypeException
 from .notification import (
     NotificationMissingRequestException,
+    NotificationNotFoundException,
     NotificationSystemCategoryException,
 )
 from .password_reset import (
@@ -46,6 +48,7 @@ __all__ = [
     'AmbulanceRequestInvalidStatusException',
     'AmbulanceRequestNoDocumentsUploadedException',
     'AmbulanceRequestNotFoundException',
+    'AmbulanceRequestPDFGenerationException',
     'AmbulanceRequestPermissionException',
     'AmbulanceRequestSearchParametersMissingException',
     'BadPasswordSchemaException',
@@ -55,6 +58,7 @@ __all__ = [
     'NoFiltersException',
     'NoUpdateDataException',
     'NotificationMissingRequestException',
+    'NotificationNotFoundException',
     'NotificationSystemCategoryException',
     'RefreshTokenException',
     'ResetCodeExpiredException',
