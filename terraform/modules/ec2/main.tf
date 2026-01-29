@@ -35,14 +35,14 @@ data "aws_ami" "ubuntu_24_04" {
 
 # Local values
 locals {
-  ubuntu_ami = data.aws_ami.ubuntu_24_04.id
+  ubuntu_ami     = data.aws_ami.ubuntu_24_04.id
   ubuntu_version = "24.04 LTS (Noble)"
 }
 
 module "key_pair" {
   source = "terraform-aws-modules/key-pair/aws"
 
-  key_name           = "${var.name}-key"
+  key_name   = "${var.name}-key"
   public_key = var.SSH_KEY_PUB
 }
 
@@ -113,12 +113,13 @@ module "ec2_instance" {
 
     # Download the certificates
 
-    sudo systemctl stop nginx; sudo  certbot certonly --standalone -d ${var.domain} --staple-ocsp -m example@gmail.com --agree-tos; sudo systemctl restart nginx
+    if [ -n "${var.domain}" ]; then
+      sudo systemctl stop nginx; sudo  certbot certonly --standalone -d ${var.domain} --staple-ocsp -m example@gmail.com --agree-tos; sudo systemctl restart nginx
 
-
-    # Add cronjob for certificates renewal
-
-    echo "0 12 * * * sudo systemctl stop nginx; /usr/bin/certbot renew --quiet; sudo systemctl restart nginx" | crontab -
+      # Add cronjob for certificates renewal
+      
+      echo "0 12 * * * sudo systemctl stop nginx; /usr/bin/certbot renew --quiet; sudo systemctl restart nginx" | crontab -
+    fi
 
     # Add nginx .conf files for api
 
@@ -126,7 +127,8 @@ module "ec2_instance" {
 
     sudo rm /etc/nginx/sites-enabled/default
 
-    echo 'server {
+    if [ -n "${var.domain}" ]; then
+      echo 'server {
     listen 80 default_server;
     server_name localhost;
     return 301 https://$host$request_uri;
@@ -179,6 +181,61 @@ module "ec2_instance" {
               proxy_connect_timeout 86400;
           }
       }' > /etc/nginx/conf.d/app-api.conf
+    else
+        echo 'server {
+    listen 80 default_server;
+    server_name localhost;
+    # return 301 https://$host$request_uri;
+    # }
+
+    # server {
+    #   listen 443 ssl;
+    #   server_name ${var.domain};
+    #   ssl_certificate /etc/letsencrypt/live/${var.domain}/fullchain.pem;
+    #   ssl_certificate_key /etc/letsencrypt/live/${var.domain}/privkey.pem;
+
+    types_hash_max_size 10240;
+    client_max_body_size 10M;
+
+    location / {
+        proxy_pass http://127.0.0.1:3100/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Optional Timeouts
+        send_timeout 5m;
+        proxy_read_timeout 240;
+        proxy_send_timeout 240;
+        proxy_connect_timeout 240;
+
+        # Optional Headers
+        # add_header Access-Control-Allow-Origin * always;
+        # add_header Access-Control-Allow-Headers * always;
+
+        proxy_cache_bypass $cookie_session;
+        proxy_no_cache $cookie_session;
+        proxy_buffers 32 4k;
+      }
+      location /Prod/api/v1/websocket/ {
+            proxy_pass http://127.0.0.1:3100/Prod/api/v1/websocket/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Authorization $http_authorization;
+
+            # WebSocket specific timeouts
+            proxy_read_timeout 86400;
+            proxy_send_timeout 86400;
+            proxy_connect_timeout 86400;
+        }
+    }' > /etc/nginx/conf.d/app-api.conf
+    fi
 
     sudo systemctl restart nginx
 

@@ -1,5 +1,5 @@
 # Application Configuration
-domain        = "api.prior-authorizationai.softwaredoes.com"
+domain        = "api.infopaai.com"
 
 # EC2 Configuration
 instance_type = "t4g.small"
