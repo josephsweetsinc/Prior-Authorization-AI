@@ -24,6 +24,26 @@ const defaultValues: FormState = {
 const requiredIfEmpty = (value: unknown, message: string) =>
   String(value ?? '').trim() === '' ? message : '';
 
+const FORM_NUMBER_PREFIX = 'CMS-';
+
+const isValidFormNumber = (value: unknown) =>
+  new RegExp(`^${FORM_NUMBER_PREFIX}\\d+$`).test(String(value ?? ''));
+
+const REQUIRED_FIELDS: (keyof FormState)[] = [
+  'transportationType',
+  'patientFirstName',
+  'patientLastName',
+  'patientDob',
+  'patientId',
+  'dateOfTransport',
+  'timeOfTransport',
+  'pickupAddress',
+  'destinationAddress',
+  'primaryDiagnosis',
+  'medicalJustification',
+  'formNumber',
+];
+
 export function useInfoForm(initialValues?: Partial<IExtractedData> | null) {
   const [form, setForm] = useState<Partial<FormState>>(defaultValues);
 
@@ -42,17 +62,30 @@ export function useInfoForm(initialValues?: Partial<IExtractedData> | null) {
     const required = 'This field is required';
 
     return Object.fromEntries(
-      Object.keys(FIELD_MAP).map((key) => [
-        key,
-        requiredIfEmpty(form[key as keyof typeof form], required),
-      ]),
+      Object.keys(FIELD_MAP).map((key) => {
+        if (key === 'formNumber') {
+          const value = form.formNumber;
+
+          if (String(value ?? '').trim() === '') {
+            return [key, required];
+          }
+
+          return [key, isValidFormNumber(value) ? '' : 'Use format CMS-12345'];
+        }
+
+        return [key, requiredIfEmpty(form[key as keyof typeof form], required)];
+      }),
     );
   }, [form]);
 
   const isFormComplete = useMemo(() => {
-    return Object.values(form).every(
-      (value) => String(value ?? '').trim() !== '',
-    );
+    return REQUIRED_FIELDS.every((key) => {
+      if (key === 'formNumber') {
+        return isValidFormNumber(form.formNumber);
+      }
+
+      return String(form[key] ?? '').trim() !== '';
+    });
   }, [form]);
 
   return { form, setForm, errors, isFormComplete };

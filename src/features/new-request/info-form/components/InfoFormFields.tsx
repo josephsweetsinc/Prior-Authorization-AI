@@ -12,8 +12,35 @@ type Props = {
 };
 
 export const InfoFormFields = ({ form, setForm, errors }: Props) => {
+  const handleFormNumberChange = (value: string) => {
+    const prefix = 'CMS-';
+
+    if (value.trim() === '') {
+      setForm((p) => ({ ...p, formNumber: '' }));
+      return;
+    }
+
+    const raw = value.startsWith(prefix) ? value.slice(prefix.length) : value;
+    const digitsOnly = raw.replace(/\D/g, '');
+
+    setForm((p) => ({ ...p, formNumber: `${prefix}${digitsOnly}` }));
+  };
+
   return (
     <div className='space-y-6'>
+      <Input
+        label='Form Number'
+        labelVariant='static'
+        value={form.formNumber}
+        onFocus={() => {
+          if (!form.formNumber?.trim()) {
+            setForm((p) => ({ ...p, formNumber: 'CMS-' }));
+          }
+        }}
+        onChange={(e) => handleFormNumberChange(e.target.value)}
+        error={errors.formNumber}
+      />
+
       <Select
         options={TRANSPORTATION_TYPE_OPTIONS}
         label='Transportation Type'
