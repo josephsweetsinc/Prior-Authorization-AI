@@ -7,7 +7,6 @@ import { useForm, type SubmitHandler, type Resolver } from 'react-hook-form';
 import { z } from 'zod';
 
 import { useLogin } from '@/services/auth/hooks/useLogin';
-import { GoogleIcon } from '@/shared/assets/icons';
 import { Button } from '@/shared/components/button';
 import { Checkbox } from '@/shared/components/checkbox/checkbox';
 import { Input } from '@/shared/components/inputs';
@@ -93,20 +92,6 @@ export function LoginForm() {
       <div className='space-y-5'>
         <Button variant='primary' size='default' disabled={isLoading}>
           {isLoading ? 'Signing in...' : 'Sign In'}
-        </Button>
-
-        <div className='relative'>
-          <div className='absolute inset-0 flex items-center'>
-            <span className='w-full border-t border-[#E8E8E8]' />
-          </div>
-          <div className='text-md relative flex justify-center font-medium'>
-            <span className='text-gray-dark bg-white px-2.5'>or</span>
-          </div>
-        </div>
-
-        <Button variant='default' size='default' type='button'>
-          Sign in with Google
-          <GoogleIcon />
         </Button>
       </div>
     </form>
