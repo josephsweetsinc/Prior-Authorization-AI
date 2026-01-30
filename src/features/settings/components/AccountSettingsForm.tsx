@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 
@@ -10,17 +10,23 @@ import { useUpdateUserAccountMutation } from '@/services/settings/api';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
 import { useApiFormError } from '@/shared/hooks/useApiFormError';
+import {
+  createPhoneInputChangeHandler,
+  formatPhoneNumber,
+} from '@/shared/lib/formatters/phone';
 
 import { type UpdateAccountSchema, updateAccountSchema } from '../validation';
 
 export const AccountSettingsForm = () => {
   const { data: currentUser, refetch } = useGetCurrentUserQuery();
+  const lastPhoneDigitsRef = useRef('');
 
   const {
     register,
     handleSubmit,
     reset,
     setError,
+    setValue,
     formState: { errors },
   } = useForm<UpdateAccountSchema>({
     resolver: zodResolver(updateAccountSchema),
@@ -37,17 +43,26 @@ export const AccountSettingsForm = () => {
   const [updateUserAccount] = useUpdateUserAccountMutation();
   const [isUpdating, setIsUpdating] = useState(false);
   const { handleError } = useApiFormError<UpdateAccountSchema>(setError);
+  const handlePhoneChange = createPhoneInputChangeHandler({
+    setValue,
+    lastDigitsRef: lastPhoneDigitsRef,
+  });
 
   useEffect(() => {
     if (currentUser) {
+      const phoneNumber = currentUser.phone_number ?? '';
+      const formattedPhone = phoneNumber ? formatPhoneNumber(phoneNumber) : '';
+
       reset({
         name: currentUser.name ?? '',
         surname: currentUser.surname ?? '',
         email: currentUser.email ?? '',
-        phone: currentUser.phone_number ?? '',
+        phone: formattedPhone,
         position: currentUser.position ?? '',
         place_of_work: currentUser.place_of_work ?? '',
       });
+
+      lastPhoneDigitsRef.current = phoneNumber.replace(/\D/g, '');
     }
   }, [currentUser, reset]);
 
@@ -87,7 +102,14 @@ export const AccountSettingsForm = () => {
       <Input
         labelVariant='static'
         label='Phone'
-        {...register('phone')}
+        type='tel'
+        inputMode='numeric'
+        autoComplete='tel'
+        maxLength={18}
+        placeholder='+1 (234) 567-8900'
+        {...register('phone', {
+          onChange: handlePhoneChange,
+        })}
         error={errors.phone?.message}
       />
       <Input
