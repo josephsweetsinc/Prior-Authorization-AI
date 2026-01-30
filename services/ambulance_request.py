@@ -375,47 +375,11 @@ class AmbulanceRequestService(BaseService):
                 'Request is not in DRAFT status'
             )
 
-        # Update critical fields needed for completion status check
-        # (form_number and ordering_physician) before validation
+        # Build update payload and apply it to request BEFORE completion check,
+        # so get_completion_status evaluates the data we are about to submit.
         update_data = request_data.model_dump(
             exclude_unset=True, exclude={'request_id'}
         )
-        if (
-            'form_number' in update_data
-            and update_data['form_number'] is not None
-        ):
-            request.form_number = update_data['form_number']
-        if (
-            'ordering_physician' in update_data
-            and update_data['ordering_physician'] is not None
-        ):
-            request.ordering_physician = update_data['ordering_physician']
-
-        # Check if request can be submitted
-        completion_status = await self.get_completion_status(request=request)
-        if not completion_status.can_submit:
-            missing_items = (
-                completion_status.missing_fields
-                + completion_status.missing_documents
-            )
-            missing_names = ', '.join([item.name for item in missing_items])
-            raise AmbulanceRequestInvalidStatusException(  # noqa: TRY003
-                f'Cannot submit request. Missing required items: '
-                f'{missing_names}. Verification of Medical Necessity '
-                'document and Physician Signature are required for '
-                'submission.'
-            )
-
-        # Update request with verified data
-        # Only update fields that AI returns to user
-        # Fields that AI doesn't return (like ai_accuracy)
-        # Use model_dump(exclude_unset=True) to only update
-        # This ensures fields not sent by user are not updated
-        # (update_data was already extracted above for early field updates)
-
-        # Update only fields that are in ExtractedTransportationData
-        # These are the fields that AI returns to user after extraction
-        # Required fields (always provided):
         request.transportation_type = update_data.get(
             'transportation_type', request.transportation_type
         )
@@ -444,8 +408,6 @@ class AmbulanceRequestService(BaseService):
         request.oxygen_required = update_data.get(
             'oxygen_required', request.oxygen_required
         )
-        # Optional fields (only update if explicitly provided and not None):
-        # These fields preserve DRAFT values if not provided or if None
         if (
             'primary_diagnosis' in update_data
             and update_data['primary_diagnosis'] is not None
@@ -476,7 +438,22 @@ class AmbulanceRequestService(BaseService):
             and update_data['physician_phone'] is not None
         ):
             request.physician_phone = update_data['physician_phone']
-        # ai_accuracy is NOT in update_data - it's preserved from DRAFT
+
+        # Check if request can be submitted (uses request state we just set)
+        completion_status = await self.get_completion_status(request=request)
+        if not completion_status.can_submit:
+            missing_items = (
+                completion_status.missing_fields
+                + completion_status.missing_documents
+            )
+            missing_names = ', '.join([item.name for item in missing_items])
+            raise AmbulanceRequestInvalidStatusException(  # noqa: TRY003
+                f'Cannot submit request. Missing required items: '
+                f'{missing_names}. Verification of Medical Necessity '
+                'document and Physician Signature are required for '
+                'submission.'
+            )
+
         # status is always updated to SUBMITTED
         request.status = RequestStatus.SUBMITTED
         await self._session.flush()
