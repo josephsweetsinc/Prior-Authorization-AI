@@ -10,14 +10,14 @@ import { useSignUp } from '@/services/auth/hooks';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
 import { useApiFormError } from '@/shared/hooks/useApiFormError';
+import { formatPhoneNumber } from '@/shared/lib/formatters/phone';
 
 export const completeProfileSchema = z.object({
   phone: z
     .string()
-    .min(7, { message: 'Phone is required' })
-    .refine((v) => /^1?\d{10}$/.test(v.replace(/\D/g, '')), {
-      message:
-        "Phone must be 10 digits (optionally prefixed with country code '1')",
+    .min(1, { message: 'Phone is required' })
+    .refine((v) => /^1\d{10}$/.test(v.replace(/\D/g, '')), {
+      message: "Phone must be 11 digits starting with '1'",
     }),
   company: z.string().min(1, { message: 'Company is required' }),
   jobTitle: z.string().min(1, { message: 'Position is required' }),
@@ -34,6 +34,7 @@ export function CompleteProfileForm() {
     register,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors },
   } = useForm<CompleteProfileSchema>({
     resolver: zodResolver(completeProfileSchema),
@@ -102,7 +103,16 @@ export function CompleteProfileForm() {
         <Input
           label='Phone Number'
           type='tel'
-          {...register('phone')}
+          inputMode='numeric'
+          autoComplete='tel'
+          maxLength={17}
+          placeholder='1 (234) 567-8900'
+          {...register('phone', {
+            onChange: (event) => {
+              const formatted = formatPhoneNumber(event.target.value);
+              setValue('phone', formatted, { shouldValidate: true });
+            },
+          })}
           error={errors.phone?.message}
         />
 
