@@ -9,6 +9,7 @@ import { useGetCurrentUserQuery } from '@/services/auth/api/auth-api-service';
 import { useUpdateUserOrganizationMutation } from '@/services/settings/api';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
+import { useApiFormError } from '@/shared/hooks/useApiFormError';
 
 import {
   type UpdateOrganizationSchema,
@@ -22,8 +23,9 @@ export const OrganizationSettingsForm = () => {
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors },
-  } = useForm({
+  } = useForm<UpdateOrganizationSchema>({
     resolver: zodResolver(updateOrganizationSchema),
     defaultValues: {
       provider_type: '',
@@ -34,6 +36,7 @@ export const OrganizationSettingsForm = () => {
 
   const [updateUserOrganization] = useUpdateUserOrganizationMutation();
   const [isUpdating, setIsUpdating] = useState(false);
+  const { handleError } = useApiFormError<UpdateOrganizationSchema>(setError);
 
   useEffect(() => {
     if (currentUser?.organization) {
@@ -51,7 +54,7 @@ export const OrganizationSettingsForm = () => {
       await updateUserOrganization(data).unwrap();
       toast.success('Organization updated successfully');
     } catch (error) {
-      toast.error((error as string) ?? 'Failed to update organization');
+      handleError(error);
     } finally {
       setIsUpdating(false);
     }

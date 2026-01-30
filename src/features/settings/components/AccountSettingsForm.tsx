@@ -5,11 +5,11 @@ import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 
-import { parseApiError } from '@/services/api/types';
 import { useGetCurrentUserQuery } from '@/services/auth/api/auth-api-service';
 import { useUpdateUserAccountMutation } from '@/services/settings/api';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
+import { useApiFormError } from '@/shared/hooks/useApiFormError';
 
 import { type UpdateAccountSchema, updateAccountSchema } from '../validation';
 
@@ -20,8 +20,9 @@ export const AccountSettingsForm = () => {
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors },
-  } = useForm({
+  } = useForm<UpdateAccountSchema>({
     resolver: zodResolver(updateAccountSchema),
     defaultValues: {
       name: '',
@@ -35,6 +36,7 @@ export const AccountSettingsForm = () => {
 
   const [updateUserAccount] = useUpdateUserAccountMutation();
   const [isUpdating, setIsUpdating] = useState(false);
+  const { handleError } = useApiFormError<UpdateAccountSchema>(setError);
 
   useEffect(() => {
     if (currentUser) {
@@ -56,8 +58,7 @@ export const AccountSettingsForm = () => {
       await refetch();
       toast.success('Account updated successfully');
     } catch (error) {
-      const parsedError = parseApiError(error)?.message;
-      toast.error(parsedError ?? 'Failed to update account');
+      handleError(error);
     } finally {
       setIsUpdating(false);
     }
