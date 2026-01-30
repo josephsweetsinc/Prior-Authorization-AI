@@ -375,69 +375,31 @@ class AmbulanceRequestService(BaseService):
                 'Request is not in DRAFT status'
             )
 
-        # Build update payload and apply it to request BEFORE completion check,
+        # Apply request body to request object BEFORE completion check,
         # so get_completion_status evaluates the data we are about to submit.
-        update_data = request_data.model_dump(
-            exclude_unset=True, exclude={'request_id'}
-        )
-        request.transportation_type = update_data.get(
-            'transportation_type', request.transportation_type
-        )
-        request.patient_first_name = update_data.get(
-            'patient_first_name', request.patient_first_name
-        )
-        request.patient_last_name = update_data.get(
-            'patient_last_name', request.patient_last_name
-        )
-        request.patient_date_of_birth = update_data.get(
-            'patient_date_of_birth', request.patient_date_of_birth
-        )
-        request.patient_id = update_data.get('patient_id', request.patient_id)
-        request.date_of_transport = update_data.get(
-            'date_of_transport', request.date_of_transport
-        )
-        request.time_of_transport = update_data.get(
-            'time_of_transport', request.time_of_transport
-        )
-        request.pickup_address = update_data.get(
-            'pickup_address', request.pickup_address
-        )
-        request.destination_address = update_data.get(
-            'destination_address', request.destination_address
-        )
-        request.oxygen_required = update_data.get(
-            'oxygen_required', request.oxygen_required
-        )
-        if (
-            'primary_diagnosis' in update_data
-            and update_data['primary_diagnosis'] is not None
-        ):
-            request.primary_diagnosis = update_data['primary_diagnosis']
-        if (
-            'medical_justification' in update_data
-            and update_data['medical_justification'] is not None
-        ):
-            request.medical_justification = update_data['medical_justification']
-        if (
-            'form_number' in update_data
-            and update_data['form_number'] is not None
-        ):
-            request.form_number = update_data['form_number']
-        if (
-            'ambulatory_status' in update_data
-            and update_data['ambulatory_status'] is not None
-        ):
-            request.ambulatory_status = update_data['ambulatory_status']
-        if (
-            'ordering_physician' in update_data
-            and update_data['ordering_physician'] is not None
-        ):
-            request.ordering_physician = update_data['ordering_physician']
-        if (
-            'physician_phone' in update_data
-            and update_data['physician_phone'] is not None
-        ):
-            request.physician_phone = update_data['physician_phone']
+        # Use request_data attributes directly (already validated by FastAPI).
+        request.transportation_type = request_data.transportation_type
+        request.patient_first_name = request_data.patient_first_name
+        request.patient_last_name = request_data.patient_last_name
+        request.patient_date_of_birth = request_data.patient_date_of_birth
+        request.patient_id = request_data.patient_id
+        request.date_of_transport = request_data.date_of_transport
+        request.time_of_transport = request_data.time_of_transport
+        request.pickup_address = request_data.pickup_address
+        request.destination_address = request_data.destination_address
+        request.oxygen_required = request_data.oxygen_required
+        if request_data.primary_diagnosis is not None:
+            request.primary_diagnosis = request_data.primary_diagnosis
+        if request_data.medical_justification is not None:
+            request.medical_justification = request_data.medical_justification
+        if request_data.form_number is not None:
+            request.form_number = request_data.form_number
+        if request_data.ambulatory_status is not None:
+            request.ambulatory_status = request_data.ambulatory_status
+        if request_data.ordering_physician is not None:
+            request.ordering_physician = request_data.ordering_physician
+        if request_data.physician_phone is not None:
+            request.physician_phone = request_data.physician_phone
 
         # Check if request can be submitted (uses request state we just set)
         completion_status = await self.get_completion_status(request=request)
