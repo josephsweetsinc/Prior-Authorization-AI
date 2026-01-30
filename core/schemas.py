@@ -56,7 +56,7 @@ class EmailMixinSchema(BaseModel):
         EmailStr,
         Field(
             min_length=3,
-            max_length=30,
+            max_length=254,
             pattern=r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
             examples=[
                 'admin@admin.com',
