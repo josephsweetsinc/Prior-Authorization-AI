@@ -1,9 +1,17 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 from core import (
     EmailMixinSchema,
@@ -13,6 +21,21 @@ from core import (
 )
 from models.user import UserRole
 from schemas import OrganizationResponseSchema
+
+# E.164: 10–15 digits; optional leading + and spaces/dashes/parentheses
+PHONE_DIGITS_RE = re.compile(r'[\d]')
+PHONE_MIN_DIGITS = 10
+PHONE_MAX_DIGITS = 15
+
+
+def _normalize_phone(value: str | None) -> str | None:
+    """Normalize phone to digits only; validate length; raise friendly error."""
+    if value is None:
+        return None
+    digits = ''.join(PHONE_DIGITS_RE.findall(value))
+    if len(digits) < PHONE_MIN_DIGITS or len(digits) > PHONE_MAX_DIGITS:
+        raise ValueError('Invalid phone number format')
+    return digits
 
 
 class _BaseUserRequestSchema(
@@ -39,10 +62,10 @@ class CreateUserRequestSchema(_BaseUserRequestSchema):
     phone_number: Annotated[
         str,
         Field(
-            min_length=10,
-            max_length=15,
-            pattern=r'^1\d{10}$',
-            examples=['12345678900'],
+            min_length=1,
+            max_length=32,
+            description='Phone number (digits; +, spaces, dashes allowed)',
+            examples=['+1 234 567 8901', '12345678900'],
         ),
     ]
     position: Annotated[
@@ -53,6 +76,11 @@ class CreateUserRequestSchema(_BaseUserRequestSchema):
         str,
         Field(min_length=3, max_length=64, examples=['Hospital']),
     ]
+
+    @field_validator('phone_number', mode='before')
+    @classmethod
+    def normalize_phone_number(cls, value: str | None) -> str | None:
+        return _normalize_phone(value)
 
 
 class CreateUserByAdminRequestSchema(_BaseUserRequestSchema):
@@ -89,7 +117,7 @@ class UpdateUserRequestSchema(BaseModel):
         Field(
             None,
             min_length=3,
-            max_length=30,
+            max_length=254,
             pattern=r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
             examples=['admin@admin.com'],
         ),
@@ -135,7 +163,7 @@ class UpdateMeRequestSchema(BaseModel):
         Field(
             None,
             min_length=3,
-            max_length=30,
+            max_length=254,
             pattern=r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
             examples=['user@example.com'],
             description='Email of the user',
@@ -145,11 +173,10 @@ class UpdateMeRequestSchema(BaseModel):
         str | None,
         Field(
             None,
-            min_length=10,
-            max_length=15,
-            pattern=r'^1\d{10}$',
-            examples=['12345678900'],
-            description='Phone number',
+            min_length=1,
+            max_length=32,
+            description='Phone number (digits; +, spaces, dashes allowed)',
+            examples=['+1 234 567 8901', '12345678900'],
         ),
     ]
     position: Annotated[
@@ -172,6 +199,11 @@ class UpdateMeRequestSchema(BaseModel):
             description='Place of work',
         ),
     ]
+
+    @field_validator('phone', mode='before')
+    @classmethod
+    def normalize_phone(cls, value: str | None) -> str | None:
+        return _normalize_phone(value)
 
     @model_validator(mode='after')
     def validate_at_least_one_field(self) -> UpdateMeRequestSchema:
