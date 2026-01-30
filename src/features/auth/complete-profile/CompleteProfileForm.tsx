@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -10,7 +10,7 @@ import { useSignUp } from '@/services/auth/hooks';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
 import { useApiFormError } from '@/shared/hooks/useApiFormError';
-import { formatPhoneNumber } from '@/shared/lib/formatters/phone';
+import { createPhoneInputChangeHandler } from '@/shared/lib/formatters/phone';
 
 export const completeProfileSchema = z.object({
   phone: z
@@ -19,14 +19,21 @@ export const completeProfileSchema = z.object({
     .refine((v) => /^1\d{10}$/.test(v.replace(/\D/g, '')), {
       message: "Phone must be 11 digits starting with '1'",
     }),
-  company: z.string().min(1, { message: 'Company is required' }),
-  jobTitle: z.string().min(1, { message: 'Position is required' }),
+  company: z
+    .string()
+    .min(1, { message: 'Company is required' })
+    .max(40, { message: 'Company must be 40 characters or less' }),
+  jobTitle: z
+    .string()
+    .min(1, { message: 'Position is required' })
+    .max(40, { message: 'Position must be 40 characters or less' }),
 });
 export type CompleteProfileSchema = z.infer<typeof completeProfileSchema>;
 
 export function CompleteProfileForm() {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
+  const lastPhoneDigitsRef = useRef('');
 
   const { signup, isLoading } = useSignUp();
 
@@ -46,6 +53,10 @@ export function CompleteProfileForm() {
   });
 
   const { handleError } = useApiFormError(setError);
+  const handlePhoneChange = createPhoneInputChangeHandler({
+    setValue,
+    lastDigitsRef: lastPhoneDigitsRef,
+  });
 
   useEffect(() => {
     const step1 = sessionStorage.getItem('signup_step1');
@@ -105,13 +116,10 @@ export function CompleteProfileForm() {
           type='tel'
           inputMode='numeric'
           autoComplete='tel'
-          maxLength={17}
-          placeholder='1 (234) 567-8900'
+          maxLength={18}
+          placeholder='+1 (234) 567-8900'
           {...register('phone', {
-            onChange: (event) => {
-              const formatted = formatPhoneNumber(event.target.value);
-              setValue('phone', formatted, { shouldValidate: true });
-            },
+            onChange: handlePhoneChange,
           })}
           error={errors.phone?.message}
         />
@@ -119,6 +127,7 @@ export function CompleteProfileForm() {
         <Input
           label='Position'
           type='text'
+          maxLength={40}
           {...register('jobTitle')}
           error={errors.jobTitle?.message}
         />
@@ -126,6 +135,7 @@ export function CompleteProfileForm() {
         <Input
           label='Place of Work'
           type='text'
+          maxLength={40}
           {...register('company')}
           error={errors.company?.message}
         />

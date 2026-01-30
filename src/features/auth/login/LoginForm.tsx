@@ -60,6 +60,7 @@ export function LoginForm() {
         <Input
           label='Email'
           type='email'
+          maxLength={254}
           {...register('email')}
           error={errors.email?.message}
         />
