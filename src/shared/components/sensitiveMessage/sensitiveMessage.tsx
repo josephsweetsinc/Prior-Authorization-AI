@@ -1,7 +1,14 @@
 'use client';
 
 import { cva, type VariantProps } from 'class-variance-authority';
-import { Sparkles, Info, CircleCheck, AlertCircle } from 'lucide-react';
+import {
+  Sparkles,
+  Info,
+  CircleCheck,
+  ClockFading,
+  AlertCircle,
+  CircleX,
+} from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/shared/lib/utils';
@@ -13,7 +20,13 @@ const messageVariants = cva(
       variant: {
         ai: 'bg-status-info/10 text-status-info [&>svg]:text-current',
         info: 'bg-status-info/10 text-status-info [&>svg]:text-current',
+        incomplete:
+          'bg-status-warning/10 text-status-warning [&>svg]:text-current',
+        missing:
+          'bg-status-destructive/10 text-status-destructive [&>svg]:text-current',
         success:
+          'bg-status-success/10 text-status-success [&>svg]:text-current',
+        complete:
           'bg-status-success/10 text-status-success [&>svg]:text-current',
         destructive:
           'bg-status-destructive/10 text-status-destructive [&>svg]:text-current',
@@ -34,8 +47,11 @@ const messageVariants = cva(
 const icons = {
   ai: Sparkles,
   info: Info,
+  incomplete: ClockFading,
   success: CircleCheck,
+  complete: CircleCheck,
   destructive: AlertCircle,
+  missing: CircleX,
 };
 
 export interface SensitiveMessageProps
@@ -66,7 +82,9 @@ export function SensitiveMessage({
     >
       <div className='flex min-w-0 flex-col gap-2'>
         <div className='flex items-center gap-2'>
-          {withIcon && <IconComponent className='mt-0.5 shrink-0' />}
+          {withIcon && IconComponent && (
+            <IconComponent className='mt-0.5 shrink-0' />
+          )}
           {title && (
             <h5 className='leading-relaxed font-semibold tracking-tight'>
               {title}

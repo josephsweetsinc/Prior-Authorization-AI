@@ -7,6 +7,7 @@ export const emailSchema = z
   .string()
   .trim()
   .min(1, { message: 'Email is required' })
+  .max(254, { message: 'Email must be 254 characters or less' })
   .refine((val) => emailPattern.test(val), {
     message: 'Invalid email address',
   });
@@ -25,8 +26,8 @@ export const phonePattern = /^[0-9()+\-\s]{7,20}$/;
 
 export const nameSchema = z
   .string()
-  .min(3, { message: 'Name must be between 3 and 30 letters' })
-  .max(30, { message: 'Name must be between 3 and 30 letters' })
+  .min(3, { message: 'Name must be between 3 and 15 letters' })
+  .max(15, { message: 'Name must be between 3 and 15 letters' })
   .regex(/^\p{L}+$/u, { message: 'Name must contain only letters' });
 export type Name = z.infer<typeof nameSchema>;
 

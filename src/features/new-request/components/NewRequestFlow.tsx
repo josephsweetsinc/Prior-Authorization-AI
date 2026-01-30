@@ -64,7 +64,6 @@ export function NewRequestFlow({ draftId }: Props) {
     finishReviewEdit,
     extractedData,
     extractionResult,
-    isExtractionComplete,
   } = useNewRequestFlow({
     totalSteps: TOTAL_STEPS,
     initialStep: draftId ? 2 : 1,
@@ -78,6 +77,8 @@ export function NewRequestFlow({ draftId }: Props) {
 
   const reviewForm: Partial<FormState> | null =
     stored?.form ?? extractedToForm(extractedData);
+
+  const overallStatus = extractionResult?.completion_status?.overall_status;
 
   const handleCreate = async () => {
     try {
@@ -134,7 +135,7 @@ export function NewRequestFlow({ draftId }: Props) {
               ? draftExtractionResult.extracted_data
               : extractedData
           }
-          isComplete={Boolean(extractionResult?.is_complete)}
+          overallStatus={overallStatus}
           hideBackButton={isSuccess ? true : false}
         />
       );
@@ -150,7 +151,7 @@ export function NewRequestFlow({ draftId }: Props) {
               stored?.form ? formToExtracted(stored.form) : extractedData
             }
             mode='review-edit'
-            isComplete={isExtractionComplete}
+            overallStatus={overallStatus}
           />
         );
       }

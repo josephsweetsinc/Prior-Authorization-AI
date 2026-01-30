@@ -4,26 +4,27 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/shared/lib/utils';
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center w-full text-md font-nunito-sans cursor-pointer justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
-        default:
-          'border-1 w-full text-md font-medium text-primary cursor-pointer hover:bg-primary/2',
+        default: 'border-1 text-primary hover:bg-primary/2',
         'default-outlined':
-          'border-1 border-primary w-full text-md font-medium text-primary cursor-pointer hover:bg-primary/2',
+          'border-1 border-primary text-primary hover:bg-primary/2',
         primary:
-          'bg-primary-gradient w-full text-md font-light cursor-pointer text-primary-foreground hover:animate-pulse',
+          'bg-primary-gradient text-primary-foreground hover:animate-pulse',
+        secondary:
+          'border border-status-info rounded-3xl font-medium text-status-info hover:bg-primary/2',
         destructive:
-          'bg-destructive w-full text-md font-light cursor-pointer text-primary-foreground hover:animate-pulse ',
+          'bg-destructive font-light text-primary-foreground hover:animate-pulse ',
         'destructive-outlined':
-          'border-1 border-destructive w-full text-md font-light cursor-pointer text-destructive hover:bg-primary/2 ',
+          'border-1 border-destructive font-light text-destructive hover:bg-primary/2 ',
         success:
-          'bg-success w-full text-md font-light cursor-pointer text-primary-foreground hover:animate-pulse',
-        info: 'bg-status-info w-full text-md font-light cursor-pointer text-primary-foreground hover:animate-pulse',
+          'bg-success font-light text-primary-foreground hover:animate-pulse',
+        info: 'bg-status-info font-light text-primary-foreground hover:animate-pulse',
         ghost:
-          'hover:bg-accent cursor-pointer text-md font-medium w-full hover:text-accent-foreground dark:hover:bg-accent/50',
-        gray: 'bg-[#E8E8E8] w-full text-md font-light cursor-pointer text-black hover:animate-pulse',
+          'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
+        gray: 'bg-[#E8E8E8] font-light text-black hover:animate-pulse',
       },
       size: {
         default: 'h-9 px-6 py-6 has-[>svg]:px-3 rounded-md',
@@ -58,7 +59,7 @@ function Button({
       data-slot='button'
       data-variant={variant}
       data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...props}
     />
   );

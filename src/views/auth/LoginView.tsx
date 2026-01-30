@@ -16,7 +16,7 @@ export function LoginView() {
 
       <LoginForm />
 
-      <div className='text-gray-dark pt-3 text-center text-[18px]'>
+      <div className='text-gray-dark text-center text-[18px]'>
         Need an account?{' '}
         <Link
           href='/sign-up'

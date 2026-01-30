@@ -1,4 +1,4 @@
-import { type NotificationItem } from '@/services/notifications';
+import { type INotification } from '@/services/notifications';
 
 export type NotificationEventHandler = (_notification: WebSocketEvent) => void;
 
@@ -12,5 +12,5 @@ export interface UseWebSocketReturn {
 
 export interface WebSocketEvent {
   type?: string;
-  data: NotificationItem;
+  data: INotification;
 }

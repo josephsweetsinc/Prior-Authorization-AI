@@ -14,7 +14,7 @@ export function SignupView() {
 
       <SignUpForm />
 
-      <div className='text-gray-dark pt-3 text-center text-[18px]'>
+      <div className='text-gray-dark text-center text-[18px]'>
         Already have an account?{' '}
         <Link
           href='/login'

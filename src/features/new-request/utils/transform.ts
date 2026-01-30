@@ -51,10 +51,22 @@ export function transformRequestToExtraction(
     confidence_score: request.ai_accuracy,
   };
 
+  const hasDocuments = Boolean(request.documents?.length);
+  const isComplete = isExtractionComplete(extracted_data);
+
   return {
     request_id: request.id,
     extracted_data,
-    is_complete: isExtractionComplete(extracted_data),
+    completion_status: request.completion_status ?? {
+      overall_status: hasDocuments
+        ? isComplete
+          ? 'complete'
+          : 'incomplete'
+        : 'missing',
+      missing_fields: [],
+      missing_documents: [],
+      can_submit: hasDocuments && isComplete,
+    },
     files: transformDocumentsToMediaItems(request.documents),
   };
 }

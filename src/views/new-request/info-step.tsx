@@ -9,11 +9,16 @@ import {
 import { extractedToForm, type IExtractedData } from '@/services';
 import { Button, SensitiveMessage } from '@/shared/components';
 
-interface InfoStepProps {
+import {
+  INFO_STEP_STATUS_CONFIG,
+  type InfoStepOverallStatus,
+} from './constants';
+
+export interface InfoStepProps {
   onBack?: () => void;
   onNext: (_res?: Partial<FormState> | null) => void;
   initialValues?: Partial<IExtractedData> | null;
-  isComplete?: boolean;
+  overallStatus?: InfoStepOverallStatus;
   mode?: 'default' | 'review-edit';
   hideBackButton?: boolean;
 }
@@ -22,7 +27,7 @@ export const InfoStep = ({
   onBack,
   onNext,
   initialValues = null,
-  isComplete = false,
+  overallStatus,
   mode = 'default',
   hideBackButton = false,
 }: InfoStepProps) => {
@@ -70,19 +75,10 @@ export const InfoStep = ({
         )}
       </div>
 
-      {isComplete && (
+      {overallStatus && (
         <SensitiveMessage
-          variant='success'
-          title='All Required Fields Validated'
-          description='The AI has successfully extracted and validated all required information from your documents.'
-        />
-      )}
-
-      {!form.formNumber && (
-        <SensitiveMessage
-          variant='destructive'
-          title='Unable to find form number'
-          description='We are unable to extract form number field from request draft'
+          variant={overallStatus}
+          {...INFO_STEP_STATUS_CONFIG[overallStatus]}
         />
       )}
 

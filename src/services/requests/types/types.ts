@@ -101,10 +101,20 @@ export interface IDocument {
   download_url: string;
 }
 
+export type CompletionStatusOverall = 'missing' | 'incomplete' | 'complete';
+
+export interface CompletionStatus {
+  overall_status: CompletionStatusOverall;
+  missing_fields: string[];
+  missing_documents: string[];
+  can_submit: boolean;
+}
+
 export interface IRequestDetails extends IRequest {
   updated_at: string;
   status_history: IStatus[];
   documents: IDocument[];
+  completion_status?: CompletionStatus;
 }
 
 export type RequestUpdatePayload = {

@@ -1,6 +1,6 @@
 import { useDispatch } from 'react-redux';
 
-import { type NotificationCategory } from '@/features/notifications';
+import type { NotificationCategory } from '@/services/notifications';
 
 import { useConnectSockets } from './useConnectSockets';
 import { useHandleNotifications } from './useHandleNotifications';
