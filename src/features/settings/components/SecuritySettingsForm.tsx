@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { useUpdatePasswordMutation } from '@/services/auth/api/auth-api-service';
 import { Button } from '@/shared/components/button';
 import { Input } from '@/shared/components/inputs';
+import { useApiFormError } from '@/shared/hooks/useApiFormError';
 
 import { type UpdatePasswordSchema, updatePasswordSchema } from '../validation';
 
@@ -14,6 +15,7 @@ export function SecuritySettingsForm() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<UpdatePasswordSchema>({
     resolver: zodResolver(updatePasswordSchema),
@@ -21,6 +23,7 @@ export function SecuritySettingsForm() {
 
   const [updatePassword] = useUpdatePasswordMutation();
   const [isUpdating, setIsUpdating] = useState(false);
+  const { handleError } = useApiFormError<UpdatePasswordSchema>(setError);
 
   const onSubmit: SubmitHandler<UpdatePasswordSchema> = async (data) => {
     setIsUpdating(true);
@@ -28,7 +31,7 @@ export function SecuritySettingsForm() {
       await updatePassword(data).unwrap();
       toast.success('Password updated successfully');
     } catch (error) {
-      toast.error((error as string) ?? 'Failed to update password');
+      handleError(error);
     } finally {
       setIsUpdating(false);
     }
