@@ -1405,9 +1405,51 @@ Necessity document, or "NO" if it is not."""
                     )
                 )
 
-        response = AdminRequestWithStatusHistorySchema.model_validate(request)
-        response.documents = documents
-        return response
+        # Get completion status
+        completion_status = await self.get_completion_status(request=request)
+
+        # Get status history
+        status_history = await self._status_history_dao.get_by_request_id(
+            request_id=request_id
+        )
+        status_history_schemas = [
+            RequestStatusHistoryResponseSchema.model_validate(entry)
+            for entry in status_history
+        ]
+
+        # Manually construct response with all required fields
+        return AdminRequestWithStatusHistorySchema(
+            id=request.id,
+            user_id=request.user_id,
+            transportation_type=request.transportation_type,
+            patient_first_name=request.patient_first_name,
+            patient_last_name=request.patient_last_name,
+            patient_date_of_birth=request.patient_date_of_birth,
+            patient_id=request.patient_id,
+            date_of_transport=request.date_of_transport,
+            time_of_transport=request.time_of_transport,
+            pickup_address=request.pickup_address,
+            destination_address=request.destination_address,
+            primary_diagnosis=request.primary_diagnosis,
+            medical_justification=request.medical_justification,
+            status=request.status,
+            form_number=request.form_number,
+            reviewer_id=request.reviewer_id,
+            ambulatory_status=request.ambulatory_status,
+            oxygen_required=request.oxygen_required,
+            ai_accuracy=float(request.ai_accuracy)
+            if request.ai_accuracy
+            else None,
+            ordering_physician=request.ordering_physician,
+            physician_phone=request.physician_phone,
+            denial_reason=request.denial_reason,
+            denial_notes=request.denial_notes,
+            created_at=request.created_at,
+            updated_at=request.updated_at,
+            status_history=status_history_schemas,
+            documents=documents,
+            completion_status=completion_status,
+        )
 
     async def generate_pdf(
         self,
