@@ -21,10 +21,12 @@ export const completeProfileSchema = z.object({
     }),
   company: z
     .string()
+    .trim()
     .min(1, { message: 'Company is required' })
     .max(40, { message: 'Company must be 40 characters or less' }),
   jobTitle: z
     .string()
+    .trim()
     .min(1, { message: 'Position is required' })
     .max(40, { message: 'Position must be 40 characters or less' }),
 });

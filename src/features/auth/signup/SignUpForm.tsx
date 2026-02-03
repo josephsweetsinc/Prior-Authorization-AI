@@ -87,9 +87,9 @@ export function SignUpForm() {
     const subscription = watch((values) => {
       try {
         const toSave = {
-          name: values.name ?? '',
-          surname: values.surname ?? '',
-          email: values.email ?? '',
+          name: (values.name ?? '').trim(),
+          surname: (values.surname ?? '').trim(),
+          email: (values.email ?? '').trim(),
           password: values.password ?? '',
           keepLoggedIn: (values.keepLoggedIn as boolean) ?? false,
         };
