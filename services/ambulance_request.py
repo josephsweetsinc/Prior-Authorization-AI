@@ -945,25 +945,6 @@ class AmbulanceRequestService(BaseService):
             form_number=request.form_number,
         )
 
-        if (not has_verification and not files) or not has_verification:
-            required_documents.append(
-                CompletionStatusItem(
-                    name='Verification of Medical Necessity',
-                    status=CompletionStatus.MISSING,
-                    message=(
-                        'Verification of Medical Necessity document '
-                        'is required for submission'
-                    ),
-                )
-            )
-        else:
-            required_documents.append(
-                CompletionStatusItem(
-                    name='Verification of Medical Necessity',
-                    status=CompletionStatus.COMPLETE,
-                )
-            )
-
         # Filter only missing/incomplete items
         missing_fields = [
             item

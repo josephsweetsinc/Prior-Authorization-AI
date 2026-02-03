@@ -98,7 +98,6 @@ class UpdateUserRequestSchema(BaseModel):
             None,
             min_length=3,
             max_length=15,
-            pattern=r'^[a-zA-Z]+$',
             examples=['John'],
         ),
     ]
@@ -108,7 +107,6 @@ class UpdateUserRequestSchema(BaseModel):
             None,
             min_length=3,
             max_length=15,
-            pattern=r'^[a-zA-Z]+$',
             examples=['Doe'],
         ),
     ]
@@ -142,7 +140,6 @@ class UpdateMeRequestSchema(BaseModel):
             None,
             min_length=3,
             max_length=15,
-            pattern=r'^[a-zA-Z]+$',
             examples=['John'],
             description='First name of the user',
         ),
@@ -153,7 +150,6 @@ class UpdateMeRequestSchema(BaseModel):
             None,
             min_length=3,
             max_length=15,
-            pattern=r'^[a-zA-Z]+$',
             examples=['Doe'],
             description='Last name of the user',
         ),
