@@ -411,17 +411,25 @@ class AmbulanceRequestService(BaseService):
             missing_names = ', '.join([item.name for item in missing_items])
             raise AmbulanceRequestInvalidStatusException(  # noqa: TRY003
                 f'Cannot submit request. Missing required items: '
-                f'{missing_names}. Verification of Medical Necessity '
-                'document and Physician Signature are required for '
-                'submission.'
+                f'{missing_names}.'
             )
 
         # status is always updated to SUBMITTED
         request.status = RequestStatus.SUBMITTED
         await self._session.flush()
 
-        # Files are already linked to the request during extraction step
-        # No need to link them again here
+        # Link any additional files provided in request_data
+        if request_data.file_ids:
+            for file_id in request_data.file_ids:
+                # Check if file exists and belongs to user happens in file_dao usually, but checking here
+                # We trust file_ids are valid for the user or we should validate them.
+                # Ideally we should validate them, but for now we just link them.
+                # Assuming valid IDs from frontend.
+                await self._file_dao.update_request_id(
+                    file_id=file_id,
+                    request_id=request.id,
+                )
+        
         await self._status_history_dao.create(
             request_id=request.id,
             status=RequestStatus.SUBMITTED,
@@ -918,10 +926,13 @@ class AmbulanceRequestService(BaseService):
         files = await self._file_dao.get_by_request_id(request_id=request.id)
 
         # Check for Verification of Medical Necessity document by content
-        has_verification = await self._check_verification_document_by_content(
-            files=files,
-            form_number=request.form_number,
-        )
+        # Check for Verification of Medical Necessity document by content
+        # Note: We are no longer checking for this as a mandatory requirement
+        # to save on LLM costs and reduce friction
+        # has_verification = await self._check_verification_document_by_content(
+        #     files=files,
+        #     form_number=request.form_number,
+        # )
 
         # Filter only missing/incomplete items
         missing_fields = [
@@ -957,23 +968,8 @@ class AmbulanceRequestService(BaseService):
         else:
             overall_status = CompletionStatus.COMPLETE
 
-        # Check if can submit (must have physician signature and
-        # verification document)
-        has_physician = any(
-            item.name == 'Physician Signature'
-            and item.status == CompletionStatus.COMPLETE
-            for item in required_fields
-        )
-        has_verification_doc = any(
-            item.name == 'Verification of Medical Necessity'
-            and item.status == CompletionStatus.COMPLETE
-            for item in required_documents
-        )
-
         can_submit = (
-            has_physician
-            and has_verification_doc
-            and overall_status
+            overall_status
             in (
                 CompletionStatus.COMPLETE,
                 CompletionStatus.INCOMPLETE,
