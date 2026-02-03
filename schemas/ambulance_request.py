@@ -217,6 +217,14 @@ class CreateAmbulanceRequestSchema(BaseModel):
             examples=[1],
         ),
     ]
+    file_ids: Annotated[
+        list[int] | None,
+        Field(
+            default=None,
+            description='List of file IDs to link to the request',
+            examples=[[1, 2]],
+        ),
+    ]
     transportation_type: TransportationType
     patient_first_name: Annotated[
         str,

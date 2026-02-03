@@ -1,6 +1,6 @@
 """Tests for ambulance request endpoints."""
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from io import BytesIO
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -623,3 +623,204 @@ class TestAmbulanceRequestEndpoints:
             mock_get.assert_called_once()
             call_args = mock_get.call_args
             assert call_args.kwargs['user'] == admin
+
+    @pytest.mark.asyncio
+    async def test_update_request_by_admin_success(
+        self,
+        client: TestClient,
+        auth_headers,
+        db_session,
+        user_factory,
+    ):
+        """Test successful request update by admin endpoint."""
+        admin = await user_factory(
+            email='admin@example.com', role=UserRole.ADMIN
+        )
+        await db_session.commit()
+
+        # Override dependency
+        from dependencies.auth import get_admin_user_from_token
+
+        async def get_admin_override():
+            return admin
+
+        app.dependency_overrides[get_admin_user_from_token] = get_admin_override
+
+        with patch(
+            'services.ambulance_request.AmbulanceRequestService.update_request_by_admin',
+            new_callable=AsyncMock,
+        ) as mock_update:
+            from schemas.ambulance_request import (
+                AdminRequestWithStatusHistorySchema,
+                CompletionStatus,
+                CompletionStatusSchema,
+                RequestDocumentSchema,
+                RequestStatusHistoryResponseSchema,
+            )
+
+            mock_update.return_value = AdminRequestWithStatusHistorySchema(
+                id=156,
+                user_id=1,
+                transportation_type=TransportationType.AMBULANCE,
+                patient_first_name='John',
+                patient_last_name='Doe',
+                patient_date_of_birth=date(1980, 1, 1),
+                patient_id='DA123456789HY',
+                date_of_transport=date(2025, 12, 6),
+                time_of_transport=time(13, 40),
+                pickup_address='123 Main St, Springfield, IL 62701',
+                destination_address='456 Medical Dr, Springfield, IL 62702',
+                primary_diagnosis='Chronic heart failure',
+                medical_justification='Patient requires transport',
+                status=RequestStatus.PENDING,
+                form_number='CMS-10344',
+                reviewer_id=None,
+                ambulatory_status=None,
+                oxygen_required=False,
+                ai_accuracy=None,
+                ordering_physician='Dr. Smith',
+                physician_phone='555-123-4567',
+                denial_reason=None,
+                denial_notes=None,
+                created_at=datetime(2025, 1, 1, 0, 0, 0),
+                updated_at=datetime(2025, 1, 2, 0, 0, 0),
+                status_history=[
+                    RequestStatusHistoryResponseSchema(
+                        id=1,
+                        request_id=156,
+                        status=RequestStatus.PENDING,
+                        notes='Request opened by admin for review',
+                        created_at=datetime(2025, 1, 1, 0, 0, 0),
+                    )
+                ],
+                documents=[
+                    RequestDocumentSchema(
+                        id=1,
+                        filename='test.pdf',
+                        file_size=1024,
+                        content_type='application/pdf',
+                        download_url='https://s3.example.com/presigned-url',
+                    )
+                ],
+                completion_status=CompletionStatusSchema(
+                    overall_status=CompletionStatus.COMPLETE,
+                    missing_fields=[],
+                    missing_documents=[],
+                    can_submit=True,
+                ),
+            )
+
+            update_data = {
+                'patient_first_name': 'John',
+                'patient_last_name': 'Doe',
+                'ordering_physician': 'Dr. Smith',
+            }
+
+            response = client.patch(
+                '/Prod/api/v1/ambulance-request/156',
+                json=update_data,
+                headers=auth_headers,
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data['id'] == 156
+            assert data['patient_first_name'] == 'John'
+            assert 'completion_status' in data
+            assert 'status_history' in data
+            assert 'documents' in data
+            assert data['completion_status']['overall_status'] == 'complete'
+            # Verify service was called correctly
+            mock_update.assert_awaited_once_with(
+                request_id=156,
+                update_data=update_data,
+            )
+
+    @pytest.mark.asyncio
+    async def test_update_request_by_admin_without_completion_status_field(
+        self,
+        client: TestClient,
+        auth_headers,
+        db_session,
+        user_factory,
+    ):
+        """Test that update works even when frontend doesn't send completion_status."""
+        admin = await user_factory(
+            email='admin@example.com', role=UserRole.ADMIN
+        )
+        await db_session.commit()
+
+        # Override dependency
+        from dependencies.auth import get_admin_user_from_token
+
+        async def get_admin_override():
+            return admin
+
+        app.dependency_overrides[get_admin_user_from_token] = get_admin_override
+
+        with patch(
+            'services.ambulance_request.AmbulanceRequestService.update_request_by_admin',
+            new_callable=AsyncMock,
+        ) as mock_update:
+            from schemas.ambulance_request import (
+                AdminRequestWithStatusHistorySchema,
+                CompletionStatus,
+                CompletionStatusSchema,
+                RequestDocumentSchema,
+                RequestStatusHistoryResponseSchema,
+            )
+
+            mock_update.return_value = AdminRequestWithStatusHistorySchema(
+                id=156,
+                user_id=1,
+                transportation_type=TransportationType.AMBULANCE,
+                patient_first_name='John',
+                patient_last_name='Doe',
+                patient_date_of_birth=date(1980, 1, 1),
+                patient_id='DA123456789HY',
+                date_of_transport=date(2025, 12, 6),
+                time_of_transport=time(13, 40),
+                pickup_address='123 Main St, Springfield, IL 62701',
+                destination_address='456 Medical Dr, Springfield, IL 62702',
+                primary_diagnosis='Chronic heart failure',
+                medical_justification='Patient requires transport',
+                status=RequestStatus.PENDING,
+                form_number='CMS-10344',
+                reviewer_id=None,
+                ambulatory_status=None,
+                oxygen_required=False,
+                ai_accuracy=None,
+                ordering_physician='Dr. Smith',
+                physician_phone='555-123-4567',
+                denial_reason=None,
+                denial_notes=None,
+                created_at=datetime(2025, 1, 1, 0, 0, 0),
+                updated_at=datetime(2025, 1, 2, 0, 0, 0),
+                status_history=[],
+                documents=[],
+                completion_status=CompletionStatusSchema(
+                    overall_status=CompletionStatus.COMPLETE,
+                    missing_fields=[],
+                    missing_documents=[],
+                    can_submit=True,
+                ),
+            )
+
+            # Frontend sends update without completion_status field
+            update_data = {
+                'patient_first_name': 'Jane',
+            }
+
+            response = client.patch(
+                '/Prod/api/v1/ambulance-request/156',
+                json=update_data,
+                headers=auth_headers,
+            )
+
+            # Should return 200, not 500
+            assert response.status_code == 200
+            data = response.json()
+            assert data['id'] == 156
+            # completion_status should be computed and included in response
+            assert 'completion_status' in data
+            assert data['completion_status']['overall_status'] == 'complete'
