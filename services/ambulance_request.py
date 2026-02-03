@@ -913,28 +913,6 @@ class AmbulanceRequestService(BaseService):
                 )
             )
 
-        # Physician signature (CRITICAL - blocks submission)
-        if (
-            not request.ordering_physician
-            or not request.ordering_physician.strip()
-        ):
-            required_fields.append(
-                CompletionStatusItem(
-                    name='Physician Signature',
-                    status=CompletionStatus.MISSING,
-                    message=(
-                        'Physician signature (Ordering Physician name) '
-                        'is required for submission'
-                    ),
-                )
-            )
-        else:
-            required_fields.append(
-                CompletionStatusItem(
-                    name='Physician Signature',
-                    status=CompletionStatus.COMPLETE,
-                )
-            )
 
         # Check required documents
         files = await self._file_dao.get_by_request_id(request_id=request.id)
