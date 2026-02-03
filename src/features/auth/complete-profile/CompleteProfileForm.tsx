@@ -22,12 +22,12 @@ export const completeProfileSchema = z.object({
   company: z
     .string()
     .trim()
-    .min(1, { message: 'Company is required' })
+    .min(3, { message: 'Company must be at least 3 characters' })
     .max(40, { message: 'Company must be 40 characters or less' }),
   jobTitle: z
     .string()
     .trim()
-    .min(1, { message: 'Position is required' })
+    .min(3, { message: 'Position must be at least 3 characters' })
     .max(40, { message: 'Position must be 40 characters or less' }),
 });
 export type CompleteProfileSchema = z.infer<typeof completeProfileSchema>;
