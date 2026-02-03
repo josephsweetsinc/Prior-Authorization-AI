@@ -73,7 +73,7 @@ export const AppSidebar = () => {
           body='Stay organized and ahead of your work.'
           link={{
             label: 'Start',
-            to: '/new-request',
+            to: '/new-request?start=1',
           }}
         >
           <p className='font-medium'>Upgrade to Pro</p>

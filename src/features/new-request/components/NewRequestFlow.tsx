@@ -1,6 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 
@@ -59,6 +60,7 @@ export function NewRequestFlow({ draftId }: Props) {
     step,
     next,
     prev,
+    reset,
     isReviewEditing,
     startReviewEdit,
     finishReviewEdit,
@@ -74,6 +76,7 @@ export function NewRequestFlow({ draftId }: Props) {
 
   const { createRequest, isLoading: isCreating } = useCreateRequest();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const reviewForm: Partial<FormState> | null =
     stored?.form ?? extractedToForm(extractedData);
@@ -115,6 +118,21 @@ export function NewRequestFlow({ draftId }: Props) {
     }
     finishReviewEdit();
   };
+
+  const startParam = searchParams.get('start');
+
+  useEffect(() => {
+    if (startParam !== '1') {
+      return;
+    }
+
+    if (step !== 1) {
+      dispatch(clear());
+      reset();
+    }
+
+    router.replace('/new-request');
+  }, [dispatch, reset, router, startParam, step]);
 
   function renderStep() {
     if (step === 1) {

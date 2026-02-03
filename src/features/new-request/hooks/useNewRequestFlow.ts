@@ -30,6 +30,12 @@ export const useNewRequestFlow = ({
   const [extractionResult, setExtractionResult] = useState(
     initialExtractionResult,
   );
+  const reset = useCallback(() => {
+    setStep(1);
+    setIsReviewEditing(false);
+    setExtractedData(null);
+    setExtractionResult(null);
+  }, []);
 
   const next = useCallback(
     (
@@ -64,6 +70,7 @@ export const useNewRequestFlow = ({
     step,
     next,
     prev,
+    reset,
     isReviewEditing,
     startReviewEdit: () => setIsReviewEditing(true),
     finishReviewEdit: () => setIsReviewEditing(false),
