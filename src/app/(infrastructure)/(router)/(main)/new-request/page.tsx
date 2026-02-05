@@ -1,5 +1,11 @@
+import { Suspense } from 'react';
+
 import { NewRequestFlow } from '@/features/new-request';
 
 export default function NewRequest() {
-  return <NewRequestFlow />;
+  return (
+    <Suspense>
+      <NewRequestFlow />
+    </Suspense>
+  );
 }
