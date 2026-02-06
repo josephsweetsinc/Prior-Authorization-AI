@@ -32,6 +32,8 @@ const isValidFormNumber = (value: unknown) =>
 const isValidName = (value: unknown) =>
   new RegExp(`^[a-zA-Z]+$`).test(String(value ?? ''));
 
+const isValidAddress = (value: unknown) => String(value ?? '').length > 5;
+
 const REQUIRED_FIELDS: (keyof FormState)[] = [
   'transportationType',
   'patientFirstName',
@@ -83,6 +85,15 @@ export function useInfoForm(initialValues?: Partial<IExtractedData> | null) {
             isValidName(value) ? '' : 'Name must contain only letters',
           ];
         }
+        if (key === 'pickupAddress' || key === 'destinationAddress') {
+          const value = form[key as keyof typeof form];
+          return [
+            key,
+            isValidAddress(value)
+              ? ''
+              : 'Address must be at least 5 characters',
+          ];
+        }
 
         return [key, requiredIfEmpty(form[key as keyof typeof form], required)];
       }),
@@ -93,6 +104,15 @@ export function useInfoForm(initialValues?: Partial<IExtractedData> | null) {
     return REQUIRED_FIELDS.every((key) => {
       if (key === 'formNumber') {
         return isValidFormNumber(form.formNumber);
+      }
+
+      if (key === 'patientFirstName' || key === 'patientLastName') {
+        const value = form[key as keyof typeof form];
+        return isValidName(value);
+      }
+      if (key === 'pickupAddress' || key === 'destinationAddress') {
+        const value = form[key as keyof typeof form];
+        return isValidAddress(value);
       }
 
       return String(form[key] ?? '').trim() !== '';
