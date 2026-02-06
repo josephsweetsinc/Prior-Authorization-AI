@@ -29,6 +29,9 @@ const FORM_NUMBER_PREFIX = 'CMS-';
 const isValidFormNumber = (value: unknown) =>
   new RegExp(`^${FORM_NUMBER_PREFIX}\\d+$`).test(String(value ?? ''));
 
+const isValidName = (value: unknown) =>
+  new RegExp(`^[a-zA-Z]+$`).test(String(value ?? ''));
+
 const REQUIRED_FIELDS: (keyof FormState)[] = [
   'transportationType',
   'patientFirstName',
@@ -71,6 +74,14 @@ export function useInfoForm(initialValues?: Partial<IExtractedData> | null) {
           }
 
           return [key, isValidFormNumber(value) ? '' : 'Use format CMS-12345'];
+        }
+
+        if (key === 'patientFirstName' || key === 'patientLastName') {
+          const value = form[key as keyof typeof form];
+          return [
+            key,
+            isValidName(value) ? '' : 'Name must contain only letters',
+          ];
         }
 
         return [key, requiredIfEmpty(form[key as keyof typeof form], required)];
