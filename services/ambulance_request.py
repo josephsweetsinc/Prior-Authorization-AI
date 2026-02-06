@@ -849,7 +849,7 @@ class AmbulanceRequestService(BaseService):
                 )
             )
 
-        if not request.patient_id or request.patient_id == 'TBD':
+        if not request.patient_id:
             required_fields.append(
                 CompletionStatusItem(
                     name='Patient ID',
