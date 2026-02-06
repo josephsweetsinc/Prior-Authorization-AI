@@ -799,7 +799,6 @@ class AmbulanceRequestService(BaseService):
         # Basic patient information
         if (
             not request.patient_first_name
-            or request.patient_first_name == 'Unknown'
         ):
             required_fields.append(
                 CompletionStatusItem(
@@ -826,7 +825,6 @@ class AmbulanceRequestService(BaseService):
 
         if (
             not request.patient_last_name
-            or request.patient_last_name == 'Unknown'
         ):
             required_fields.append(
                 CompletionStatusItem(
