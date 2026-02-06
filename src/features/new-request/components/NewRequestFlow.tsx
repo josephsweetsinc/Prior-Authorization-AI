@@ -13,7 +13,6 @@ import {
 } from '@/features/new-request/store/slice';
 import {
   extractedToForm,
-  formToExtracted,
   type IUploadAndExtractionResult,
   selectNewRequest,
   getErrorMessage,
@@ -29,6 +28,7 @@ import { UploadStep } from '@/views/new-request/upload-step';
 import { TOTAL_STEPS } from '../constants';
 import { useHydrateDraft } from '../hooks/useHydrateDraft';
 import { useNewRequestFlow } from '../hooks/useNewRequestFlow';
+import { resolveInitialValues } from '../utils/resolvers';
 import { transformRequestToExtraction } from '../utils/transform';
 
 import { InfoStepSkeleton } from './InfoStepSkeleton';
@@ -105,6 +105,13 @@ export function NewRequestFlow({ draftId }: Props) {
     }
   };
 
+  const handleInfoPrev = (res?: Partial<FormState> | null) => {
+    if (res) {
+      dispatch(clear());
+    }
+    prev();
+  };
+
   const handleInfoNext = (res?: Partial<FormState> | null) => {
     if (res) {
       dispatch(setForm(res));
@@ -146,13 +153,14 @@ export function NewRequestFlow({ draftId }: Props) {
 
       return (
         <InfoStep
-          onBack={prev}
+          onBack={handleInfoPrev}
           onNext={handleInfoNext}
-          initialValues={
-            draftExtractionResult
-              ? draftExtractionResult.extracted_data
-              : extractedData
-          }
+          initialValues={resolveInitialValues({
+            extractedData,
+            storedForm: stored?.form,
+            draftExtractionResult,
+            includeDraft: true,
+          })}
           overallStatus={overallStatus}
           hideBackButton={isSuccess ? true : false}
         />
@@ -165,9 +173,12 @@ export function NewRequestFlow({ draftId }: Props) {
           <InfoStep
             onBack={finishReviewEdit}
             onNext={handleReviewEditNext}
-            initialValues={
-              stored?.form ? formToExtracted(stored.form) : extractedData
-            }
+            initialValues={resolveInitialValues({
+              extractedData,
+              storedForm: stored?.form,
+              draftExtractionResult,
+              includeDraft: false,
+            })}
             mode='review-edit'
             overallStatus={overallStatus}
           />
