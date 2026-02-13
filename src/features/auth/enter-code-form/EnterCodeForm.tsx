@@ -7,18 +7,22 @@ import { toast } from 'react-toastify';
 
 import { handleParsedApiError } from '@/services/api/errorHandlers';
 import { parseApiError } from '@/services/api/types';
-import { usePasswordResetVerifyMutation } from '@/services/auth/api/auth-api-service';
+import {
+  usePasswordResetRequestMutation,
+  usePasswordResetVerifyMutation,
+} from '@/services/auth/api/auth-api-service';
 import { Button, InputOTPControlled } from '@/shared/components';
 
 export function EnterCodeForm() {
   const router = useRouter();
 
-  const [isSent, setIsSent] = useState(true);
   const [seconds, setSeconds] = useState(57);
   const [isCounting, setIsCounting] = useState(true);
   const [code, setCode] = useState('');
 
   const [verify, { isLoading }] = usePasswordResetVerifyMutation();
+  const [resendCode, { isLoading: isResending }] =
+    usePasswordResetRequestMutation();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -39,11 +43,36 @@ export function EnterCodeForm() {
     return () => clearInterval(interval);
   }, [isCounting]);
 
-  const handleResend = () => {
-    if (seconds === 0) {
-      setIsSent(true);
+  const handleResend = async () => {
+    if (seconds > 0 || isResending) {
+      return;
+    }
+
+    const email =
+      typeof window !== 'undefined'
+        ? sessionStorage.getItem('password_reset_email')
+        : null;
+
+    if (!email) {
+      toast.error(
+        'Email not found. Please restart the password reset process.',
+      );
+      router.push('/forgot-password');
+      return;
+    }
+
+    try {
+      await resendCode({ email }).unwrap();
+      toast.success('Reset code sent - check your email');
       setSeconds(57);
       setIsCounting(true);
+    } catch (err: unknown) {
+      const parsed = parseApiError(err);
+      const dummySetError: UseFormSetError<FieldValues> = () => {};
+      const handled = handleParsedApiError(parsed, dummySetError);
+      if (!handled) {
+        toast.error('Failed to resend code');
+      }
     }
   };
 
@@ -94,28 +123,23 @@ export function EnterCodeForm() {
       </div>
 
       <div className='text-gray-dark mt-4 text-sm'>
-        {isSent ? (
-          <div className='flex flex-col items-center justify-center'>
-            <span>A code has been sent to your email</span>
-            {seconds > 0 ? (
-              <span className='mt-1 font-bold text-black'>
-                Resend in {formatTime(seconds)}
-              </span>
-            ) : (
-              <button
-                type='button'
-                onClick={handleResend}
-                className='text-status-info mt-1 cursor-pointer underline'
-              >
-                Resend
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className='text-muted-foreground text-center'>
-            A code will be sent to your email after you click Send reset link
-          </div>
-        )}
+        <div className='flex flex-col items-center justify-center'>
+          <span>A code has been sent to your email</span>
+          {seconds > 0 ? (
+            <span className='mt-1 font-bold text-black'>
+              Resend in {formatTime(seconds)}
+            </span>
+          ) : (
+            <button
+              type='button'
+              onClick={handleResend}
+              disabled={isResending}
+              className='text-status-info mt-1 cursor-pointer underline'
+            >
+              {isResending ? 'Sending...' : 'Resend'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
