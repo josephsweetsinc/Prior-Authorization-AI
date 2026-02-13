@@ -56,7 +56,7 @@ export function EnterCodeForm() {
       }
 
       await verify({ code }).unwrap();
-      router.push('/create-new-password');
+      router.push(`/create-new-password?code=${encodeURIComponent(code)}`);
     } catch (err: unknown) {
       const parsed = parseApiError(err);
       const dummySetError: UseFormSetError<FieldValues> = () => {};
