@@ -37,8 +37,30 @@ const updateAccountSchema = z.object({
     .refine((v) => /^1\d{10}$/.test(v), {
       message: "Phone must be 11 digits starting with country code '1'",
     }),
-  position: z.string().nonempty({ message: 'Position is required' }),
-  place_of_work: z.string().nonempty({ message: 'Place of work is required' }),
+  position: z
+    .string()
+    .trim()
+    .min(2, { message: 'Position must be at least 2 characters' })
+    .max(40, { message: 'Position must be 40 characters or less' })
+    .regex(/^[\p{L}\p{N}\s'\-.,()]+$/u, {
+      message:
+        "Only letters, numbers, spaces, and basic punctuation (- . ' ,) are allowed",
+    })
+    .refine((v) => /\p{L}/u.test(v), {
+      message: 'Must contain at least one letter',
+    }),
+  place_of_work: z
+    .string()
+    .trim()
+    .min(2, { message: 'Place of Work must be at least 2 characters' })
+    .max(40, { message: 'Place of Work must be 40 characters or less' })
+    .regex(/^[\p{L}\p{N}\s'\-.,()&/]+$/u, {
+      message:
+        "Only letters, numbers, spaces, and basic punctuation (- . ' , & /) are allowed",
+    })
+    .refine((v) => /\p{L}/u.test(v), {
+      message: 'Must contain at least one letter',
+    }),
 });
 
 type UpdateOrganizationSchema = z.infer<typeof updateOrganizationSchema>;

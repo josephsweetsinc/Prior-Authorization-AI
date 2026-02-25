@@ -23,12 +23,26 @@ export const completeProfileSchema = z.object({
     .string()
     .trim()
     .min(3, { message: 'Company must be at least 3 characters' })
-    .max(40, { message: 'Company must be 40 characters or less' }),
+    .max(40, { message: 'Company must be 40 characters or less' })
+    .regex(/^[\p{L}\p{N}\s'\-.,()&/]+$/u, {
+      message:
+        "Only letters, numbers, spaces, and basic punctuation (- . ' , & /) are allowed",
+    })
+    .refine((v) => /\p{L}/u.test(v), {
+      message: 'Must contain at least one letter',
+    }),
   jobTitle: z
     .string()
     .trim()
     .min(3, { message: 'Position must be at least 3 characters' })
-    .max(40, { message: 'Position must be 40 characters or less' }),
+    .max(40, { message: 'Position must be 40 characters or less' })
+    .regex(/^[\p{L}\p{N}\s'\-.,()]+$/u, {
+      message:
+        "Only letters, numbers, spaces, and basic punctuation (- . ' ,) are allowed",
+    })
+    .refine((v) => /\p{L}/u.test(v), {
+      message: 'Must contain at least one letter',
+    }),
 });
 export type CompleteProfileSchema = z.infer<typeof completeProfileSchema>;
 
