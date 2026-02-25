@@ -1,16 +1,13 @@
 'use client';
 
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  type PieLabelRenderProps,
-} from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+
+import { DonutTooltip } from './donut-tooltip';
 
 export type DonutDatum = {
   label: string;
   value: number;
+  percentage: number;
   color: string;
 };
 
@@ -19,35 +16,7 @@ interface DonutChartProps {
   height?: number;
 }
 
-const RADIAN = Math.PI / 180;
-
 export const DonutChart = ({ data, height = 290 }: DonutChartProps) => {
-  const renderCustomizedLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    value,
-  }: PieLabelRenderProps) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = midAngle && cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = midAngle && cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text
-        x={x}
-        y={y}
-        fill='white'
-        textAnchor='middle'
-        dominantBaseline='central'
-        className='text-md font-normal'
-      >
-        {value}%
-      </text>
-    );
-  };
-
   return (
     <div className='flex w-full flex-col gap-12 md:flex-row md:items-center'>
       <div className='relative h-full w-full'>
@@ -55,7 +24,7 @@ export const DonutChart = ({ data, height = 290 }: DonutChartProps) => {
           <PieChart style={{ outline: 'none' }}>
             <Pie
               data={data}
-              dataKey='value'
+              dataKey='percentage'
               innerRadius='65%'
               outerRadius='90%'
               paddingAngle={3}
@@ -64,7 +33,6 @@ export const DonutChart = ({ data, height = 290 }: DonutChartProps) => {
               isAnimationActive
               style={{ outline: 'none' }}
               labelLine={false}
-              label={renderCustomizedLabel}
             >
               {data.map((entry, index) => (
                 <Cell
@@ -73,6 +41,10 @@ export const DonutChart = ({ data, height = 290 }: DonutChartProps) => {
                   style={{ outline: 'none' }}
                 />
               ))}
+              <Tooltip
+                content={<DonutTooltip />}
+                cursor={{ fill: 'rgba(4, 124, 180, 0.04)' }}
+              />
             </Pie>
           </PieChart>
         </ResponsiveContainer>

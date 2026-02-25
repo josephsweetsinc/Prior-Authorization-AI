@@ -93,6 +93,7 @@ export const requestsApi = baseApi.injectEndpoints({
         body: {},
       }),
       invalidatesTags: (_result, _error, id) => [
+        { type: 'Dashboard' },
         { type: 'RequestDetails', id },
         { type: 'RequestsHistory', id },
         { type: 'RequestsHistory', id: 'LIST' },
@@ -113,6 +114,7 @@ export const requestsApi = baseApi.injectEndpoints({
         },
       }),
       invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Dashboard' },
         { type: 'RequestDetails', id },
         { type: 'RequestsHistory', id },
         { type: 'RequestsHistory', id: 'LIST' },
@@ -130,6 +132,7 @@ export const requestsApi = baseApi.injectEndpoints({
         body: data,
       }),
       invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Dashboard' },
         { type: 'RequestDetails', id },
         { type: 'RequestsHistory', id },
         { type: 'RequestsHistory', id: 'LIST' },
