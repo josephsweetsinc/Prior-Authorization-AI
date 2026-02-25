@@ -125,7 +125,7 @@ class PasswordResetConfirmSchema(BaseModel):
         Field(
             min_length=8,
             max_length=20,
-            pattern=r'^(?=.*[A-Z])(?=.*\d)(?!.*\s).{8,}$',
+            pattern=r'^[A-Za-z\d]{8,20}$',
             examples=['NewStrongPass9'],
         ),
     ]
@@ -141,7 +141,7 @@ class PasswordChangeRequestSchema(BaseModel):
         Field(
             min_length=8,
             max_length=20,
-            pattern=r'^(?=.*[A-Z])(?=.*\d)(?!.*\s).{8,}$',
+            pattern=r'^[A-Za-z\d]{8,20}$',
             examples=['StrongP@ss9'],
         ),
     ]
@@ -150,7 +150,7 @@ class PasswordChangeRequestSchema(BaseModel):
         Field(
             min_length=8,
             max_length=20,
-            pattern=r'^(?=.*[A-Z])(?=.*\d)(?!.*\s).{8,}$',
+            pattern=r'^[A-Za-z\d]{8,20}$',
             examples=['NewStrongP@ss9'],
         ),
     ]

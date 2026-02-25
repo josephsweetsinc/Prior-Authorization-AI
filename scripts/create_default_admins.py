@@ -56,17 +56,17 @@ async def create_user(email: str, password: str, role: UserRole) -> bool:  # noq
 async def main() -> None:  # noqa: D103
     admin_emails = [
         'admin@gmail.com',
-        'kukharchuk_admin@gmail.com',
-        'hulak_admin@gmail.com',
-        'kryvtsun_admin@gmail.com',
+        # 'kukharchuk_admin@gmail.com',
+        # 'hulak_admin@gmail.com',
+        # 'kryvtsun_admin@gmail.com',
     ]
     provider_emails = [
-        'provider@gmail.com',
-        'kukharchuk_provider@gmail.com',
-        'hulak_provider@gmail.com',
-        'kryvtsun_provider@gmail.com',
+        # 'provider@gmail.com',
+        # 'kukharchuk_provider@gmail.com',
+        # 'hulak_provider@gmail.com',
+        # 'kryvtsun_provider@gmail.com',
     ]
-    password = 'admin123'
+    password = 'MyPassw0rd9'
     for email in admin_emails:
         await create_user(email, password, UserRole.ADMIN)
     for email in provider_emails:

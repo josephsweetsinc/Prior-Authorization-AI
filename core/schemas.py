@@ -11,7 +11,7 @@ class PasswordMixinSchema(BaseModel):
         Field(
             min_length=8,
             max_length=20,
-            pattern=r'^(?=.*[A-Z])(?=.*\d)(?!.*\s).{8,}$',
+            pattern=r'^[A-Za-z\d]{8,20}$',
             examples=['StrongP@ss9'],
         ),
     ]
