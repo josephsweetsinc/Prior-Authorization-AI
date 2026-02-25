@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-const passwordPattern = /^[A-Za-z0-9!@#$%^&*]+$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const emailSchema = z
@@ -16,9 +15,17 @@ export type Email = z.infer<typeof emailSchema>;
 export const passwordSchema = z
   .string()
   .min(8, { message: 'Password must be at least 8 characters' })
-  .refine((val) => passwordPattern.test(val), {
-    message:
-      'Password must contain only Latin letters, digits and the symbols ! @ # $ % ^ & *',
+  .refine((val) => !/\s/.test(val), {
+    message: 'Password must not contain spaces',
+  })
+  .refine((val) => /[A-Z]/.test(val), {
+    message: 'Password must contain at least one uppercase letter',
+  })
+  .refine((val) => /[0-9]/.test(val), {
+    message: 'Password must contain at least one digit',
+  })
+  .refine((val) => /[^A-Za-z0-9]/.test(val), {
+    message: 'Password must contain at least one special character',
   });
 export type Password = z.infer<typeof passwordSchema>;
 
