@@ -429,7 +429,7 @@ class AmbulanceRequestService(BaseService):
                     file_id=file_id,
                     request_id=request.id,
                 )
-        
+
         await self._status_history_dao.create(
             request_id=request.id,
             status=RequestStatus.SUBMITTED,
@@ -776,7 +776,7 @@ class AmbulanceRequestService(BaseService):
             user_id=user_id,
         )
 
-    async def get_completion_status(  # noqa: PLR0912, C901, PLR0915
+    async def get_completion_status(  # noqa: PLR0912, C901
         self,
         request: AmbulanceRequest,
     ) -> CompletionStatusSchema:
@@ -797,9 +797,7 @@ class AmbulanceRequestService(BaseService):
 
         # Check required fields
         # Basic patient information
-        if (
-            not request.patient_first_name
-        ):
+        if not request.patient_first_name:
             required_fields.append(
                 CompletionStatusItem(
                     name='Patient First Name',
@@ -823,9 +821,7 @@ class AmbulanceRequestService(BaseService):
                 )
             )
 
-        if (
-            not request.patient_last_name
-        ):
+        if not request.patient_last_name:
             required_fields.append(
                 CompletionStatusItem(
                     name='Patient Last Name',
@@ -919,7 +915,6 @@ class AmbulanceRequestService(BaseService):
                 )
             )
 
-
         # Check required documents
         files = await self._file_dao.get_by_request_id(request_id=request.id)
 
@@ -966,12 +961,9 @@ class AmbulanceRequestService(BaseService):
         else:
             overall_status = CompletionStatus.COMPLETE
 
-        can_submit = (
-            overall_status
-            in (
-                CompletionStatus.COMPLETE,
-                CompletionStatus.INCOMPLETE,
-            )
+        can_submit = overall_status in (
+            CompletionStatus.COMPLETE,
+            CompletionStatus.INCOMPLETE,
         )
 
         return CompletionStatusSchema(

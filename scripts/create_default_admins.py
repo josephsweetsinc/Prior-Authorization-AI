@@ -60,7 +60,7 @@ async def main() -> None:  # noqa: D103
         # 'hulak_admin@gmail.com',
         # 'kryvtsun_admin@gmail.com',
     ]
-    provider_emails = [
+    provider_emails: list[str] = [
         # 'provider@gmail.com',
         # 'kukharchuk_provider@gmail.com',
         # 'hulak_provider@gmail.com',

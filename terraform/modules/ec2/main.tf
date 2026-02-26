@@ -117,7 +117,7 @@ module "ec2_instance" {
       sudo systemctl stop nginx; sudo  certbot certonly --standalone -d ${var.domain} --staple-ocsp -m example@gmail.com --agree-tos; sudo systemctl restart nginx
 
       # Add cronjob for certificates renewal
-      
+
       echo "0 12 * * * sudo systemctl stop nginx; /usr/bin/certbot renew --quiet; sudo systemctl restart nginx" | crontab -
     fi
 

@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from math import ceil
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -225,6 +226,7 @@ class DashboardService(BaseService):
         )
 
         ai_accuracy_avg = await self._dashboard_dao.get_average_ai_accuracy()
+        ai_accuracy_percent = int(ceil(ai_accuracy_avg))
 
         requests_statuses = AdminRequestsStatusesResponseSchema(
             approved_requests=requests_count.approved_all,
@@ -233,7 +235,7 @@ class DashboardService(BaseService):
             pending_avg_wait_time_hours=avg_pending_hours,
             denied_requests=requests_count.denied_all,
             denial_rate_percent=denial_rate,
-            ai_accuracy=ai_accuracy_avg,
+            ai_accuracy=ai_accuracy_percent,
         )
 
         # Processing time distribution: number of approvals over last 10 days.
