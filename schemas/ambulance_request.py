@@ -236,7 +236,7 @@ class CreateAmbulanceRequestSchema(BaseModel):
             description='Patient first name as it appears in the document',
         ),
     ]
-    patient_last_name: Annotated[  # TODO: Consider moving to mixin
+    patient_last_name: Annotated[
         str,
         Field(
             min_length=3,
@@ -323,7 +323,6 @@ class CreateAmbulanceRequestSchema(BaseModel):
         examples=[False],
         description='Whether oxygen is required for the patient',
     )
-    # ai_accuracy is not included - it's set during AI extraction and preserved
     ordering_physician: str | None = Field(
         None,
         examples=['Dr. John Smith'],

@@ -223,6 +223,34 @@ class DashboardDAO(BaseDAO):
                 durations.append(delta.total_seconds())
         return durations
 
+    async def get_denial_reasons_counts(self) -> dict[str, int]:
+        """Get counts of denied requests grouped by denial reason.
+
+        Only active, non-deleted ambulance requests with DENIED status
+        and a non-null denial_reason field are included.
+        """
+        stmt = (
+            select(
+                AmbulanceRequest.denial_reason,
+                func.count(AmbulanceRequest.id),
+            )
+            .where(
+                AmbulanceRequest.is_active.is_(True),
+                AmbulanceRequest.deleted_at.is_(None),
+                AmbulanceRequest.status == RequestStatus.DENIED,
+                AmbulanceRequest.denial_reason.is_not(None),
+            )
+            .group_by(AmbulanceRequest.denial_reason)
+        )
+        result = await self._session.execute(stmt)
+        rows = result.all()
+        # Convert Enum values to plain strings for JSON compatibility
+        return {
+            str(denial_reason): int(count)
+            for denial_reason, count in rows
+            if denial_reason is not None
+        }
+
     async def get_recent_status_history(
         self,
         *,

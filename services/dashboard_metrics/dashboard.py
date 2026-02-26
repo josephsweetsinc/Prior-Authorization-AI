@@ -13,6 +13,7 @@ from models.user import UserRole
 from schemas.dasboard import (
     AdminDashboardDataSchema,
     AdminRequestsStatusesResponseSchema,
+    CommonDenialReasonsResponseSchema,
     DailySubmittedItemSchema,
     DailySubmittedRequestsSchema,
     DashboardResponseSchema,
@@ -347,8 +348,15 @@ class DashboardService(BaseService):
                 )
             )
 
-        # Denial reasons are currently a stub, will be implemented later.
-        denial_reasons = []  # type: ignore
+        # Denial reasons aggregated across all denied requests.
+        denial_counts = await self._dashboard_dao.get_denial_reasons_counts()
+        denial_reasons = [
+            CommonDenialReasonsResponseSchema(
+                reason=reason,
+                count=count,
+            )
+            for reason, count in denial_counts.items()
+        ]
 
         return AdminDashboardDataSchema(
             requests_statuses=requests_statuses,
