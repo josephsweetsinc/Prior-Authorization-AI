@@ -52,12 +52,12 @@ export const ReviewStep = ({
         <h3 className='text-brand-dark text-lg font-bold'>
           Transportation Details
         </h3>
-        <div className='mt-6 grid grid-cols-3 gap-6'>
+        <div className='mt-6 grid grid-cols-3 gap-6 [&>div]:min-w-0'>
           <div>
             <span className='text-gray-dark text-sm font-medium'>
               Transportation Type:
             </span>
-            <p className='font-medium text-black'>
+            <p className='font-medium break-all text-black'>
               {display(form?.transportationType ?? null)}
             </p>
           </div>
@@ -65,7 +65,7 @@ export const ReviewStep = ({
             <span className='text-gray-dark text-sm font-medium'>
               Patient Name:
             </span>
-            <p className='font-medium text-black'>
+            <p className='font-medium break-all text-black'>
               {display(
                 `${form?.patientFirstName ?? ''} ${form?.patientLastName ?? ''}`,
               )}
@@ -75,7 +75,7 @@ export const ReviewStep = ({
             <span className='text-gray-dark text-sm font-medium'>
               Date of Birth:
             </span>
-            <p className='font-medium text-black'>
+            <p className='font-medium break-all text-black'>
               {display(form?.patientDob ?? null)}
             </p>
           </div>
@@ -84,7 +84,7 @@ export const ReviewStep = ({
             <span className='text-gray-dark text-sm font-medium'>
               Patient ID:
             </span>
-            <p className='font-medium text-black'>
+            <p className='font-medium break-all text-black'>
               {display(form?.patientId ?? null)}
             </p>
           </div>
@@ -92,7 +92,7 @@ export const ReviewStep = ({
             <span className='text-gray-dark text-sm font-medium'>
               Date of Transport:
             </span>
-            <p className='font-medium text-black'>
+            <p className='font-medium break-all text-black'>
               {display(form?.dateOfTransport ?? null)}
             </p>
           </div>
@@ -100,7 +100,7 @@ export const ReviewStep = ({
             <span className='text-gray-dark text-sm font-medium'>
               Time of Transport:
             </span>
-            <p className='font-medium text-black'>
+            <p className='font-medium break-all text-black'>
               {display(form?.timeOfTransport ?? null)}
             </p>
           </div>
@@ -109,7 +109,7 @@ export const ReviewStep = ({
             <span className='text-gray-dark text-sm font-medium'>
               Primary Diagnosis:
             </span>
-            <p className='font-medium text-black'>
+            <p className='font-medium break-all text-black'>
               {display(form?.primaryDiagnosis ?? null)}
             </p>
           </div>
@@ -117,7 +117,7 @@ export const ReviewStep = ({
             <span className='text-gray-dark text-sm font-medium'>
               Pickup Address:
             </span>
-            <p className='font-medium text-black'>
+            <p className='font-medium break-all text-black'>
               {display(form?.pickupAddress ?? null)}
             </p>
           </div>
@@ -125,7 +125,7 @@ export const ReviewStep = ({
             <span className='text-gray-dark text-sm font-medium'>
               Destination Address:
             </span>
-            <p className='font-medium text-black'>
+            <p className='font-medium break-all text-black'>
               {display(form?.destinationAddress ?? null)}
             </p>
           </div>
