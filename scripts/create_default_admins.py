@@ -66,7 +66,7 @@ async def main() -> None:  # noqa: D103
         # 'hulak_provider@gmail.com',
         # 'kryvtsun_provider@gmail.com',
     ]
-    password = 'MyPassw0rd9'
+    password = 'MyPass#w0rd9'
     for email in admin_emails:
         await create_user(email, password, UserRole.ADMIN)
     for email in provider_emails:

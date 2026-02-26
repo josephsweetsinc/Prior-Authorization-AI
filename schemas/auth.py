@@ -1,8 +1,9 @@
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from core import EmailMixinSchema
+from core.schemas import validate_password_strength
 from models.user import UserRole
 
 
@@ -125,12 +126,17 @@ class PasswordResetConfirmSchema(BaseModel):
         Field(
             min_length=8,
             max_length=20,
-            pattern=r'^[A-Za-z\d]{8,20}$',
+            pattern=r'^\S{8,20}$',
             examples=['NewStrongPass9'],
         ),
     ]
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator('new_password')
+    @classmethod
+    def _validate_new_password(cls, value: str) -> str:
+        return validate_password_strength(value)
 
 
 class PasswordChangeRequestSchema(BaseModel):
@@ -141,7 +147,7 @@ class PasswordChangeRequestSchema(BaseModel):
         Field(
             min_length=8,
             max_length=20,
-            pattern=r'^[A-Za-z\d]{8,20}$',
+            pattern=r'^\S{8,20}$',
             examples=['StrongP@ss9'],
         ),
     ]
@@ -150,7 +156,12 @@ class PasswordChangeRequestSchema(BaseModel):
         Field(
             min_length=8,
             max_length=20,
-            pattern=r'^[A-Za-z\d]{8,20}$',
+            pattern=r'^\S{8,20}$',
             examples=['NewStrongP@ss9'],
         ),
     ]
+
+    @field_validator('old_password', 'new_password')
+    @classmethod
+    def _validate_passwords(cls, value: str) -> str:
+        return validate_password_strength(value)
