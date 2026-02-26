@@ -13,6 +13,19 @@ from models.ambulance_request import (
 class DashboardDAO(BaseDAO):
     """DAO with aggregated queries for dashboard_metrics metrics."""
 
+    async def get_average_ai_accuracy(self) -> float:
+        """Get average AI accuracy across all requests that used AI."""
+        stmt = (
+            select(func.avg(AmbulanceRequest.ai_accuracy))
+            .where(
+                AmbulanceRequest.is_active == True,  # noqa: E712
+                AmbulanceRequest.ai_accuracy.is_not(None),
+            )
+        )
+        result = await self._session.execute(stmt)
+        avg_value = result.scalar_one()
+        return float(avg_value or 0.0)
+
     async def get_request_counts_by_status(
         self,
         *,

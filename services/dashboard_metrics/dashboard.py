@@ -221,6 +221,8 @@ class DashboardService(BaseService):
             denied=requests_count.denied_all,
         )
 
+        ai_accuracy_avg = await self._dashboard_dao.get_average_ai_accuracy()
+
         requests_statuses = AdminRequestsStatusesResponseSchema(
             approved_requests=requests_count.approved_all,
             approved_requests_change_percent=approved_change_percent,
@@ -228,7 +230,7 @@ class DashboardService(BaseService):
             pending_avg_wait_time_hours=avg_pending_hours,
             denied_requests=requests_count.denied_all,
             denial_rate_percent=denial_rate,
-            ai_accuracy=0,  # TODO: replace with real AI accuracy metric.
+            ai_accuracy=ai_accuracy_avg,
         )
 
         # Processing distribution: number of approvals per day over 10 days.
