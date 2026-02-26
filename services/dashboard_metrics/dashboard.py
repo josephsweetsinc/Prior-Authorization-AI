@@ -1,13 +1,14 @@
 from datetime import UTC, datetime, timedelta
 from math import ceil
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import BaseService
 from dao import DashboardDAO
 from dto import RequestCountDTO
 from models import User
-from models.ambulance_request import RequestStatus
+from models.ambulance_request import AmbulanceRequest, RequestStatus
 from models.user import UserRole
 from schemas.dasboard import (
     AdminDashboardDataSchema,
@@ -292,17 +293,59 @@ class DashboardService(BaseService):
         recent_history = await self._dashboard_dao.get_recent_status_history(
             limit=3
         )
-        recent_activity: list[RecentActivityItemSchema] = [
-            RecentActivityItemSchema(
-                request_id=history.request_id,
-                status=history.status,
-                author_name='TODO',  # TODO: resolve real author.
-                created_at=history.created_at.replace(tzinfo=UTC)
+        recent_activity: list[RecentActivityItemSchema] = []
+
+        for history in recent_history:
+            author_name = 'System'
+
+            # Resolve author:
+            # - APPROVED / DENIED -> reviewer (admin)
+            # - otherwise        -> request owner (provider)
+            try:
+                request_result = await self._session.execute(
+                    select(AmbulanceRequest).where(
+                        AmbulanceRequest.id == history.request_id
+                    )
+                )
+                request = request_result.scalar_one_or_none()
+
+                if request is not None:
+                    author_user_id: int | None
+                    if history.status in (
+                        RequestStatus.APPROVED,
+                        RequestStatus.DENIED,
+                    ):
+                        author_user_id = request.reviewer_id
+                    else:
+                        author_user_id = request.user_id
+
+                    if author_user_id is not None:
+                        user_result = await self._session.execute(
+                            select(User).where(User.id == author_user_id)
+                        )
+                        user = user_result.scalar_one_or_none()
+                        if user is not None:
+                            parts = [user.name, user.surname]
+                            full_name = ' '.join(p for p in parts if p).strip()
+                            author_name = full_name or user.email
+            except Exception:
+                # Fallback to default 'System' if something goes wrong
+                author_name = 'System'
+
+            created_at = (
+                history.created_at.replace(tzinfo=UTC)
                 if history.created_at.tzinfo is None
-                else history.created_at,
+                else history.created_at
             )
-            for history in recent_history
-        ]
+
+            recent_activity.append(
+                RecentActivityItemSchema(
+                    request_id=history.request_id,
+                    status=history.status,
+                    author_name=author_name,
+                    created_at=created_at,
+                )
+            )
 
         # Denial reasons are currently a stub, will be implemented later.
         denial_reasons = []  # type: ignore
