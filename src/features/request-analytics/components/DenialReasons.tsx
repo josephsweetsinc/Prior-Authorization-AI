@@ -4,7 +4,7 @@ import { type DenialReason } from '@/services/dashboard';
 import { DataTable, EmptyStateMessage, Window } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
-import { denialReasonsColumns } from '../constants';
+import { denialReasonsColumns } from '../configs';
 
 type Props = {
   data: DenialReason[];

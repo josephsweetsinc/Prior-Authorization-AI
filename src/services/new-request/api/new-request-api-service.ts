@@ -21,7 +21,10 @@ export const extractionApi = baseApi.injectEndpoints({
               { type: 'RequestsHistory', id: 'LIST' },
               { type: 'Dashboard', id: 'LIST' },
             ]
-          : [];
+          : [
+              { type: 'RequestsHistory', id: 'LIST' },
+              { type: 'Dashboard', id: 'LIST' },
+            ];
       },
     }),
   }),
