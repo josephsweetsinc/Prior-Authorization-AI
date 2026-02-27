@@ -4,7 +4,7 @@ import { type ProviderRequestProgress } from '@/services/dashboard';
 import { DataTable, EmptyStateMessage, Window } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
-import { requestsInProgressColumns } from '../constants';
+import { requestsInProgressColumns } from '../configs';
 
 type Props = {
   data: ProviderRequestProgress[];

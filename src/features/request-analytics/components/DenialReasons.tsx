@@ -4,7 +4,7 @@ import { type DenialReason } from '@/services/dashboard';
 import { DataTable, EmptyStateMessage, Window } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
-import { denialReasonsColumns } from '../constants';
+import { denialReasonsColumns } from '../configs';
 
 type Props = {
   data: DenialReason[];
@@ -31,10 +31,15 @@ export const DenialReasons = ({ data, className, ...props }: Props) => {
       {...props}
     >
       <h2 className='text-brand-dark text-2xl leading-8 font-bold capitalize'>
-        Requests in Progress
+        Common denial reasons
       </h2>
 
-      <DataTable columns={denialReasonsColumns} data={data} />
+      <div className='max-h-62.5 w-full max-w-full overflow-auto'>
+        <DataTable columns={denialReasonsColumns} data={data}>
+          <DataTable.Header />
+          <DataTable.Body />
+        </DataTable>
+      </div>
     </Window>
   );
 };
