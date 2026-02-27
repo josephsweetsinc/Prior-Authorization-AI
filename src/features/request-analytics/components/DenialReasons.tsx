@@ -11,7 +11,6 @@ type Props = {
 } & Omit<HTMLProps<HTMLDivElement>, 'data'>;
 
 export const DenialReasons = ({ data, className, ...props }: Props) => {
-  console.error('data', data);
   if (data.length === 0) {
     return (
       <Window
