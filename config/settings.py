@@ -185,7 +185,7 @@ class LLMSettings(BaseSettings):
     )
 
     OPENAI_API_KEY: str = ''
-    MODEL_NAME: str = 'gpt-4o-mini'
+    MODEL_NAME: str = 'gpt-5.1'
     TEMPERATURE: float = 0.0
     MAX_TOKENS: int = 4096
     PDF_RENDER_DPI: int = 150
