@@ -4,3 +4,4 @@ export { ForgotPasswordView } from './ForgotPasswordView';
 export { LoginView } from './LoginView';
 export { SignupView } from './SignupView';
 export { CreateNewPasswordView } from './CreateNewPasswordView';
+export { ProfileDeactivatedView } from './ProfileDeactivatedView';
