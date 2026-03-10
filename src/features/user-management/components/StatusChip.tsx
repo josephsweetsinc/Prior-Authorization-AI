@@ -2,11 +2,17 @@ import { Chip, type ChipProps } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 
 type Props = {
-  status: 'active' | 'inactive';
+  status: 'active' | 'inactive' | 'deactivated';
 } & Omit<ChipProps, 'label' | 'variant' | 'status'>;
 
+const variantMap = {
+  active: 'success',
+  inactive: 'default',
+  deactivated: 'destructive',
+} as const;
+
 export const StatusChip = ({ status, className, ...props }: Props) => {
-  const chipVariant = status === 'active' ? 'success' : 'default';
+  const chipVariant = variantMap[status];
 
   return (
     <Chip
