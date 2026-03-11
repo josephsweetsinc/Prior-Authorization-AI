@@ -5,7 +5,7 @@ import { type IUserEntry } from '@/services/user-management';
 export const useUserModals = () => {
   const [selectedUser, setSelectedUser] = useState<IUserEntry | null>(null);
   const [activeModal, setActiveModal] = useState<
-    'create' | 'update' | 'delete' | null
+    'create' | 'update' | 'delete' | 'approve' | null
   >();
 
   const close = () => {
@@ -25,6 +25,10 @@ export const useUserModals = () => {
     setSelectedUser(user);
     setActiveModal('delete');
   };
+  const openApprove = (user: IUserEntry) => {
+    setSelectedUser(user);
+    setActiveModal('approve');
+  };
 
   return {
     selectedUser,
@@ -34,6 +38,7 @@ export const useUserModals = () => {
       openCreate,
       openUpdate,
       openDelete,
+      openApprove,
     },
   };
 };

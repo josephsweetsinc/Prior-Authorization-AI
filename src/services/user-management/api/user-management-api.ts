@@ -63,6 +63,17 @@ const usersApi = baseApi.injectEndpoints({
         { type: 'Users', id: 'LIST' },
       ],
     }),
+
+    approveUser: builder.mutation<IUser, number>({
+      query: (id) => ({
+        url: `/user/${id}/activate`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Users', id },
+        { type: 'Users', id: 'LIST' },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -72,4 +83,5 @@ export const {
   useCreateUserMutation,
   useDeleteUserMutation,
   useUpdateUserMutation,
+  useApproveUserMutation,
 } = usersApi;

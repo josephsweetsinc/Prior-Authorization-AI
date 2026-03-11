@@ -50,6 +50,11 @@ export function LoginForm() {
 
       router.push('/');
     } catch (err) {
+      const detail = (err as { data?: { detail?: string } })?.data?.detail;
+      if (detail === 'User is not active.') {
+        router.push('/profile-deactivated?reason=deactivated');
+        return;
+      }
       handleError(err);
     }
   };

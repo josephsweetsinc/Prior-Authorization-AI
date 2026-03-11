@@ -16,6 +16,7 @@ type Props = {
   data?: IGetUsersResponse;
   onUpdateClick: (_user: IUserEntry) => void;
   onDeleteClick: (_user: IUserEntry) => void;
+  onApproveClick: (_user: IUserEntry) => void;
   paginationState: PaginationState;
   onPaginationChange: (_state: PaginationState) => void;
 } & Omit<HTMLProps<HTMLElement>, 'data'>;
@@ -25,6 +26,7 @@ export const UsersTable = ({
   data,
   onDeleteClick,
   onUpdateClick,
+  onApproveClick,
   paginationState,
   onPaginationChange,
   ...props
@@ -32,6 +34,7 @@ export const UsersTable = ({
   const columns = useGetColumns({
     onUpdate: onUpdateClick,
     onDelete: onDeleteClick,
+    onApprove: onApproveClick,
   });
 
   return (

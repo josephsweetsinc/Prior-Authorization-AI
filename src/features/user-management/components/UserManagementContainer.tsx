@@ -8,6 +8,7 @@ import { useUserFilters, useUserModals } from '../hooks';
 import { type IFilters } from '../types';
 import { buildGetUsersParams } from '../utils';
 
+import { ApproveModal } from './ApproveModal';
 import { CreateModal } from './CreateModal';
 import { DeleteModal } from './DeleteModal';
 import { UserManagementHeader } from './Header';
@@ -54,6 +55,7 @@ export const UserManagementContainer = () => {
         data={data}
         onUpdateClick={handlers.openUpdate}
         onDeleteClick={handlers.openDelete}
+        onApproveClick={handlers.openApprove}
         onPaginationChange={setPagination}
         paginationState={pagination}
       />
@@ -71,6 +73,12 @@ export const UserManagementContainer = () => {
       <DeleteModal
         userId={selectedUser?.id}
         isOpen={activeModal === 'delete'}
+        onCloseAction={handlers.close}
+        className='w-1/2 min-w-[288px]'
+      />
+      <ApproveModal
+        userId={selectedUser?.id}
+        isOpen={activeModal === 'approve'}
         onCloseAction={handlers.close}
         className='w-1/2 min-w-[288px]'
       />

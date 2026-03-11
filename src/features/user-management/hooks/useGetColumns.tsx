@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { Edit } from 'lucide-react';
+import { CircleCheck, Edit } from 'lucide-react';
 
 import { type UserRoles } from '@/services';
 import { type IUserEntry } from '@/services/user-management';
@@ -10,11 +10,11 @@ import { formatLastLogin } from '../utils';
 
 interface Params {
   onDelete: (_user: IUserEntry) => void;
-
   onUpdate: (_user: IUserEntry) => void;
+  onApprove: (_user: IUserEntry) => void;
 }
 
-export const useGetColumns = ({ onUpdate, onDelete }: Params) => {
+export const useGetColumns = ({ onUpdate, onDelete, onApprove }: Params) => {
   const columns: ColumnDef<IUserEntry>[] = [
     {
       id: 'patient',
@@ -36,34 +36,50 @@ export const useGetColumns = ({ onUpdate, onDelete }: Params) => {
       accessorKey: 'is_active',
       header: () => <TableHeadCell>Status</TableHeadCell>,
       cell: ({ getValue }) => (
-        <StatusChip status={getValue<boolean>() ? 'active' : 'inactive'} />
+        <StatusChip status={getValue<boolean>() ? 'active' : 'deactivated'} />
       ),
     },
     {
       accessorKey: 'last_login',
-      header: () => <TableHeadCell>Last login</TableHeadCell>,
+      header: () => <TableHeadCell>Last Approved</TableHeadCell>,
       cell: ({ getValue }) => formatLastLogin(getValue<string>()),
     },
     {
       id: 'actions',
       header: () => <TableHeadCell>Actions</TableHeadCell>,
-      cell: ({ row }) => (
-        <div className='flex items-center gap-3'>
-          <button
-            className='text-status-info flex items-center gap-1 underline'
-            onClick={() => onUpdate(row.original)}
-          >
-            <Edit />
-            <span>Edit</span>
-          </button>
-          <button
-            className='text-status-destructive underline'
-            onClick={() => onDelete(row.original)}
-          >
-            Delete
-          </button>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const isDeactivated = !row.original.is_active;
+
+        if (isDeactivated) {
+          return (
+            <button
+              className='text-status-info flex cursor-pointer items-center gap-1 underline'
+              onClick={() => onApprove(row.original)}
+            >
+              <CircleCheck />
+              <span>Approve</span>
+            </button>
+          );
+        }
+
+        return (
+          <div className='flex items-center gap-3'>
+            <button
+              className='text-status-info flex cursor-pointer items-center gap-1 underline'
+              onClick={() => onUpdate(row.original)}
+            >
+              <Edit />
+              <span>Edit</span>
+            </button>
+            <button
+              className='text-status-destructive cursor-pointer underline'
+              onClick={() => onDelete(row.original)}
+            >
+              Delete
+            </button>
+          </div>
+        );
+      },
     },
   ];
   return columns;
