@@ -266,6 +266,28 @@ class UserDAO(BaseDAO):
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def activate_by_id(self, user_id: int) -> User | None:
+        """Activate a user by id.
+
+        Sets ``is_active = True`` and clears ``deleted_at`` for the given user.
+
+        Args:
+            user_id: User ID.
+
+        Returns:
+            User | None: Activated user instance or None if not found.
+
+        """
+        stmt = (
+            update(User)
+            .where(User.id == user_id)
+            .values(is_active=True, deleted_at=None)
+            .returning(User)
+        )
+
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
     def _build_filter_stmt(
         self,
         *,
