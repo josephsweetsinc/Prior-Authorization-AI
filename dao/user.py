@@ -396,3 +396,29 @@ class UserDAO(BaseDAO):
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def deactivate_unapproved_providers(
+        self,
+        cutoff_date: datetime,
+    ) -> int:
+        """Deactivate providers whose last_approved_at is before the cutoff date.
+
+        Args:
+            cutoff_date: Timestamp before which providers are deactivated.
+
+        Returns:
+            int: Number of deactivated users.
+
+        """
+        stmt = (
+            update(User)
+            .where(
+                User.role == UserRole.PROVIDER,
+                User.is_active.is_(True),
+                User.last_approved_at < cutoff_date,
+            )
+            .values(is_active=False, deleted_at=datetime.now(UTC))
+        )
+        result = await self._session.execute(stmt)
+        return result.rowcount
+

@@ -1,4 +1,5 @@
 import logging
+from datetime import UTC, datetime, timedelta
 from io import BytesIO
 
 from fastapi import UploadFile
@@ -566,3 +567,19 @@ class UserService(BaseService):
         }
 
         return UserResponseShema.model_validate(response_data)
+
+    async def deactivate_unapproved_providers(self) -> int:
+        """Deactivate providers whose last_approved_at is older than 30 days.
+
+        Returns:
+            int: Number of deactivated users.
+        """
+        cutoff_date = datetime.now(UTC) - timedelta(days=30)
+        deactivated_count = (
+            await self._user_dao.deactivate_unapproved_providers(
+                cutoff_date=cutoff_date
+            )
+        )
+        if deactivated_count > 0:
+            await self._session.commit()
+        return deactivated_count
