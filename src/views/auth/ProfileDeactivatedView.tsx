@@ -15,7 +15,13 @@ export function ProfileDeactivatedView(): JSX.Element {
         </p>
       </div>
       <Button variant='primary' size='default' asChild>
-        <a href='mailto:health.paai@gmail.com'>Apply for approval</a>
+        <a
+          href='https://mail.google.com/mail/?view=cm&to=health.paai@gmail.com'
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          Apply for approval
+        </a>
       </Button>
     </div>
   );
