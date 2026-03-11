@@ -8,12 +8,17 @@ export function middleware(request: NextRequest) {
 
   const authRoutes = ['/login', '/sign-up', '/forgot-password'];
 
-  const sensitiveRoutes = ['/create-new-password', '/enter-code'];
+  const sensitiveRoutes = [
+    '/create-new-password',
+    '/enter-code',
+    '/profile-deactivated',
+  ];
 
   const isProtectedRoute =
-    pathname === '/' ||
-    pathname.startsWith('/profile') ||
-    pathname.startsWith('/requests-history');
+    (pathname === '/' ||
+      pathname.startsWith('/profile') ||
+      pathname.startsWith('/requests-history')) &&
+    pathname !== '/profile-deactivated';
   const providerOnlyRoutes = ['/new-request'];
   const adminOnlyRoutes = ['/user-management', '/requests', '/reports'];
 
@@ -37,8 +42,9 @@ export function middleware(request: NextRequest) {
   if (sensitiveRoutes.includes(pathname)) {
     const hasToken = searchParams.has('token');
     const hasCode = searchParams.has('code');
+    const hasReason = searchParams.get('reason') === 'deactivated';
 
-    if (!hasToken && !hasCode) {
+    if (!hasToken && !hasCode && !hasReason) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }

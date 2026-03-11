@@ -66,9 +66,8 @@ const usersApi = baseApi.injectEndpoints({
 
     approveUser: builder.mutation<IUser, number>({
       query: (id) => ({
-        url: `/user/${id}`,
+        url: `/user/${id}/activate`,
         method: 'PATCH',
-        body: { is_active: true },
       }),
       invalidatesTags: (_result, _error, id) => [
         { type: 'Users', id },

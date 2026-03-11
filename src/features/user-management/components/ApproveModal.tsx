@@ -37,13 +37,13 @@ export const ApproveModal = ({ userId, ...props }: Props) => {
     <Modal {...props}>
       <TitleAndDesc
         title='Approve User'
-        subtitle='Are you sure you want to approve this provider?'
         titleClassName='text-lg md:text-xl lg:text-2xl xl:text-3xl'
         subtitleClassName='text-sm md:text-base lg:text-lg'
       />
       <p className='text-gray-dark my-6 text-sm md:text-base lg:text-lg'>
-        Once approved, this provider will have access to the full account
-        history and all associated documents for 30 days.
+        Are you sure you want to approve this provider? <br /> Once approved,
+        this provider will have access to the full account history and all
+        associated documents for 30 days.
       </p>
 
       <div className='flex items-center justify-end gap-3'>
