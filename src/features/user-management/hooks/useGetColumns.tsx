@@ -40,7 +40,7 @@ export const useGetColumns = ({ onUpdate, onDelete, onApprove }: Params) => {
       ),
     },
     {
-      accessorKey: 'last_login',
+      accessorKey: 'last_approved_at',
       header: () => <TableHeadCell>Last Approved</TableHeadCell>,
       cell: ({ getValue }) => formatLastLogin(getValue<string>()),
     },
