@@ -6,7 +6,14 @@ import { clearParams } from '@/shared/lib/utils';
 import { type RoleOptions } from '../types';
 
 export const formatLastLogin = (value: string) => {
-  return format(new Date(value), 'MM/dd/yyyy hh:mm a');
+  if (!value) {
+    return '—';
+  }
+  const date = new Date(value);
+  if (isNaN(date.getTime())) {
+    return '—';
+  }
+  return format(date, 'MM/dd/yyyy hh:mm a');
 };
 
 export const splitFullName = (fullName?: string) => {
